@@ -10,11 +10,13 @@
     --bg: #1a1d22;
     --panel: #2a2e35;
     --panel-2: #343941;
+    --panel-3: #3d424a;
     --border: #4a4f58;
     --text: #e8e6df;
     --muted: #9aa0a6;
     --accent: #6ab04c;
     --accent-2: #ffb347;
+    --accent-3: #8ab4f8;
     --danger: #e55;
     --code-bg: #0e1013;
     --code-text: #a7e85f;
@@ -31,14 +33,14 @@
       radial-gradient(circle at 80% 100%, rgba(255,179,71,0.06) 0%, transparent 40%);
   }
   header {
-    padding: 28px 20px 14px;
+    padding: 24px 20px 12px;
     text-align: center;
     border-bottom: 2px solid var(--border);
   }
   h1 {
     font-family: 'Press Start 2P', monospace;
-    font-size: 20px;
-    margin: 0 0 8px;
+    font-size: 18px;
+    margin: 0 0 6px;
     color: var(--accent);
     text-shadow: 3px 3px 0 #000;
     letter-spacing: 1px;
@@ -47,107 +49,152 @@
   .container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 18px;
     display: grid;
-    gap: 18px;
+    gap: 16px;
   }
   .panel {
     background: var(--panel);
     border: 2px solid var(--border);
     border-radius: 4px;
-    padding: 18px;
+    padding: 16px;
     box-shadow: 4px 4px 0 rgba(0,0,0,0.3);
   }
   .panel h2 {
     font-family: 'Press Start 2P', monospace;
-    font-size: 12px;
-    margin: 0 0 14px;
+    font-size: 11px;
+    margin: 0 0 12px;
     color: var(--accent-2);
     padding-bottom: 8px;
     border-bottom: 1px dashed var(--border);
     letter-spacing: 0.5px;
   }
   .panel h2 .sub { font-family: 'Jost', sans-serif; font-size: 12px; color: var(--muted); margin-left: 8px; font-weight: normal; letter-spacing: 0; }
-  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
-  .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+
+  .mob-card {
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    background: var(--panel);
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .mob-card.main { border-color: var(--accent); }
+  .mob-card.passenger { border-color: var(--accent-3); background: var(--panel-2); }
+  .mob-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: rgba(0,0,0,0.25);
+    cursor: pointer;
+    user-select: none;
+  }
+  .mob-head .lvl-badge {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    padding: 4px 7px;
+    border-radius: 3px;
+    background: var(--accent);
+    color: #000;
+    white-space: nowrap;
+  }
+  .mob-card.passenger .mob-head .lvl-badge { background: var(--accent-3); }
+  .mob-head .mob-title {
+    flex: 1;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .mob-head .mob-title small { color: var(--muted); font-weight: 400; margin-left: 6px; font-size: 12px; }
+  .mob-head .arrow { color: var(--muted); transition: transform .15s; font-size: 14px; }
+  .mob-card.collapsed .arrow { transform: rotate(-90deg); }
+  .mob-card.collapsed .mob-body { display: none; }
+  .mob-body { padding: 14px; }
+
+  .section {
+    margin-bottom: 14px;
+    padding: 12px;
+    background: var(--panel-2);
+    border-radius: 3px;
+    border-left: 3px solid var(--border);
+  }
+  .mob-card.passenger .section { background: var(--panel-3); }
+  .section-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: var(--accent-2);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+
   label {
     display: flex;
     flex-direction: column;
-    font-size: 13px;
+    font-size: 12px;
     color: var(--muted);
     gap: 4px;
   }
-  label span.lab { font-weight: 600; color: var(--text); letter-spacing: 0.3px; }
-  input[type="text"], input[type="number"], input[type="search"], select {
-    background: var(--panel-2);
+  label span.lab { font-weight: 600; color: var(--text); letter-spacing: 0.3px; font-size: 13px; }
+  input[type="text"], input[type="number"], select {
+    background: var(--bg);
     border: 2px solid var(--border);
     color: var(--text);
-    padding: 7px 10px;
+    padding: 6px 8px;
     font-family: 'Jost', sans-serif;
-    font-size: 14px;
+    font-size: 13px;
     border-radius: 3px;
     transition: border-color .15s;
     width: 100%;
   }
   input:focus, select:focus { outline: none; border-color: var(--accent); }
-  input[type="checkbox"] { accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer; }
-  .check-row { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text); padding: 4px 0; cursor: pointer; }
+  input[type="checkbox"] { accent-color: var(--accent); width: 15px; height: 15px; cursor: pointer; }
+  .check-row { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--text); padding: 3px 0; cursor: pointer; }
 
   .slot {
-    background: var(--panel-2);
-    border: 2px solid var(--border);
-    padding: 12px;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--border);
+    padding: 10px;
     border-radius: 3px;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
   }
   .slot-title {
     font-family: 'Press Start 2P', monospace;
-    font-size: 9px;
+    font-size: 8px;
     color: var(--accent);
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     text-transform: uppercase;
     letter-spacing: 1px;
   }
   .enchant-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 6px 14px;
-    margin-top: 10px;
-    max-height: 220px;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 5px 12px;
+    margin-top: 8px;
+    max-height: 200px;
     overflow-y: auto;
-    padding: 8px;
-    background: rgba(0,0,0,0.25);
+    padding: 7px;
+    background: rgba(0,0,0,0.3);
     border-radius: 3px;
   }
   .enchant-row {
     display: grid;
-    grid-template-columns: 1fr 60px;
+    grid-template-columns: 1fr 55px;
     align-items: center;
-    font-size: 12px;
-    gap: 6px;
+    font-size: 11px;
+    gap: 5px;
   }
-  .enchant-row label { flex-direction: row; align-items: center; gap: 6px; cursor: pointer; color: var(--text); }
-  .enchant-row input[type="number"] { padding: 2px 5px; font-size: 12px; }
+  .enchant-row label { flex-direction: row; align-items: center; gap: 5px; cursor: pointer; color: var(--text); font-size: 11px; }
+  .enchant-row input[type="number"] { padding: 2px 4px; font-size: 11px; }
 
-  .passenger {
-    background: var(--panel-2);
-    border-left: 3px solid var(--accent-2);
-    padding: 10px 12px;
-    border-radius: 3px;
-    margin-bottom: 8px;
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 10px;
-    align-items: center;
+  .passenger-controls {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
   }
-  .pass-row { display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: center; }
-  .pass-row .lvl { font-family: 'Press Start 2P', monospace; font-size: 9px; color: var(--accent-2); white-space: nowrap; }
-  .small-btn {
-    background: var(--danger); color: #fff; padding: 5px 9px; font-size: 10px;
-    font-family: 'Press Start 2P', monospace; border: none; cursor: pointer; border-radius: 3px;
-    box-shadow: 1px 1px 0 #000;
-  }
-  .small-btn.add { background: var(--accent); color: #000; }
 
   .output-panel { background: var(--code-bg); border-color: var(--accent); }
   .output-panel h2 { color: var(--accent); }
@@ -170,7 +217,7 @@
     background: var(--accent);
     color: #000;
     border: none;
-    padding: 9px 16px;
+    padding: 9px 14px;
     font-family: 'Press Start 2P', monospace;
     font-size: 9px;
     cursor: pointer;
@@ -183,8 +230,10 @@
   button:active { transform: translate(1px, 1px); box-shadow: 0 0 0 #000; }
   button.sec { background: var(--accent-2); }
   button.danger { background: var(--danger); color: #fff; }
+  button.small { padding: 5px 9px; font-size: 8px; }
+  button.info { background: var(--accent-3); color: #000; }
 
-  .hint { font-size: 12px; color: var(--muted); margin-top: 6px; font-style: italic; }
+  .hint { font-size: 11px; color: var(--muted); margin-top: 4px; font-style: italic; }
   .warn {
     background: rgba(229,85,85,0.15);
     border-left: 3px solid var(--danger);
@@ -193,11 +242,11 @@
     margin-top: 10px;
     border-radius: 2px;
   }
-  details { margin-top: 8px; }
+  details { margin-top: 6px; }
   summary {
     cursor: pointer;
     color: var(--accent-2);
-    font-size: 12px;
+    font-size: 11px;
     padding: 4px 0;
     user-select: none;
   }
@@ -206,131 +255,40 @@
   .char-count.long { color: var(--danger); }
   footer { text-align: center; padding: 18px; color: var(--muted); font-size: 12px; }
 
-  /* выделение группы в select */
   optgroup { font-style: normal; font-weight: 700; color: var(--accent-2); background: var(--panel); }
   option { color: var(--text); background: var(--panel-2); font-weight: normal; }
 
   @media (max-width: 600px) {
-    h1 { font-size: 14px; }
-    .panel { padding: 14px; }
+    h1 { font-size: 13px; }
+    .panel, .mob-body { padding: 12px; }
   }
 </style>
 </head>
 <body>
 <header>
   <h1>⚔ ГЕНЕРАТОР /SUMMON ⚔</h1>
-  <p>Minecraft Java Edition 1.21.5 и новее</p>
+  <p>Minecraft Java Edition 1.21.5 и новее · v3.0</p>
 </header>
 
 <div class="container">
 
-  <!-- ОСНОВНОЕ -->
   <div class="panel">
-    <h2>① Основное</h2>
-    <div class="grid-2">
-      <label><span class="lab">Моб</span>
-        <select id="mob"></select>
-      </label>
-      <label><span class="lab">Координаты</span>
-        <input type="text" id="coords" value="~ ~ ~" placeholder="~ ~ ~">
-      </label>
-      <label><span class="lab">Имя (необязательно)</span>
-        <input type="text" id="name" placeholder="например: Босс">
-      </label>
-      <label><span class="lab">Цвет имени</span>
-        <select id="name-color">
-          <option value="">— без цвета —</option>
-          <option value="white">белый</option>
-          <option value="gray">серый</option>
-          <option value="dark_gray">тёмно-серый</option>
-          <option value="black">чёрный</option>
-          <option value="red">красный</option>
-          <option value="dark_red">тёмно-красный</option>
-          <option value="gold">золотой</option>
-          <option value="yellow">жёлтый</option>
-          <option value="green">зелёный</option>
-          <option value="dark_green">тёмно-зелёный</option>
-          <option value="aqua">бирюзовый</option>
-          <option value="dark_aqua">тёмно-бирюзовый</option>
-          <option value="blue">синий</option>
-          <option value="dark_blue">тёмно-синий</option>
-          <option value="light_purple">розовый</option>
-          <option value="dark_purple">фиолетовый</option>
-        </select>
-      </label>
-    </div>
-    <div class="grid-3" style="margin-top:10px;">
-      <label class="check-row"><input type="checkbox" id="name-bold"> Жирное имя</label>
-      <label class="check-row"><input type="checkbox" id="name-italic"> Курсив</label>
-      <label class="check-row"><input type="checkbox" id="name-visible" checked> Имя всегда видно</label>
+    <h2>Координаты</h2>
+    <label><span class="lab">Где заспавнить</span>
+      <input type="text" id="coords" value="~ ~ ~" placeholder="~ ~ ~">
+    </label>
+    <p class="hint">~ ~ ~ — на месте игрока. ~ ~1 ~ — на 1 блок выше. Точные координаты: 100 64 -200.</p>
+  </div>
+
+  <div class="panel">
+    <h2>Мобы <span class="sub">основной + пассажиры (верхом)</span></h2>
+    <div id="mobs-container"></div>
+    <div class="passenger-controls">
+      <button class="info" onclick="addPassenger()">+ Добавить пассажира</button>
+      <span class="hint" style="align-self:center;">Первый пассажир сидит на основном, второй на первом, и т.д.</span>
     </div>
   </div>
 
-  <!-- ХАРАКТЕРИСТИКИ -->
-  <div class="panel">
-    <h2>② Характеристики <span class="sub">пусто = как у обычного моба</span></h2>
-    <div class="grid-3">
-      <label><span class="lab">Здоровье (HP)</span>
-        <input type="number" id="health" min="1" step="1" placeholder="по умолч.">
-      </label>
-      <label><span class="lab">Скорость (0.0 – 1.0)</span>
-        <input type="number" id="speed" min="0" max="1024" step="0.05" placeholder="по умолч.">
-      </label>
-      <label><span class="lab">Броня (0 – 30)</span>
-        <input type="number" id="armor" min="0" max="30" step="1" placeholder="по умолч.">
-      </label>
-      <label><span class="lab">Урон атаки</span>
-        <input type="number" id="attack" min="0" step="0.5" placeholder="по умолч.">
-      </label>
-      <label><span class="lab">Сопротивление отбрасыванию (0 – 1)</span>
-        <input type="number" id="kb" min="0" max="1" step="0.1" placeholder="по умолч.">
-      </label>
-      <label><span class="lab">Масштаб (размер, 0.1 – 16)</span>
-        <input type="number" id="scale" min="0.1" max="16" step="0.1" placeholder="1.0">
-      </label>
-    </div>
-  </div>
-
-  <!-- ОСОБЕННОСТИ -->
-  <div class="panel">
-    <h2>③ Особенности</h2>
-    <div class="grid-3">
-      <label class="check-row"><input type="checkbox" id="baby"> Ребёнок (маленький)</label>
-      <label class="check-row"><input type="checkbox" id="invul"> Неуязвимый</label>
-      <label class="check-row"><input type="checkbox" id="silent"> Бесшумный</label>
-      <label class="check-row"><input type="checkbox" id="noai"> Без ИИ (не двигается)</label>
-      <label class="check-row"><input type="checkbox" id="noburn"> Не горит на солнце</label>
-      <label class="check-row"><input type="checkbox" id="onfire"> Постоянно горит</label>
-      <label class="check-row"><input type="checkbox" id="glow"> Светится контуром</label>
-      <label class="check-row"><input type="checkbox" id="nogravity"> Без гравитации (летает)</label>
-      <label class="check-row"><input type="checkbox" id="persist" checked> Не исчезает</label>
-      <label class="check-row"><input type="checkbox" id="nobreath"> Не задыхается</label>
-      <label class="check-row"><input type="checkbox" id="rotate"> Смотрит вверх (крутится)</label>
-    </div>
-  </div>
-
-  <!-- СНАРЯЖЕНИЕ -->
-  <div class="panel">
-    <h2>④ Снаряжение и зачарования <span class="sub">уровни до 255 — будет имба</span></h2>
-    <div id="slots"></div>
-  </div>
-
-  <!-- ЭФФЕКТЫ -->
-  <div class="panel">
-    <h2>⑤ Эффекты зелий</h2>
-    <div id="effects-list" class="grid-2"></div>
-    <p class="hint">Сила 0 = I уровень, 1 = II, ... 254 = CCLV. Длительность в тиках (20 = 1 сек, 999999 ≈ вечно).</p>
-  </div>
-
-  <!-- ПАССАЖИРЫ -->
-  <div class="panel">
-    <h2>⑥ Пассажиры <span class="sub">моб верхом на мобе</span></h2>
-    <div id="passengers"></div>
-    <button class="sec" onclick="addPassenger()" style="margin-top:6px;">+ Добавить пассажира</button>
-    <p class="hint">Первый пассажир сидит на основном мобе. Второй — на первом. И так далее. Каждый наследует базовые настройки имени по желанию.</p>
-  </div>
-
-  <!-- ВЫВОД -->
   <div class="panel output-panel">
     <h2>▶ Готовая команда</h2>
     <div id="command-output"></div>
@@ -338,134 +296,66 @@
     <div class="btn-row">
       <button onclick="copyCmd(event)">📋 Копировать</button>
       <button class="sec" onclick="generate()">🔄 Обновить</button>
-      <button class="danger" onclick="resetAll()">✖ Сброс</button>
+      <button class="danger" onclick="resetAll()">✖ Сброс всего</button>
     </div>
     <div id="length-warn"></div>
   </div>
 
   <div class="panel">
     <h2>📖 Как пользоваться</h2>
-    <p style="font-size:14px; line-height:1.6;">
-    1. Выбери моба и настрой его сверху вниз.<br>
-    2. Команда обновляется автоматически.<br>
-    3. Нажми «Копировать» и вставь в игру (чат или командный блок).<br>
-    4. Если длина &gt; 256 символов — нужен командный блок: <code style="background:#000;padding:2px 6px;border-radius:2px;">/give @s command_block</code>, поставь, кликни правой кнопкой, вставь команду, нажми «Готово», активируй рычагом/кнопкой.
+    <p style="font-size:13px; line-height:1.6;">
+    1. Настрой основного моба (зелёная карточка).<br>
+    2. Хочешь «куриного жокея»? Жми «+ Добавить пассажира» — появится синяя карточка с теми же настройками.<br>
+    3. Можно добавлять сколько угодно пассажиров — многоуровневый бутерброд (паук→скелет→зомби).<br>
+    4. Клик по шапке карточки — свернуть, чтобы не мешала.<br>
+    5. Команда обновляется автоматически. Копируй и вставляй в чат или командный блок.
     </p>
   </div>
 </div>
 
-<footer>v2.0 · Minecraft Java Edition 1.21.5+ · полный список мобов, пассажиры, зачарования до 255</footer>
+<footer>v3.0 · каждый пассажир полностью кастомизируется</footer>
 
 <script>
-// ==================== ДАННЫЕ ====================
-
-// Полный список мобов, сгруппированный
 const MOB_GROUPS = [
   { name: 'Враждебные', mobs: [
-    ['zombie', 'Зомби'],
-    ['husk', 'Кадавр'],
-    ['drowned', 'Утопленник'],
-    ['zombie_villager', 'Зомби-житель'],
-    ['skeleton', 'Скелет'],
-    ['stray', 'Заблудший'],
-    ['wither_skeleton', 'Скелет-иссушитель'],
-    ['bogged', 'Замшелый скелет'],
-    ['creeper', 'Крипер'],
-    ['spider', 'Паук'],
-    ['cave_spider', 'Пещерный паук'],
-    ['enderman', 'Странник Края'],
-    ['endermite', 'Эндермит'],
-    ['silverfish', 'Чешуйница'],
-    ['zombified_piglin', 'Зомби-пиглин'],
-    ['piglin', 'Пиглин'],
-    ['piglin_brute', 'Пиглин-громила'],
-    ['blaze', 'Ифрит'],
-    ['ghast', 'Гаст'],
-    ['magma_cube', 'Магма-куб'],
-    ['slime', 'Слизень'],
-    ['hoglin', 'Хоглин'],
-    ['zoglin', 'Зоглин'],
-    ['shulker', 'Шалкер'],
-    ['vex', 'Досаждатель'],
-    ['evoker', 'Призыватель'],
-    ['vindicator', 'Поборник'],
-    ['pillager', 'Разбойник'],
-    ['ravager', 'Разоритель'],
-    ['illusioner', 'Иллюзионист'],
-    ['witch', 'Ведьма'],
-    ['phantom', 'Фантом'],
-    ['guardian', 'Страж'],
-    ['elder_guardian', 'Древний страж'],
-    ['warden', 'Хранитель'],
-    ['breeze', 'Бриз'],
-    ['creaking', 'Скрипень'],
+    ['zombie', 'Зомби'], ['husk', 'Кадавр'], ['drowned', 'Утопленник'], ['zombie_villager', 'Зомби-житель'],
+    ['skeleton', 'Скелет'], ['stray', 'Заблудший'], ['wither_skeleton', 'Скелет-иссушитель'], ['bogged', 'Замшелый скелет'],
+    ['creeper', 'Крипер'], ['spider', 'Паук'], ['cave_spider', 'Пещерный паук'],
+    ['enderman', 'Странник Края'], ['endermite', 'Эндермит'], ['silverfish', 'Чешуйница'],
+    ['zombified_piglin', 'Зомби-пиглин'], ['piglin', 'Пиглин'], ['piglin_brute', 'Пиглин-громила'],
+    ['blaze', 'Ифрит'], ['ghast', 'Гаст'], ['magma_cube', 'Магма-куб'], ['slime', 'Слизень'],
+    ['hoglin', 'Хоглин'], ['zoglin', 'Зоглин'], ['shulker', 'Шалкер'], ['vex', 'Досаждатель'],
+    ['evoker', 'Призыватель'], ['vindicator', 'Поборник'], ['pillager', 'Разбойник'],
+    ['ravager', 'Разоритель'], ['illusioner', 'Иллюзионист'], ['witch', 'Ведьма'], ['phantom', 'Фантом'],
+    ['guardian', 'Страж'], ['elder_guardian', 'Древний страж'], ['warden', 'Хранитель'],
+    ['breeze', 'Бриз'], ['creaking', 'Скрипень'],
   ]},
   { name: 'Боссы', mobs: [
-    ['ender_dragon', 'Дракон Края'],
-    ['wither', 'Иссушитель'],
+    ['ender_dragon', 'Дракон Края'], ['wither', 'Иссушитель'],
   ]},
   { name: 'Нейтральные', mobs: [
-    ['wolf', 'Волк'],
-    ['polar_bear', 'Белый медведь'],
-    ['panda', 'Панда'],
-    ['dolphin', 'Дельфин'],
-    ['fox', 'Лиса'],
-    ['goat', 'Коза'],
-    ['llama', 'Лама'],
-    ['trader_llama', 'Торговая лама'],
-    ['bee', 'Пчела'],
-    ['iron_golem', 'Железный голем'],
-    ['snow_golem', 'Снежный голем'],
-    ['piglin_brute', 'Пиглин-громила'],
+    ['wolf', 'Волк'], ['polar_bear', 'Белый медведь'], ['panda', 'Панда'], ['dolphin', 'Дельфин'],
+    ['fox', 'Лиса'], ['goat', 'Коза'], ['llama', 'Лама'], ['trader_llama', 'Торговая лама'],
+    ['bee', 'Пчела'], ['iron_golem', 'Железный голем'], ['snow_golem', 'Снежный голем'],
     ['pufferfish', 'Рыба-фугу'],
   ]},
   { name: 'Мирные', mobs: [
-    ['cow', 'Корова'],
-    ['mooshroom', 'Грибная корова'],
-    ['pig', 'Свинья'],
-    ['sheep', 'Овца'],
-    ['chicken', 'Курица'],
-    ['rabbit', 'Кролик'],
-    ['horse', 'Лошадь'],
-    ['donkey', 'Осёл'],
-    ['mule', 'Мул'],
-    ['skeleton_horse', 'Скелет-лошадь'],
-    ['zombie_horse', 'Зомби-лошадь'],
-    ['cat', 'Кошка'],
-    ['ocelot', 'Оцелот'],
-    ['parrot', 'Попугай'],
-    ['villager', 'Житель'],
-    ['wandering_trader', 'Странствующий торговец'],
-    ['axolotl', 'Аксолотль'],
-    ['frog', 'Лягушка'],
-    ['tadpole', 'Головастик'],
-    ['turtle', 'Черепаха'],
-    ['bat', 'Летучая мышь'],
-    ['squid', 'Кальмар'],
-    ['glow_squid', 'Сияющий кальмар'],
-    ['cod', 'Треска'],
-    ['salmon', 'Лосось'],
-    ['tropical_fish', 'Тропическая рыба'],
-    ['camel', 'Верблюд'],
-    ['sniffer', 'Нюхач'],
-    ['armadillo', 'Броненосец'],
-    ['allay', 'Аллай'],
-    ['strider', 'Лавоход'],
-    ['happy_ghast', 'Добрый гаст'],
+    ['cow', 'Корова'], ['mooshroom', 'Грибная корова'], ['pig', 'Свинья'], ['sheep', 'Овца'],
+    ['chicken', 'Курица'], ['rabbit', 'Кролик'],
+    ['horse', 'Лошадь'], ['donkey', 'Осёл'], ['mule', 'Мул'], ['skeleton_horse', 'Скелет-лошадь'], ['zombie_horse', 'Зомби-лошадь'],
+    ['cat', 'Кошка'], ['ocelot', 'Оцелот'], ['parrot', 'Попугай'],
+    ['villager', 'Житель'], ['wandering_trader', 'Странствующий торговец'],
+    ['axolotl', 'Аксолотль'], ['frog', 'Лягушка'], ['tadpole', 'Головастик'], ['turtle', 'Черепаха'],
+    ['bat', 'Летучая мышь'], ['squid', 'Кальмар'], ['glow_squid', 'Сияющий кальмар'],
+    ['cod', 'Треска'], ['salmon', 'Лосось'], ['tropical_fish', 'Тропическая рыба'],
+    ['camel', 'Верблюд'], ['sniffer', 'Нюхач'], ['armadillo', 'Броненосец'], ['allay', 'Аллай'],
+    ['strider', 'Лавоход'], ['happy_ghast', 'Добрый гаст'],
   ]},
-  { name: 'Прочее (предметы/техн.)', mobs: [
-    ['armor_stand', 'Стойка для брони'],
-    ['item_frame', 'Рамка'],
-    ['glow_item_frame', 'Сияющая рамка'],
-    ['painting', 'Картина'],
-    ['minecart', 'Вагонетка'],
-    ['boat', 'Лодка'],
-    ['tnt', 'Динамит (упавший)'],
-    ['falling_block', 'Падающий блок'],
-    ['firework_rocket', 'Фейерверк'],
-    ['experience_orb', 'Сфера опыта'],
-    ['lightning_bolt', 'Молния'],
-    ['area_effect_cloud', 'Облако эффектов'],
+  { name: 'Прочее', mobs: [
+    ['armor_stand', 'Стойка для брони'], ['item_frame', 'Рамка'], ['glow_item_frame', 'Сияющая рамка'],
+    ['minecart', 'Вагонетка'], ['boat', 'Лодка'], ['tnt', 'Динамит'],
+    ['firework_rocket', 'Фейерверк'], ['experience_orb', 'Сфера опыта'],
+    ['lightning_bolt', 'Молния'], ['area_effect_cloud', 'Облако эффектов'],
   ]},
 ];
 
@@ -473,12 +363,12 @@ const ALL_MOBS = {};
 MOB_GROUPS.forEach(g => g.mobs.forEach(m => ALL_MOBS[m[0]] = m[1]));
 
 const SLOTS = [
-  { key: 'head', label: 'Шлем',        items: ['netherite_helmet','diamond_helmet','iron_helmet','golden_helmet','chainmail_helmet','leather_helmet','turtle_helmet','carved_pumpkin','player_head','zombie_head','skeleton_skull','creeper_head','dragon_head','piglin_head'] },
-  { key: 'chest', label: 'Нагрудник',  items: ['netherite_chestplate','diamond_chestplate','iron_chestplate','golden_chestplate','chainmail_chestplate','leather_chestplate','elytra'] },
-  { key: 'legs',  label: 'Штаны',       items: ['netherite_leggings','diamond_leggings','iron_leggings','golden_leggings','chainmail_leggings','leather_leggings'] },
-  { key: 'feet',  label: 'Ботинки',     items: ['netherite_boots','diamond_boots','iron_boots','golden_boots','chainmail_boots','leather_boots'] },
+  { key: 'head', label: 'Шлем',         items: ['netherite_helmet','diamond_helmet','iron_helmet','golden_helmet','chainmail_helmet','leather_helmet','turtle_helmet','carved_pumpkin','player_head','zombie_head','skeleton_skull','creeper_head','dragon_head','piglin_head'] },
+  { key: 'chest', label: 'Нагрудник',   items: ['netherite_chestplate','diamond_chestplate','iron_chestplate','golden_chestplate','chainmail_chestplate','leather_chestplate','elytra'] },
+  { key: 'legs',  label: 'Штаны',        items: ['netherite_leggings','diamond_leggings','iron_leggings','golden_leggings','chainmail_leggings','leather_leggings'] },
+  { key: 'feet',  label: 'Ботинки',      items: ['netherite_boots','diamond_boots','iron_boots','golden_boots','chainmail_boots','leather_boots'] },
   { key: 'mainhand', label: 'Правая рука (оружие)', items: ['netherite_sword','diamond_sword','iron_sword','golden_sword','stone_sword','wooden_sword','netherite_axe','diamond_axe','iron_axe','golden_axe','stone_axe','bow','crossbow','trident','mace','totem_of_undying','shield','stick','blaze_rod','nether_star','ender_pearl','snowball','egg','fire_charge'] },
-  { key: 'offhand',  label: 'Левая рука',             items: ['totem_of_undying','shield','bow','crossbow','torch','arrow','spectral_arrow','firework_rocket','glow_berries','nether_star','map'] },
+  { key: 'offhand',  label: 'Левая рука', items: ['totem_of_undying','shield','bow','crossbow','torch','arrow','spectral_arrow','firework_rocket','glow_berries','nether_star','map'] },
 ];
 
 const ITEM_NAMES = {
@@ -509,7 +399,6 @@ const ITEM_NAMES = {
   ender_pearl: 'Жемчуг Края', snowball: 'Снежок', egg: 'Яйцо', fire_charge: 'Огненный шар', map: 'Карта',
 };
 
-// Зачарования
 const ENCHANTS = {
   armor: [
     { id: 'protection', name: 'Защита', max: 4 },
@@ -544,42 +433,30 @@ const ENCHANTS = {
     { id: 'mending', name: 'Починка', max: 1 },
   ],
   bow: [
-    { id: 'power', name: 'Сила', max: 5 },
-    { id: 'punch', name: 'Отдача', max: 2 },
-    { id: 'flame', name: 'Горящая стрела', max: 1 },
-    { id: 'infinity', name: 'Бесконечность', max: 1 },
-    { id: 'unbreaking', name: 'Неразрушимость', max: 3 },
-    { id: 'mending', name: 'Починка', max: 1 },
+    { id: 'power', name: 'Сила', max: 5 }, { id: 'punch', name: 'Отдача', max: 2 },
+    { id: 'flame', name: 'Горящая стрела', max: 1 }, { id: 'infinity', name: 'Бесконечность', max: 1 },
+    { id: 'unbreaking', name: 'Неразрушимость', max: 3 }, { id: 'mending', name: 'Починка', max: 1 },
   ],
   crossbow: [
     { id: 'quick_charge', name: 'Быстрая зарядка', max: 3 },
-    { id: 'multishot', name: 'Мультивыстрел', max: 1 },
-    { id: 'piercing', name: 'Пронзание', max: 4 },
-    { id: 'unbreaking', name: 'Неразрушимость', max: 3 },
-    { id: 'mending', name: 'Починка', max: 1 },
+    { id: 'multishot', name: 'Мультивыстрел', max: 1 }, { id: 'piercing', name: 'Пронзание', max: 4 },
+    { id: 'unbreaking', name: 'Неразрушимость', max: 3 }, { id: 'mending', name: 'Починка', max: 1 },
   ],
   trident: [
-    { id: 'loyalty', name: 'Верность', max: 3 },
-    { id: 'impaling', name: 'Пронзающий', max: 5 },
-    { id: 'riptide', name: 'Тягучесть', max: 3 },
-    { id: 'channeling', name: 'Молния', max: 1 },
+    { id: 'loyalty', name: 'Верность', max: 3 }, { id: 'impaling', name: 'Пронзающий', max: 5 },
+    { id: 'riptide', name: 'Тягучесть', max: 3 }, { id: 'channeling', name: 'Молния', max: 1 },
     { id: 'unbreaking', name: 'Неразрушимость', max: 3 },
   ],
   mace: [
-    { id: 'density', name: 'Плотность', max: 5 },
-    { id: 'breach', name: 'Пробивание', max: 4 },
-    { id: 'wind_burst', name: 'Ветровой взрыв', max: 3 },
-    { id: 'smite', name: 'Небесная кара', max: 5 },
-    { id: 'fire_aspect', name: 'Заговор огня', max: 2 },
-    { id: 'unbreaking', name: 'Неразрушимость', max: 3 },
+    { id: 'density', name: 'Плотность', max: 5 }, { id: 'breach', name: 'Пробивание', max: 4 },
+    { id: 'wind_burst', name: 'Ветровой взрыв', max: 3 }, { id: 'smite', name: 'Небесная кара', max: 5 },
+    { id: 'fire_aspect', name: 'Заговор огня', max: 2 }, { id: 'unbreaking', name: 'Неразрушимость', max: 3 },
   ],
   axe: [
-    { id: 'sharpness', name: 'Острота', max: 5 },
-    { id: 'smite', name: 'Небесная кара', max: 5 },
+    { id: 'sharpness', name: 'Острота', max: 5 }, { id: 'smite', name: 'Небесная кара', max: 5 },
     { id: 'bane_of_arthropods', name: 'Бич членистоногих', max: 5 },
     { id: 'efficiency', name: 'Эффективность', max: 5 },
-    { id: 'unbreaking', name: 'Неразрушимость', max: 3 },
-    { id: 'mending', name: 'Починка', max: 1 },
+    { id: 'unbreaking', name: 'Неразрушимость', max: 3 }, { id: 'mending', name: 'Починка', max: 1 },
   ],
 };
 
@@ -599,59 +476,145 @@ function enchantsForItem(itemId) {
 }
 
 const EFFECTS = [
-  { id: 'speed', name: 'Скорость' },
-  { id: 'slowness', name: 'Замедление' },
-  { id: 'haste', name: 'Спешка' },
-  { id: 'mining_fatigue', name: 'Усталость копания' },
-  { id: 'strength', name: 'Сила' },
-  { id: 'weakness', name: 'Слабость' },
-  { id: 'jump_boost', name: 'Прыгучесть' },
-  { id: 'regeneration', name: 'Регенерация' },
-  { id: 'instant_health', name: 'Мгновенное лечение' },
-  { id: 'instant_damage', name: 'Мгновенный урон' },
-  { id: 'poison', name: 'Отравление' },
-  { id: 'wither', name: 'Иссушение' },
-  { id: 'resistance', name: 'Сопротивление урону' },
-  { id: 'fire_resistance', name: 'Огнестойкость' },
-  { id: 'water_breathing', name: 'Дыхание под водой' },
-  { id: 'invisibility', name: 'Невидимость' },
-  { id: 'night_vision', name: 'Ночное зрение' },
-  { id: 'blindness', name: 'Слепота' },
-  { id: 'nausea', name: 'Тошнота' },
-  { id: 'hunger', name: 'Голод' },
-  { id: 'saturation', name: 'Насыщение' },
-  { id: 'levitation', name: 'Левитация' },
-  { id: 'glowing', name: 'Свечение' },
-  { id: 'slow_falling', name: 'Медленное падение' },
-  { id: 'absorption', name: 'Поглощение' },
-  { id: 'health_boost', name: 'Усиление здоровья' },
-  { id: 'luck', name: 'Удача' },
-  { id: 'conduit_power', name: 'Мощь проводника' },
-  { id: 'dolphins_grace', name: 'Грация дельфина' },
-  { id: 'hero_of_the_village', name: 'Герой деревни' },
-  { id: 'darkness', name: 'Тьма' },
-  { id: 'bad_omen', name: 'Дурное предзнаменование' },
+  ['speed','Скорость'],['slowness','Замедление'],['haste','Спешка'],['mining_fatigue','Усталость копания'],
+  ['strength','Сила'],['weakness','Слабость'],['jump_boost','Прыгучесть'],['regeneration','Регенерация'],
+  ['instant_health','Мгновенное лечение'],['instant_damage','Мгновенный урон'],
+  ['poison','Отравление'],['wither','Иссушение'],
+  ['resistance','Сопротивление урону'],['fire_resistance','Огнестойкость'],['water_breathing','Дыхание под водой'],
+  ['invisibility','Невидимость'],['night_vision','Ночное зрение'],['blindness','Слепота'],
+  ['nausea','Тошнота'],['hunger','Голод'],['saturation','Насыщение'],
+  ['levitation','Левитация'],['glowing','Свечение'],['slow_falling','Медленное падение'],
+  ['absorption','Поглощение'],['health_boost','Усиление здоровья'],['luck','Удача'],
+  ['conduit_power','Мощь проводника'],['dolphins_grace','Грация дельфина'],
+  ['hero_of_the_village','Герой деревни'],['darkness','Тьма'],['bad_omen','Дурное предзнаменование'],
 ];
 
-// ==================== ПОСТРОЕНИЕ ИНТЕРФЕЙСА ====================
+const NAME_COLORS = [
+  ['', '— без цвета —'], ['white','белый'], ['gray','серый'], ['dark_gray','тёмно-серый'],
+  ['black','чёрный'], ['red','красный'], ['dark_red','тёмно-красный'],
+  ['gold','золотой'], ['yellow','жёлтый'], ['green','зелёный'], ['dark_green','тёмно-зелёный'],
+  ['aqua','бирюзовый'], ['dark_aqua','тёмно-бирюзовый'], ['blue','синий'], ['dark_blue','тёмно-синий'],
+  ['light_purple','розовый'], ['dark_purple','фиолетовый'],
+];
 
-function buildMobSelect() {
-  const sel = document.getElementById('mob');
-  MOB_GROUPS.forEach(group => {
-    const og = document.createElement('optgroup');
-    og.label = group.name;
-    group.mobs.forEach(([id, name]) => {
-      const o = document.createElement('option');
-      o.value = id; o.textContent = `${name} (${id})`;
-      og.appendChild(o);
-    });
-    sel.appendChild(og);
-  });
+// ==================== СОСТОЯНИЕ ====================
+let mobs = [];
+let nextMobId = 0;
+
+function createMobState() {
+  return { id: nextMobId++, mobType: 'zombie' };
 }
 
-function buildSlots() {
-  const cont = document.getElementById('slots');
-  cont.innerHTML = '';
+// ==================== ПОСТРОЕНИЕ КАРТОЧКИ ====================
+
+function mobSelectHTML(prefix, selected) {
+  let html = `<select data-field="${prefix}-mob">`;
+  MOB_GROUPS.forEach(group => {
+    html += `<optgroup label="${group.name}">`;
+    group.mobs.forEach(([id, name]) => {
+      html += `<option value="${id}"${id === selected ? ' selected' : ''}>${name} (${id})</option>`;
+    });
+    html += `</optgroup>`;
+  });
+  html += `</select>`;
+  return html;
+}
+
+function buildMobCard(mob, index) {
+  const isMain = index === 0;
+  const prefix = `m${mob.id}`;
+  const levelLabel = isMain ? 'ОСНОВНОЙ' : `ПАССАЖИР №${index}`;
+  const stackInfo = isMain ? 'снизу' : (index === 1 ? 'на основном' : `на пассажире №${index - 1}`);
+
+  const card = document.createElement('div');
+  card.className = `mob-card ${isMain ? 'main' : 'passenger'}`;
+  card.dataset.mobId = mob.id;
+
+  card.innerHTML = `
+    <div class="mob-head" data-toggle="${mob.id}">
+      <span class="lvl-badge">${levelLabel}</span>
+      <span class="mob-title">${ALL_MOBS[mob.mobType] || mob.mobType} <small>${stackInfo}</small></span>
+      ${!isMain ? `<button class="small danger" data-remove="${mob.id}">✖</button>` : ''}
+      <span class="arrow">▼</span>
+    </div>
+    <div class="mob-body">
+
+      <div class="section">
+        <div class="section-title">① Моб и имя</div>
+        <div class="grid-2">
+          <label><span class="lab">Вид моба</span>${mobSelectHTML(prefix, mob.mobType)}</label>
+          <label><span class="lab">Имя (необязательно)</span>
+            <input type="text" data-field="${prefix}-name" placeholder="например: Босс">
+          </label>
+          <label><span class="lab">Цвет имени</span>
+            <select data-field="${prefix}-name-color">
+              ${NAME_COLORS.map(([v,n]) => `<option value="${v}">${n}</option>`).join('')}
+            </select>
+          </label>
+        </div>
+        <div class="grid-3" style="margin-top:8px;">
+          <label class="check-row"><input type="checkbox" data-field="${prefix}-name-bold"> Жирное</label>
+          <label class="check-row"><input type="checkbox" data-field="${prefix}-name-italic"> Курсив</label>
+          <label class="check-row"><input type="checkbox" data-field="${prefix}-name-visible" checked> Всегда видно</label>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">② Характеристики (пусто = по умолчанию)</div>
+        <div class="grid-3">
+          <label><span class="lab">HP</span><input type="number" data-field="${prefix}-health" min="1" step="1" placeholder="по умолч."></label>
+          <label><span class="lab">Скорость (0–1)</span><input type="number" data-field="${prefix}-speed" min="0" max="1024" step="0.05" placeholder="по умолч."></label>
+          <label><span class="lab">Броня (0–30)</span><input type="number" data-field="${prefix}-armor" min="0" max="30" step="1" placeholder="по умолч."></label>
+          <label><span class="lab">Урон атаки</span><input type="number" data-field="${prefix}-attack" min="0" step="0.5" placeholder="по умолч."></label>
+          <label><span class="lab">Сопр. отбрасыв. (0–1)</span><input type="number" data-field="${prefix}-kb" min="0" max="1" step="0.1" placeholder="по умолч."></label>
+          <label><span class="lab">Масштаб (0.1–16)</span><input type="number" data-field="${prefix}-scale" min="0.1" max="16" step="0.1" placeholder="1.0"></label>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">③ Особенности</div>
+        <div class="grid-3">
+          <label class="check-row"><input type="checkbox" data-field="${prefix}-baby"> Ребёнок</label>
+          <label class="check-row"><input type="checkbox" data-field="${prefix}-invul"> Неуязвимый</label>
+          <label class="check-row"><input type="checkbox" data-field="${prefix}-silent"> Бесшумный</label>
+          <label class="check-row"><input type="checkbox" data-field="${prefix}-noai"> Без ИИ</label>
+          <label class="check-row"><input type="checkbox" data-field="${prefix}-noburn"> Не горит на солнце</label>
+          <label class="check-row"><input type="checkbox" data-field="${prefix}-onfire"> Постоянно горит</label>
+          <label class="check-row"><input type="checkbox" data-field="${prefix}-glow"> Светится контуром</label>
+          <label class="check-row"><input type="checkbox" data-field="${prefix}-nogravity"> Без гравитации</label>
+          <label class="check-row"><input type="checkbox" data-field="${prefix}-persist" checked> Не исчезает</label>
+          <label class="check-row"><input type="checkbox" data-field="${prefix}-nobreath"> Не задыхается</label>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">④ Снаряжение и зачарования</div>
+        <div class="slots-container" data-slots-for="${prefix}"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">⑤ Эффекты зелий</div>
+        <details><summary>Открыть список эффектов</summary>
+          <div class="enchant-list">
+            ${EFFECTS.map(([eid, en]) => `
+              <div class="enchant-row" style="grid-template-columns: 1fr 50px 70px;">
+                <label><input type="checkbox" data-field="${prefix}-eff-${eid}"> ${en}</label>
+                <input type="number" min="0" max="255" value="0" data-field="${prefix}-effamp-${eid}" title="Сила (0 = I)">
+                <input type="number" min="1" value="999999" data-field="${prefix}-effdur-${eid}" title="Тики">
+              </div>
+            `).join('')}
+          </div>
+          <p class="hint">Сила 0 = I уровень. Длительность в тиках (20 = 1 сек).</p>
+        </details>
+      </div>
+    </div>
+  `;
+  return card;
+}
+
+function buildSlotsForMob(prefix) {
+  const container = document.querySelector(`[data-slots-for="${prefix}"]`);
+  container.innerHTML = '';
   SLOTS.forEach(slot => {
     const div = document.createElement('div');
     div.className = 'slot';
@@ -659,249 +622,225 @@ function buildSlots() {
       <div class="slot-title">${slot.label}</div>
       <div class="grid-2">
         <label><span class="lab">Предмет</span>
-          <select data-slot="${slot.key}" class="slot-item">
+          <select data-field="${prefix}-slot-${slot.key}" class="slot-item" data-prefix="${prefix}" data-slot-key="${slot.key}">
             <option value="">— пусто —</option>
             ${slot.items.map(i => `<option value="${i}">${ITEM_NAMES[i] || i}</option>`).join('')}
           </select>
         </label>
-        <label><span class="lab">Шанс выпадения (0 — не выпадет, 1 — 100%)</span>
-          <input type="number" data-slot-drop="${slot.key}" min="0" max="1" step="0.1" value="0">
+        <label><span class="lab">Шанс выпадения (0 – 1)</span>
+          <input type="number" data-field="${prefix}-drop-${slot.key}" min="0" max="1" step="0.1" value="0">
         </label>
       </div>
       <details>
-        <summary>Зачарования (клик, чтобы открыть) · выбери предмет сначала</summary>
-        <div class="enchant-list" data-enchants="${slot.key}"></div>
+        <summary>Зачарования (выбери предмет сначала)</summary>
+        <div class="enchant-list" data-ench-for="${prefix}-${slot.key}"></div>
       </details>
     `;
-    cont.appendChild(div);
+    container.appendChild(div);
   });
-
-  document.querySelectorAll('.slot-item').forEach(sel => {
-    sel.addEventListener('change', () => {
-      const slotKey = sel.dataset.slot;
-      const list = document.querySelector(`[data-enchants="${slotKey}"]`);
-      const enchants = enchantsForItem(sel.value);
-      if (!enchants.length) {
-        list.innerHTML = '<p class="hint" style="grid-column:1/-1;">Для этого предмета зачарований нет.</p>';
-      } else {
-        list.innerHTML = enchants.map(e => `
-          <div class="enchant-row">
-            <label><input type="checkbox" data-ench="${slotKey}-${e.id}"> ${e.name} <span style="color:var(--muted);font-size:10px;">(ванилла: ${e.max})</span></label>
-            <input type="number" min="1" max="255" value="${e.max}" data-ench-lvl="${slotKey}-${e.id}" title="Уровень (1-255)">
-          </div>
-        `).join('');
-        list.querySelectorAll('input').forEach(i => i.addEventListener('input', generate));
-      }
-      generate();
-    });
-  });
-  document.querySelectorAll('[data-slot-drop]').forEach(i => i.addEventListener('input', generate));
 }
 
-function buildEffects() {
-  const cont = document.getElementById('effects-list');
-  cont.innerHTML = EFFECTS.map(e => `
-    <div class="enchant-row" style="grid-template-columns: 1fr 55px 80px;">
-      <label class="check-row"><input type="checkbox" data-eff="${e.id}"> ${e.name}</label>
-      <input type="number" min="0" max="255" value="0" data-eff-amp="${e.id}" title="Сила (0 = I)">
-      <input type="number" min="1" value="999999" data-eff-dur="${e.id}" title="Длительность в тиках">
-    </div>
-  `).join('');
-  cont.querySelectorAll('input').forEach(i => i.addEventListener('input', generate));
+function refreshEnchantList(prefix, slotKey) {
+  const sel = document.querySelector(`[data-field="${prefix}-slot-${slotKey}"]`);
+  const list = document.querySelector(`[data-ench-for="${prefix}-${slotKey}"]`);
+  if (!sel || !list) return;
+  const enchants = enchantsForItem(sel.value);
+  if (!enchants.length) {
+    list.innerHTML = '<p class="hint" style="grid-column:1/-1;">Для этого предмета зачарований нет.</p>';
+  } else {
+    list.innerHTML = enchants.map(e => `
+      <div class="enchant-row">
+        <label><input type="checkbox" data-field="${prefix}-ench-${slotKey}-${e.id}"> ${e.name} <span style="color:var(--muted);font-size:10px;">(${e.max})</span></label>
+        <input type="number" min="1" max="255" value="${e.max}" data-field="${prefix}-enchlvl-${slotKey}-${e.id}">
+      </div>
+    `).join('');
+  }
 }
 
-// ==================== ПАССАЖИРЫ ====================
+// ==================== УПРАВЛЕНИЕ ====================
 
-let passengerCount = 0;
+function renderAll() {
+  const cont = document.getElementById('mobs-container');
+  cont.innerHTML = '';
+  mobs.forEach((mob, i) => {
+    cont.appendChild(buildMobCard(mob, i));
+    buildSlotsForMob(`m${mob.id}`);
+  });
+}
 
 function addPassenger() {
-  passengerCount++;
-  const id = passengerCount;
-  const cont = document.getElementById('passengers');
-  const div = document.createElement('div');
-  div.className = 'passenger';
-  div.dataset.pid = id;
-  div.innerHTML = `
-    <div class="pass-row">
-      <span class="lvl">Уровень ${getPassLevel()}</span>
-      <select data-pass-mob="${id}"></select>
-    </div>
-    <button class="small-btn" onclick="removePassenger(${id})">✖</button>
-  `;
-  cont.appendChild(div);
-  // заполнить select
-  const sel = div.querySelector('select');
-  MOB_GROUPS.forEach(group => {
-    const og = document.createElement('optgroup');
-    og.label = group.name;
-    group.mobs.forEach(([mid, mname]) => {
-      const o = document.createElement('option');
-      o.value = mid; o.textContent = mname;
-      og.appendChild(o);
-    });
-    sel.appendChild(og);
-  });
-  sel.addEventListener('change', generate);
-  updatePassLevels();
+  mobs.push(createMobState());
+  renderAll();
   generate();
 }
 
-function removePassenger(id) {
-  const el = document.querySelector(`[data-pid="${id}"]`);
-  if (el) el.remove();
-  updatePassLevels();
+function removeMob(mobId) {
+  mobs = mobs.filter(m => m.id !== mobId);
+  renderAll();
   generate();
 }
 
-function getPassLevel() {
-  return document.querySelectorAll('.passenger').length + 1;
-}
+// Делегирование событий на весь контейнер мобов
+function setupEventDelegation() {
+  const cont = document.getElementById('mobs-container');
 
-function updatePassLevels() {
-  document.querySelectorAll('.passenger').forEach((p, i) => {
-    p.querySelector('.lvl').textContent = `Уровень ${i + 2}`;
+  cont.addEventListener('click', (e) => {
+    const rm = e.target.closest('[data-remove]');
+    if (rm) {
+      e.stopPropagation();
+      removeMob(parseInt(rm.dataset.remove));
+      return;
+    }
+    const head = e.target.closest('[data-toggle]');
+    if (head) {
+      head.closest('.mob-card').classList.toggle('collapsed');
+    }
+  });
+
+  cont.addEventListener('input', (e) => {
+    handleChange(e);
+    generate();
+  });
+  cont.addEventListener('change', (e) => {
+    handleChange(e);
+    generate();
   });
 }
 
-// ==================== ГЕНЕРАЦИЯ КОМАНДЫ ====================
+function handleChange(e) {
+  const el = e.target;
 
-function buildEquipmentPart() {
-  const equipParts = [];
-  const dropParts = [];
-  SLOTS.forEach(slot => {
-    const sel = document.querySelector(`[data-slot="${slot.key}"]`);
-    const itemId = sel.value;
-    if (itemId) {
-      const enchants = [];
-      document.querySelectorAll(`[data-ench^="${slot.key}-"]:checked`).forEach(cb => {
-        const enchId = cb.dataset.ench.substring(slot.key.length + 1);
-        const lvlInput = document.querySelector(`[data-ench-lvl="${slot.key}-${enchId}"]`);
-        const lvl = parseInt(lvlInput.value) || 1;
-        enchants.push(`${enchId}:${lvl}`);
-      });
-      let itemStr = `${slot.key}:{id:${itemId},count:1`;
-      if (enchants.length) {
-        itemStr += `,components:{enchantments:{${enchants.join(',')}}}`;
-      }
-      itemStr += '}';
-      equipParts.push(itemStr);
+  // смена вида моба — обновить заголовок карточки
+  const mobMatch = el.dataset.field && el.dataset.field.match(/^m(\d+)-mob$/);
+  if (mobMatch) {
+    const mobId = parseInt(mobMatch[1]);
+    const mob = mobs.find(m => m.id === mobId);
+    if (mob) {
+      mob.mobType = el.value;
+      const card = document.querySelector(`[data-mob-id="${mobId}"]`);
+      const title = card.querySelector('.mob-title');
+      const idx = mobs.indexOf(mob);
+      const stackInfo = idx === 0 ? 'снизу' : (idx === 1 ? 'на основном' : `на пассажире №${idx - 1}`);
+      title.innerHTML = `${ALL_MOBS[el.value]} <small>${stackInfo}</small>`;
     }
-    const dropInput = document.querySelector(`[data-slot-drop="${slot.key}"]`);
-    const dropVal = parseFloat(dropInput.value);
-    if (!isNaN(dropVal) && dropVal !== 0) {
-      dropParts.push(`${slot.key}:${dropVal.toFixed(2)}f`);
-    }
-  });
-  return { equipParts, dropParts };
+  }
+
+  // смена предмета в слоте — перестроить список зачарований
+  if (el.classList && el.classList.contains('slot-item')) {
+    refreshEnchantList(el.dataset.prefix, el.dataset.slotKey);
+  }
 }
 
-function buildMobNBT() {
+// ==================== ГЕНЕРАЦИЯ ====================
+
+function val(prefix, field) {
+  const el = document.querySelector(`[data-field="${prefix}-${field}"]`);
+  if (!el) return null;
+  if (el.type === 'checkbox') return el.checked;
+  return el.value;
+}
+
+function buildNBTPartsFor(prefix) {
   const parts = [];
 
-  // Имя
-  const name = document.getElementById('name').value.trim();
+  const name = (val(prefix, 'name') || '').trim();
   if (name) {
-    const color = document.getElementById('name-color').value;
-    const bold = document.getElementById('name-bold').checked;
-    const italic = document.getElementById('name-italic').checked;
+    const color = val(prefix, 'name-color');
+    const bold = val(prefix, 'name-bold');
+    const italic = val(prefix, 'name-italic');
     const nameObj = { text: name };
     if (color) nameObj.color = color;
     if (bold) nameObj.bold = true;
     if (italic) nameObj.italic = true;
     parts.push(`CustomName:${JSON.stringify(nameObj)}`);
-    if (document.getElementById('name-visible').checked) {
-      parts.push('CustomNameVisible:1b');
-    }
+    if (val(prefix, 'name-visible')) parts.push('CustomNameVisible:1b');
   }
 
-  // Особенности
-  if (document.getElementById('baby').checked) parts.push('IsBaby:1b');
-  if (document.getElementById('invul').checked) parts.push('Invulnerable:1b');
-  if (document.getElementById('silent').checked) parts.push('Silent:1b');
-  if (document.getElementById('noai').checked) parts.push('NoAI:1b');
-  if (document.getElementById('noburn').checked) parts.push('Fire:-1s');
-  if (document.getElementById('onfire').checked) parts.push('Fire:32767s');
-  if (document.getElementById('glow').checked) parts.push('Glowing:1b');
-  if (document.getElementById('nogravity').checked) parts.push('NoGravity:1b');
-  if (document.getElementById('persist').checked) parts.push('PersistenceRequired:1b');
-  if (document.getElementById('nobreath').checked) parts.push('Air:32767s');
-  if (document.getElementById('rotate').checked) parts.push('Rotation:[0.0f,-90.0f]');
+  if (val(prefix, 'baby')) parts.push('IsBaby:1b');
+  if (val(prefix, 'invul')) parts.push('Invulnerable:1b');
+  if (val(prefix, 'silent')) parts.push('Silent:1b');
+  if (val(prefix, 'noai')) parts.push('NoAI:1b');
+  if (val(prefix, 'noburn')) parts.push('Fire:-1s');
+  if (val(prefix, 'onfire')) parts.push('Fire:32767s');
+  if (val(prefix, 'glow')) parts.push('Glowing:1b');
+  if (val(prefix, 'nogravity')) parts.push('NoGravity:1b');
+  if (val(prefix, 'persist')) parts.push('PersistenceRequired:1b');
+  if (val(prefix, 'nobreath')) parts.push('Air:32767s');
 
-  // Характеристики
-  const health = document.getElementById('health').value;
   const attrs = [];
+  const health = val(prefix, 'health');
   if (health) {
     parts.push(`Health:${parseFloat(health).toFixed(1)}f`);
     attrs.push(`{id:"minecraft:max_health",base:${parseFloat(health)}}`);
   }
-  const speed = document.getElementById('speed').value;
+  const speed = val(prefix, 'speed');
   if (speed) attrs.push(`{id:"minecraft:movement_speed",base:${parseFloat(speed)}}`);
-  const armor = document.getElementById('armor').value;
+  const armor = val(prefix, 'armor');
   if (armor) attrs.push(`{id:"minecraft:armor",base:${parseInt(armor)}}`);
-  const attack = document.getElementById('attack').value;
+  const attack = val(prefix, 'attack');
   if (attack) attrs.push(`{id:"minecraft:attack_damage",base:${parseFloat(attack)}}`);
-  const kb = document.getElementById('kb').value;
+  const kb = val(prefix, 'kb');
   if (kb) attrs.push(`{id:"minecraft:knockback_resistance",base:${parseFloat(kb)}}`);
-  const scale = document.getElementById('scale').value;
+  const scale = val(prefix, 'scale');
   if (scale) attrs.push(`{id:"minecraft:scale",base:${parseFloat(scale)}}`);
   if (attrs.length) parts.push(`attributes:[${attrs.join(',')}]`);
 
-  // Снаряжение
-  const { equipParts, dropParts } = buildEquipmentPart();
+  const equipParts = [];
+  const dropParts = [];
+  SLOTS.forEach(slot => {
+    const itemId = val(prefix, `slot-${slot.key}`);
+    if (itemId) {
+      const enchants = [];
+      document.querySelectorAll(`[data-field^="${prefix}-ench-${slot.key}-"]:checked`).forEach(cb => {
+        const enchId = cb.dataset.field.substring(`${prefix}-ench-${slot.key}-`.length);
+        const lvl = parseInt(val(prefix, `enchlvl-${slot.key}-${enchId}`)) || 1;
+        enchants.push(`${enchId}:${lvl}`);
+      });
+      let itemStr = `${slot.key}:{id:${itemId},count:1`;
+      if (enchants.length) itemStr += `,components:{enchantments:{${enchants.join(',')}}}`;
+      itemStr += '}';
+      equipParts.push(itemStr);
+    }
+    const dropVal = parseFloat(val(prefix, `drop-${slot.key}`));
+    if (!isNaN(dropVal) && dropVal !== 0) dropParts.push(`${slot.key}:${dropVal.toFixed(2)}f`);
+  });
   if (equipParts.length) parts.push(`equipment:{${equipParts.join(',')}}`);
   if (dropParts.length) parts.push(`drop_chances:{${dropParts.join(',')}}`);
 
-  // Эффекты
   const effects = [];
-  document.querySelectorAll('[data-eff]:checked').forEach(cb => {
-    const id = cb.dataset.eff;
-    const amp = document.querySelector(`[data-eff-amp="${id}"]`).value || 0;
-    const dur = document.querySelector(`[data-eff-dur="${id}"]`).value || 999999;
-    effects.push(`{id:"minecraft:${id}",amplifier:${parseInt(amp)},duration:${parseInt(dur)},show_particles:1b}`);
+  EFFECTS.forEach(([eid]) => {
+    if (val(prefix, `eff-${eid}`)) {
+      const amp = parseInt(val(prefix, `effamp-${eid}`)) || 0;
+      const dur = parseInt(val(prefix, `effdur-${eid}`)) || 999999;
+      effects.push(`{id:"minecraft:${eid}",amplifier:${amp},duration:${dur},show_particles:1b}`);
+    }
   });
   if (effects.length) parts.push(`active_effects:[${effects.join(',')}]`);
-
-  // Пассажиры (вложенно: первый на main, второй на первом и т.д.)
-  const passSelects = Array.from(document.querySelectorAll('[data-pass-mob]'));
-  if (passSelects.length) {
-    // собираем с конца: самый верхний — самый внутренний
-    let nested = null;
-    for (let i = passSelects.length - 1; i >= 0; i--) {
-      const mobId = passSelects[i].value;
-      const p = { id: `minecraft:${mobId}` };
-      if (nested) p.Passengers = [nested];
-      nested = p;
-    }
-    // Преобразуем в SNBT-строку
-    parts.push(`Passengers:[${snbtify(nested)}]`);
-  }
 
   return parts;
 }
 
-// Преобразует обычный JS-объект в SNBT-строку (для пассажиров)
-function snbtify(obj) {
-  if (Array.isArray(obj)) {
-    return '[' + obj.map(snbtify).join(',') + ']';
-  }
-  if (typeof obj === 'object' && obj !== null) {
-    const parts = Object.entries(obj).map(([k, v]) => {
-      if (k === 'id') return `${k}:"${v}"`;
-      return `${k}:${snbtify(v)}`;
-    });
-    return '{' + parts.join(',') + '}';
-  }
-  if (typeof obj === 'string') return `"${obj}"`;
-  return String(obj);
-}
-
 function generate() {
-  const mob = document.getElementById('mob').value;
-  const coords = document.getElementById('coords').value.trim() || '~ ~ ~';
-  const parts = buildMobNBT();
+  if (mobs.length === 0) return;
+  const coords = (document.getElementById('coords').value || '~ ~ ~').trim();
 
-  const nbt = parts.length ? ` {${parts.join(', ')}}` : '';
-  const cmd = `/summon minecraft:${mob} ${coords}${nbt}`;
+  // Рекурсивное построение: внутренний пассажир входит в Passengers предыдущего
+  function buildAt(idx) {
+    const parts = buildNBTPartsFor(`m${mobs[idx].id}`);
+    if (idx < mobs.length - 1) {
+      const nextIdx = idx + 1;
+      const nextParts = buildAt(nextIdx);
+      const nextId = mobs[nextIdx].mobType;
+      const passNBT = `{id:"minecraft:${nextId}"` + (nextParts.length ? ',' + nextParts.join(',') : '') + '}';
+      parts.push(`Passengers:[${passNBT}]`);
+    }
+    return parts;
+  }
+
+  const mainParts = buildAt(0);
+  const mainType = mobs[0].mobType;
+  const nbt = mainParts.length ? ` {${mainParts.join(', ')}}` : '';
+  const cmd = `/summon minecraft:${mainType} ${coords}${nbt}`;
 
   document.getElementById('command-output').textContent = cmd;
 
@@ -910,7 +849,7 @@ function generate() {
   cc.className = 'char-count' + (cmd.length > 256 ? ' long' : '');
   const warn = document.getElementById('length-warn');
   warn.innerHTML = cmd.length > 256
-    ? '<div class="warn">⚠ Команда длиннее 256 символов — в чат не поместится. Используй командный блок: <code>/give @s command_block</code>, поставь его, правый клик, вставь команду.</div>'
+    ? '<div class="warn">⚠ Команда длиннее 256 символов — в чат не поместится. Используй командный блок: <code>/give @s command_block</code>, поставь, правый клик, вставь команду.</div>'
     : '';
 }
 
@@ -925,39 +864,18 @@ function copyCmd(evt) {
 }
 
 function resetAll() {
-  if (!confirm('Сбросить все настройки?')) return;
-  document.querySelectorAll('input[type="text"], input[type="number"]').forEach(i => {
-    if (i.id === 'coords') i.value = '~ ~ ~';
-    else if (i.dataset.slotDrop) i.value = '0';
-    else if (i.dataset.effAmp) i.value = '0';
-    else if (i.dataset.effDur) i.value = '999999';
-    else if (i.dataset.enchLvl) i.value = i.max || 1;
-    else i.value = '';
-  });
-  document.querySelectorAll('input[type="checkbox"]').forEach(i => {
-    i.checked = (i.id === 'persist' || i.id === 'name-visible');
-  });
-  document.querySelectorAll('select').forEach(s => {
-    if (s.id === 'mob') s.selectedIndex = 0;
-    else if (!s.dataset.passMob) s.value = '';
-  });
-  document.querySelectorAll('[data-enchants]').forEach(el => el.innerHTML = '');
-  document.getElementById('passengers').innerHTML = '';
-  passengerCount = 0;
+  if (!confirm('Сбросить все настройки и пассажиров?')) return;
+  mobs = [createMobState()];
+  document.getElementById('coords').value = '~ ~ ~';
+  renderAll();
   generate();
 }
 
 // ==================== СТАРТ ====================
-
-buildMobSelect();
-buildSlots();
-buildEffects();
-
-document.querySelectorAll('input, select').forEach(el => {
-  el.addEventListener('input', generate);
-  el.addEventListener('change', generate);
-});
-
+mobs.push(createMobState());
+renderAll();
+setupEventDelegation();
+document.getElementById('coords').addEventListener('input', generate);
 generate();
 </script>
 </body>
