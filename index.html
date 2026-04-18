@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Генератор /summon — Minecraft 1.21.5+</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Jost:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1a1d22;
+    --panel: #2a2e35;
+    --panel-2: #343941;
+    --border: #4a4f58;
+    --text: #e8e6df;
+    --muted: #9aa0a6;
+    --accent: #6ab04c;
+    --accent-2: #ffb347;
+    --danger: #e55;
+    --code-bg: #0e1013;
+    --code-text: #a7e85f;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Jost', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    background-image:
+      radial-gradient(circle at 20% 0%, rgba(106,176,76,0.08) 0%, transparent 40%),
+      radial-gradient(circle at 80% 100%, rgba(255,179,71,0.06) 0%, transparent 40%);
+  }
+  header {
+    padding: 28px 20px 14px;
+    text-align: center;
+    border-bottom: 2px solid var(--border);
+  }
+  h1 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 20px;
+    margin: 0 0 8px;
+    color: var(--accent);
+    text-shadow: 3px 3px 0 #000;
+    letter-spacing: 1px;
+  }
+  header p { color: var(--muted); margin: 4px 0; font-size: 13px; }
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    display: grid;
+    gap: 18px;
+  }
+  .panel {
+    background: var(--panel);
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    padding: 18px;
+    box-shadow: 4px 4px 0 rgba(0,0,0,0.3);
+  }
+  .panel h2 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 12px;
+    margin: 0 0 14px;
+    color: var(--accent-2);
+    padding-bottom: 8px;
+    border-bottom: 1px dashed var(--border);
+    letter-spacing: 0.5px;
+  }
+  .panel h2 .sub { font-family: 'Jost', sans-serif; font-size: 12px; color: var(--muted); margin-left: 8px; font-weight: normal; letter-spacing: 0; }
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+  label {
+    display: flex;
+    flex-direction: column;
+    font-size: 13px;
+    color: var(--muted);
+    gap: 4px;
+  }
+  label span.lab { font-weight: 600; color: var(--text); letter-spacing: 0.3px; }
+  input[type="text"], input[type="number"], input[type="search"], select {
+    background: var(--panel-2);
+    border: 2px solid var(--border);
+    color: var(--text);
+    padding: 7px 10px;
+    font-family: 'Jost', sans-serif;
+    font-size: 14px;
+    border-radius: 3px;
+    transition: border-color .15s;
+    width: 100%;
+  }
+  input:focus, select:focus { outline: none; border-color: var(--accent); }
+  input[type="checkbox"] { accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer; }
+  .check-row { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text); padding: 4px 0; cursor: pointer; }
+
+  .slot {
+    background: var(--panel-2);
+    border: 2px solid var(--border);
+    padding: 12px;
+    border-radius: 3px;
+    margin-bottom: 12px;
+  }
+  .slot-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: var(--accent);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .enchant-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 6px 14px;
+    margin-top: 10px;
+    max-height: 220px;
+    overflow-y: auto;
+    padding: 8px;
+    background: rgba(0,0,0,0.25);
+    border-radius: 3px;
+  }
+  .enchant-row {
+    display: grid;
+    grid-template-columns: 1fr 60px;
+    align-items: center;
+    font-size: 12px;
+    gap: 6px;
+  }
+  .enchant-row label { flex-direction: row; align-items: center; gap: 6px; cursor: pointer; color: var(--text); }
+  .enchant-row input[type="number"] { padding: 2px 5px; font-size: 12px; }
+
+  .passenger {
+    background: var(--panel-2);
+    border-left: 3px solid var(--accent-2);
+    padding: 10px 12px;
+    border-radius: 3px;
+    margin-bottom: 8px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: center;
+  }
+  .pass-row { display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: center; }
+  .pass-row .lvl { font-family: 'Press Start 2P', monospace; font-size: 9px; color: var(--accent-2); white-space: nowrap; }
+  .small-btn {
+    background: var(--danger); color: #fff; padding: 5px 9px; font-size: 10px;
+    font-family: 'Press Start 2P', monospace; border: none; cursor: pointer; border-radius: 3px;
+    box-shadow: 1px 1px 0 #000;
+  }
+  .small-btn.add { background: var(--accent); color: #000; }
+
+  .output-panel { background: var(--code-bg); border-color: var(--accent); }
+  .output-panel h2 { color: var(--accent); }
+  #command-output {
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    line-height: 1.4;
+    color: var(--code-text);
+    background: #000;
+    padding: 14px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 280px;
+    overflow-y: auto;
+  }
+  .btn-row { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  button {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    padding: 9px 16px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    cursor: pointer;
+    border-radius: 3px;
+    letter-spacing: 1px;
+    box-shadow: 2px 2px 0 #000;
+    transition: transform .1s;
+  }
+  button:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 #000; }
+  button:active { transform: translate(1px, 1px); box-shadow: 0 0 0 #000; }
+  button.sec { background: var(--accent-2); }
+  button.danger { background: var(--danger); color: #fff; }
+
+  .hint { font-size: 12px; color: var(--muted); margin-top: 6px; font-style: italic; }
+  .warn {
+    background: rgba(229,85,85,0.15);
+    border-left: 3px solid var(--danger);
+    padding: 8px 12px;
+    font-size: 13px;
+    margin-top: 10px;
+    border-radius: 2px;
+  }
+  details { margin-top: 8px; }
+  summary {
+    cursor: pointer;
+    color: var(--accent-2);
+    font-size: 12px;
+    padding: 4px 0;
+    user-select: none;
+  }
+  summary:hover { color: var(--accent); }
+  .char-count { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .char-count.long { color: var(--danger); }
+  footer { text-align: center; padding: 18px; color: var(--muted); font-size: 12px; }
+
+  /* выделение группы в select */
+  optgroup { font-style: normal; font-weight: 700; color: var(--accent-2); background: var(--panel); }
+  option { color: var(--text); background: var(--panel-2); font-weight: normal; }
+
+  @media (max-width: 600px) {
+    h1 { font-size: 14px; }
+    .panel { padding: 14px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>⚔ ГЕНЕРАТОР /SUMMON ⚔</h1>
+  <p>Minecraft Java Edition 1.21.5 и новее</p>
+</header>
+
+<div class="container">
+
+  <!-- ОСНОВНОЕ -->
+  <div class="panel">
+    <h2>① Основное</h2>
+    <div class="grid-2">
+      <label><span class="lab">Моб</span>
+        <select id="mob"></select>
+      </label>
+      <label><span class="lab">Координаты</span>
+        <input type="text" id="coords" value="~ ~ ~" placeholder="~ ~ ~">
+      </label>
+      <label><span class="lab">Имя (необязательно)</span>
+        <input type="text" id="name" placeholder="например: Босс">
+      </label>
+      <label><span class="lab">Цвет имени</span>
+        <select id="name-color">
+          <option value="">— без цвета —</option>
+          <option value="white">белый</option>
+          <option value="gray">серый</option>
+          <option value="dark_gray">тёмно-серый</option>
+          <option value="black">чёрный</option>
+          <option value="red">красный</option>
+          <option value="dark_red">тёмно-красный</option>
+          <option value="gold">золотой</option>
+          <option value="yellow">жёлтый</option>
+          <option value="green">зелёный</option>
+          <option value="dark_green">тёмно-зелёный</option>
+          <option value="aqua">бирюзовый</option>
+          <option value="dark_aqua">тёмно-бирюзовый</option>
+          <option value="blue">синий</option>
+          <option value="dark_blue">тёмно-синий</option>
+          <option value="light_purple">розовый</option>
+          <option value="dark_purple">фиолетовый</option>
+        </select>
+      </label>
+    </div>
+    <div class="grid-3" style="margin-top:10px;">
+      <label class="check-row"><input type="checkbox" id="name-bold"> Жирное имя</label>
+      <label class="check-row"><input type="checkbox" id="name-italic"> Курсив</label>
+      <label class="check-row"><input type="checkbox" id="name-visible" checked> Имя всегда видно</label>
+    </div>
+  </div>
+
+  <!-- ХАРАКТЕРИСТИКИ -->
+  <div class="panel">
+    <h2>② Характеристики <span class="sub">пусто = как у обычного моба</span></h2>
+    <div class="grid-3">
+      <label><span class="lab">Здоровье (HP)</span>
+        <input type="number" id="health" min="1" step="1" placeholder="по умолч.">
+      </label>
+      <label><span class="lab">Скорость (0.0 – 1.0)</span>
+        <input type="number" id="speed" min="0" max="1024" step="0.05" placeholder="по умолч.">
+      </label>
+      <label><span class="lab">Броня (0 – 30)</span>
+        <input type="number" id="armor" min="0" max="30" step="1" placeholder="по умолч.">
+      </label>
+      <label><span class="lab">Урон атаки</span>
+        <input type="number" id="attack" min="0" step="0.5" placeholder="по умолч.">
+      </label>
+      <label><span class="lab">Сопротивление отбрасыванию (0 – 1)</span>
+        <input type="number" id="kb" min="0" max="1" step="0.1" placeholder="по умолч.">
+      </label>
+      <label><span class="lab">Масштаб (размер, 0.1 – 16)</span>
+        <input type="number" id="scale" min="0.1" max="16" step="0.1" placeholder="1.0">
+      </label>
+    </div>
+  </div>
+
+  <!-- ОСОБЕННОСТИ -->
+  <div class="panel">
+    <h2>③ Особенности</h2>
+    <div class="grid-3">
+      <label class="check-row"><input type="checkbox" id="baby"> Ребёнок (маленький)</label>
+      <label class="check-row"><input type="checkbox" id="invul"> Неуязвимый</label>
+      <label class="check-row"><input type="checkbox" id="silent"> Бесшумный</label>
+      <label class="check-row"><input type="checkbox" id="noai"> Без ИИ (не двигается)</label>
+      <label class="check-row"><input type="checkbox" id="noburn"> Не горит на солнце</label>
+      <label class="check-row"><input type="checkbox" id="onfire"> Постоянно горит</label>
+      <label class="check-row"><input type="checkbox" id="glow"> Светится контуром</label>
+      <label class="check-row"><input type="checkbox" id="nogravity"> Без гравитации (летает)</label>
+      <label class="check-row"><input type="checkbox" id="persist" checked> Не исчезает</label>
+      <label class="check-row"><input type="checkbox" id="nobreath"> Не задыхается</label>
+      <label class="check-row"><input type="checkbox" id="rotate"> Смотрит вверх (крутится)</label>
+    </div>
+  </div>
+
+  <!-- СНАРЯЖЕНИЕ -->
+  <div class="panel">
+    <h2>④ Снаряжение и зачарования <span class="sub">уровни до 255 — будет имба</span></h2>
+    <div id="slots"></div>
+  </div>
+
+  <!-- ЭФФЕКТЫ -->
+  <div class="panel">
+    <h2>⑤ Эффекты зелий</h2>
+    <div id="effects-list" class="grid-2"></div>
+    <p class="hint">Сила 0 = I уровень, 1 = II, ... 254 = CCLV. Длительность в тиках (20 = 1 сек, 999999 ≈ вечно).</p>
+  </div>
+
+  <!-- ПАССАЖИРЫ -->
+  <div class="panel">
+    <h2>⑥ Пассажиры <span class="sub">моб верхом на мобе</span></h2>
+    <div id="passengers"></div>
+    <button class="sec" onclick="addPassenger()" style="margin-top:6px;">+ Добавить пассажира</button>
+    <p class="hint">Первый пассажир сидит на основном мобе. Второй — на первом. И так далее. Каждый наследует базовые настройки имени по желанию.</p>
+  </div>
+
+  <!-- ВЫВОД -->
+  <div class="panel output-panel">
+    <h2>▶ Готовая команда</h2>
+    <div id="command-output"></div>
+    <div class="char-count" id="char-count"></div>
+    <div class="btn-row">
+      <button onclick="copyCmd(event)">📋 Копировать</button>
+      <button class="sec" onclick="generate()">🔄 Обновить</button>
+      <button class="danger" onclick="resetAll()">✖ Сброс</button>
+    </div>
+    <div id="length-warn"></div>
+  </div>
+
+  <div class="panel">
+    <h2>📖 Как пользоваться</h2>
+    <p style="font-size:14px; line-height:1.6;">
+    1. Выбери моба и настрой его сверху вниз.<br>
+    2. Команда обновляется автоматически.<br>
+    3. Нажми «Копировать» и вставь в игру (чат или командный блок).<br>
+    4. Если длина &gt; 256 символов — нужен командный блок: <code style="background:#000;padding:2px 6px;border-radius:2px;">/give @s command_block</code>, поставь, кликни правой кнопкой, вставь команду, нажми «Готово», активируй рычагом/кнопкой.
+    </p>
+  </div>
+</div>
+
+<footer>v2.0 · Minecraft Java Edition 1.21.5+ · полный список мобов, пассажиры, зачарования до 255</footer>
+
+<script>
+// ==================== ДАННЫЕ ====================
+
+// Полный список мобов, сгруппированный
+const MOB_GROUPS = [
+  { name: 'Враждебные', mobs: [
+    ['zombie', 'Зомби'],
+    ['husk', 'Кадавр'],
+    ['drowned', 'Утопленник'],
+    ['zombie_villager', 'Зомби-житель'],
+    ['skeleton', 'Скелет'],
+    ['stray', 'Заблудший'],
+    ['wither_skeleton', 'Скелет-иссушитель'],
+    ['bogged', 'Замшелый скелет'],
+    ['creeper', 'Крипер'],
+    ['spider', 'Паук'],
+    ['cave_spider', 'Пещерный паук'],
+    ['enderman', 'Странник Края'],
+    ['endermite', 'Эндермит'],
+    ['silverfish', 'Чешуйница'],
+    ['zombified_piglin', 'Зомби-пиглин'],
+    ['piglin', 'Пиглин'],
+    ['piglin_brute', 'Пиглин-громила'],
+    ['blaze', 'Ифрит'],
+    ['ghast', 'Гаст'],
+    ['magma_cube', 'Магма-куб'],
+    ['slime', 'Слизень'],
+    ['hoglin', 'Хоглин'],
+    ['zoglin', 'Зоглин'],
+    ['shulker', 'Шалкер'],
+    ['vex', 'Досаждатель'],
+    ['evoker', 'Призыватель'],
+    ['vindicator', 'Поборник'],
+    ['pillager', 'Разбойник'],
+    ['ravager', 'Разоритель'],
+    ['illusioner', 'Иллюзионист'],
+    ['witch', 'Ведьма'],
+    ['phantom', 'Фантом'],
+    ['guardian', 'Страж'],
+    ['elder_guardian', 'Древний страж'],
+    ['warden', 'Хранитель'],
+    ['breeze', 'Бриз'],
+    ['creaking', 'Скрипень'],
+  ]},
+  { name: 'Боссы', mobs: [
+    ['ender_dragon', 'Дракон Края'],
+    ['wither', 'Иссушитель'],
+  ]},
+  { name: 'Нейтральные', mobs: [
+    ['wolf', 'Волк'],
+    ['polar_bear', 'Белый медведь'],
+    ['panda', 'Панда'],
+    ['dolphin', 'Дельфин'],
+    ['fox', 'Лиса'],
+    ['goat', 'Коза'],
+    ['llama', 'Лама'],
+    ['trader_llama', 'Торговая лама'],
+    ['bee', 'Пчела'],
+    ['iron_golem', 'Железный голем'],
+    ['snow_golem', 'Снежный голем'],
+    ['piglin_brute', 'Пиглин-громила'],
+    ['pufferfish', 'Рыба-фугу'],
+  ]},
+  { name: 'Мирные', mobs: [
+    ['cow', 'Корова'],
+    ['mooshroom', 'Грибная корова'],
+    ['pig', 'Свинья'],
+    ['sheep', 'Овца'],
+    ['chicken', 'Курица'],
+    ['rabbit', 'Кролик'],
+    ['horse', 'Лошадь'],
+    ['donkey', 'Осёл'],
+    ['mule', 'Мул'],
+    ['skeleton_horse', 'Скелет-лошадь'],
+    ['zombie_horse', 'Зомби-лошадь'],
+    ['cat', 'Кошка'],
+    ['ocelot', 'Оцелот'],
+    ['parrot', 'Попугай'],
+    ['villager', 'Житель'],
+    ['wandering_trader', 'Странствующий торговец'],
+    ['axolotl', 'Аксолотль'],
+    ['frog', 'Лягушка'],
+    ['tadpole', 'Головастик'],
+    ['turtle', 'Черепаха'],
+    ['bat', 'Летучая мышь'],
+    ['squid', 'Кальмар'],
+    ['glow_squid', 'Сияющий кальмар'],
+    ['cod', 'Треска'],
+    ['salmon', 'Лосось'],
+    ['tropical_fish', 'Тропическая рыба'],
+    ['camel', 'Верблюд'],
+    ['sniffer', 'Нюхач'],
+    ['armadillo', 'Броненосец'],
+    ['allay', 'Аллай'],
+    ['strider', 'Лавоход'],
+    ['happy_ghast', 'Добрый гаст'],
+  ]},
+  { name: 'Прочее (предметы/техн.)', mobs: [
+    ['armor_stand', 'Стойка для брони'],
+    ['item_frame', 'Рамка'],
+    ['glow_item_frame', 'Сияющая рамка'],
+    ['painting', 'Картина'],
+    ['minecart', 'Вагонетка'],
+    ['boat', 'Лодка'],
+    ['tnt', 'Динамит (упавший)'],
+    ['falling_block', 'Падающий блок'],
+    ['firework_rocket', 'Фейерверк'],
+    ['experience_orb', 'Сфера опыта'],
+    ['lightning_bolt', 'Молния'],
+    ['area_effect_cloud', 'Облако эффектов'],
+  ]},
+];
+
+const ALL_MOBS = {};
+MOB_GROUPS.forEach(g => g.mobs.forEach(m => ALL_MOBS[m[0]] = m[1]));
+
+const SLOTS = [
+  { key: 'head', label: 'Шлем',        items: ['netherite_helmet','diamond_helmet','iron_helmet','golden_helmet','chainmail_helmet','leather_helmet','turtle_helmet','carved_pumpkin','player_head','zombie_head','skeleton_skull','creeper_head','dragon_head','piglin_head'] },
+  { key: 'chest', label: 'Нагрудник',  items: ['netherite_chestplate','diamond_chestplate','iron_chestplate','golden_chestplate','chainmail_chestplate','leather_chestplate','elytra'] },
+  { key: 'legs',  label: 'Штаны',       items: ['netherite_leggings','diamond_leggings','iron_leggings','golden_leggings','chainmail_leggings','leather_leggings'] },
+  { key: 'feet',  label: 'Ботинки',     items: ['netherite_boots','diamond_boots','iron_boots','golden_boots','chainmail_boots','leather_boots'] },
+  { key: 'mainhand', label: 'Правая рука (оружие)', items: ['netherite_sword','diamond_sword','iron_sword','golden_sword','stone_sword','wooden_sword','netherite_axe','diamond_axe','iron_axe','golden_axe','stone_axe','bow','crossbow','trident','mace','totem_of_undying','shield','stick','blaze_rod','nether_star','ender_pearl','snowball','egg','fire_charge'] },
+  { key: 'offhand',  label: 'Левая рука',             items: ['totem_of_undying','shield','bow','crossbow','torch','arrow','spectral_arrow','firework_rocket','glow_berries','nether_star','map'] },
+];
+
+const ITEM_NAMES = {
+  netherite_helmet: 'Незеритовый шлем', diamond_helmet: 'Алмазный шлем', iron_helmet: 'Железный шлем',
+  golden_helmet: 'Золотой шлем', chainmail_helmet: 'Кольчужный шлем', leather_helmet: 'Кожаный шлем',
+  turtle_helmet: 'Черепаший панцирь', carved_pumpkin: 'Вырезанная тыква',
+  player_head: 'Голова игрока', zombie_head: 'Голова зомби', skeleton_skull: 'Череп скелета',
+  creeper_head: 'Голова крипера', dragon_head: 'Голова дракона', piglin_head: 'Голова пиглина',
+  netherite_chestplate: 'Незеритовый нагрудник', diamond_chestplate: 'Алмазный нагрудник',
+  iron_chestplate: 'Железный нагрудник', golden_chestplate: 'Золотой нагрудник',
+  chainmail_chestplate: 'Кольчужный нагрудник', leather_chestplate: 'Кожаный нагрудник', elytra: 'Элитры',
+  netherite_leggings: 'Незеритовые штаны', diamond_leggings: 'Алмазные штаны',
+  iron_leggings: 'Железные штаны', golden_leggings: 'Золотые штаны',
+  chainmail_leggings: 'Кольчужные штаны', leather_leggings: 'Кожаные штаны',
+  netherite_boots: 'Незеритовые ботинки', diamond_boots: 'Алмазные ботинки',
+  iron_boots: 'Железные ботинки', golden_boots: 'Золотые ботинки',
+  chainmail_boots: 'Кольчужные ботинки', leather_boots: 'Кожаные ботинки',
+  netherite_sword: 'Незеритовый меч', diamond_sword: 'Алмазный меч',
+  iron_sword: 'Железный меч', golden_sword: 'Золотой меч',
+  stone_sword: 'Каменный меч', wooden_sword: 'Деревянный меч',
+  netherite_axe: 'Незеритовый топор', diamond_axe: 'Алмазный топор', iron_axe: 'Железный топор',
+  golden_axe: 'Золотой топор', stone_axe: 'Каменный топор',
+  bow: 'Лук', crossbow: 'Арбалет', trident: 'Трезубец', mace: 'Булава',
+  totem_of_undying: 'Тотем бессмертия', shield: 'Щит',
+  torch: 'Факел', arrow: 'Стрела', spectral_arrow: 'Спектральная стрела',
+  firework_rocket: 'Фейерверк', glow_berries: 'Светящиеся ягоды',
+  stick: 'Палка', blaze_rod: 'Огненный стержень', nether_star: 'Звезда Нижнего мира',
+  ender_pearl: 'Жемчуг Края', snowball: 'Снежок', egg: 'Яйцо', fire_charge: 'Огненный шар', map: 'Карта',
+};
+
+// Зачарования
+const ENCHANTS = {
+  armor: [
+    { id: 'protection', name: 'Защита', max: 4 },
+    { id: 'fire_protection', name: 'Огнезащита', max: 4 },
+    { id: 'blast_protection', name: 'Взрывозащита', max: 4 },
+    { id: 'projectile_protection', name: 'Защита от снарядов', max: 4 },
+    { id: 'thorns', name: 'Шипы', max: 3 },
+    { id: 'unbreaking', name: 'Неразрушимость', max: 3 },
+    { id: 'mending', name: 'Починка', max: 1 },
+    { id: 'binding_curse', name: 'Проклятие несъёмности', max: 1 },
+    { id: 'vanishing_curse', name: 'Проклятие исчезновения', max: 1 },
+  ],
+  helmet_extra: [
+    { id: 'respiration', name: 'Подводное дыхание', max: 3 },
+    { id: 'aqua_affinity', name: 'Подводник', max: 1 },
+  ],
+  boots_extra: [
+    { id: 'feather_falling', name: 'Невесомость', max: 4 },
+    { id: 'depth_strider', name: 'Ходьба по воде', max: 3 },
+    { id: 'frost_walker', name: 'Ледоход', max: 2 },
+    { id: 'soul_speed', name: 'Скольжение по душам', max: 3 },
+  ],
+  sword: [
+    { id: 'sharpness', name: 'Острота', max: 5 },
+    { id: 'smite', name: 'Небесная кара (нежить)', max: 5 },
+    { id: 'bane_of_arthropods', name: 'Бич членистоногих', max: 5 },
+    { id: 'knockback', name: 'Отбрасывание', max: 2 },
+    { id: 'fire_aspect', name: 'Заговор огня', max: 2 },
+    { id: 'looting', name: 'Добыча', max: 3 },
+    { id: 'sweeping_edge', name: 'Разящий клинок', max: 3 },
+    { id: 'unbreaking', name: 'Неразрушимость', max: 3 },
+    { id: 'mending', name: 'Починка', max: 1 },
+  ],
+  bow: [
+    { id: 'power', name: 'Сила', max: 5 },
+    { id: 'punch', name: 'Отдача', max: 2 },
+    { id: 'flame', name: 'Горящая стрела', max: 1 },
+    { id: 'infinity', name: 'Бесконечность', max: 1 },
+    { id: 'unbreaking', name: 'Неразрушимость', max: 3 },
+    { id: 'mending', name: 'Починка', max: 1 },
+  ],
+  crossbow: [
+    { id: 'quick_charge', name: 'Быстрая зарядка', max: 3 },
+    { id: 'multishot', name: 'Мультивыстрел', max: 1 },
+    { id: 'piercing', name: 'Пронзание', max: 4 },
+    { id: 'unbreaking', name: 'Неразрушимость', max: 3 },
+    { id: 'mending', name: 'Починка', max: 1 },
+  ],
+  trident: [
+    { id: 'loyalty', name: 'Верность', max: 3 },
+    { id: 'impaling', name: 'Пронзающий', max: 5 },
+    { id: 'riptide', name: 'Тягучесть', max: 3 },
+    { id: 'channeling', name: 'Молния', max: 1 },
+    { id: 'unbreaking', name: 'Неразрушимость', max: 3 },
+  ],
+  mace: [
+    { id: 'density', name: 'Плотность', max: 5 },
+    { id: 'breach', name: 'Пробивание', max: 4 },
+    { id: 'wind_burst', name: 'Ветровой взрыв', max: 3 },
+    { id: 'smite', name: 'Небесная кара', max: 5 },
+    { id: 'fire_aspect', name: 'Заговор огня', max: 2 },
+    { id: 'unbreaking', name: 'Неразрушимость', max: 3 },
+  ],
+  axe: [
+    { id: 'sharpness', name: 'Острота', max: 5 },
+    { id: 'smite', name: 'Небесная кара', max: 5 },
+    { id: 'bane_of_arthropods', name: 'Бич членистоногих', max: 5 },
+    { id: 'efficiency', name: 'Эффективность', max: 5 },
+    { id: 'unbreaking', name: 'Неразрушимость', max: 3 },
+    { id: 'mending', name: 'Починка', max: 1 },
+  ],
+};
+
+function enchantsForItem(itemId) {
+  if (!itemId) return [];
+  if (itemId.endsWith('_helmet') || itemId === 'turtle_helmet') return [...ENCHANTS.armor, ...ENCHANTS.helmet_extra];
+  if (itemId.endsWith('_chestplate') || itemId === 'elytra') return [...ENCHANTS.armor];
+  if (itemId.endsWith('_leggings')) return [...ENCHANTS.armor];
+  if (itemId.endsWith('_boots')) return [...ENCHANTS.armor, ...ENCHANTS.boots_extra];
+  if (itemId.endsWith('_sword')) return ENCHANTS.sword;
+  if (itemId.endsWith('_axe')) return ENCHANTS.axe;
+  if (itemId === 'bow') return ENCHANTS.bow;
+  if (itemId === 'crossbow') return ENCHANTS.crossbow;
+  if (itemId === 'trident') return ENCHANTS.trident;
+  if (itemId === 'mace') return ENCHANTS.mace;
+  return [];
+}
+
+const EFFECTS = [
+  { id: 'speed', name: 'Скорость' },
+  { id: 'slowness', name: 'Замедление' },
+  { id: 'haste', name: 'Спешка' },
+  { id: 'mining_fatigue', name: 'Усталость копания' },
+  { id: 'strength', name: 'Сила' },
+  { id: 'weakness', name: 'Слабость' },
+  { id: 'jump_boost', name: 'Прыгучесть' },
+  { id: 'regeneration', name: 'Регенерация' },
+  { id: 'instant_health', name: 'Мгновенное лечение' },
+  { id: 'instant_damage', name: 'Мгновенный урон' },
+  { id: 'poison', name: 'Отравление' },
+  { id: 'wither', name: 'Иссушение' },
+  { id: 'resistance', name: 'Сопротивление урону' },
+  { id: 'fire_resistance', name: 'Огнестойкость' },
+  { id: 'water_breathing', name: 'Дыхание под водой' },
+  { id: 'invisibility', name: 'Невидимость' },
+  { id: 'night_vision', name: 'Ночное зрение' },
+  { id: 'blindness', name: 'Слепота' },
+  { id: 'nausea', name: 'Тошнота' },
+  { id: 'hunger', name: 'Голод' },
+  { id: 'saturation', name: 'Насыщение' },
+  { id: 'levitation', name: 'Левитация' },
+  { id: 'glowing', name: 'Свечение' },
+  { id: 'slow_falling', name: 'Медленное падение' },
+  { id: 'absorption', name: 'Поглощение' },
+  { id: 'health_boost', name: 'Усиление здоровья' },
+  { id: 'luck', name: 'Удача' },
+  { id: 'conduit_power', name: 'Мощь проводника' },
+  { id: 'dolphins_grace', name: 'Грация дельфина' },
+  { id: 'hero_of_the_village', name: 'Герой деревни' },
+  { id: 'darkness', name: 'Тьма' },
+  { id: 'bad_omen', name: 'Дурное предзнаменование' },
+];
+
+// ==================== ПОСТРОЕНИЕ ИНТЕРФЕЙСА ====================
+
+function buildMobSelect() {
+  const sel = document.getElementById('mob');
+  MOB_GROUPS.forEach(group => {
+    const og = document.createElement('optgroup');
+    og.label = group.name;
+    group.mobs.forEach(([id, name]) => {
+      const o = document.createElement('option');
+      o.value = id; o.textContent = `${name} (${id})`;
+      og.appendChild(o);
+    });
+    sel.appendChild(og);
+  });
+}
+
+function buildSlots() {
+  const cont = document.getElementById('slots');
+  cont.innerHTML = '';
+  SLOTS.forEach(slot => {
+    const div = document.createElement('div');
+    div.className = 'slot';
+    div.innerHTML = `
+      <div class="slot-title">${slot.label}</div>
+      <div class="grid-2">
+        <label><span class="lab">Предмет</span>
+          <select data-slot="${slot.key}" class="slot-item">
+            <option value="">— пусто —</option>
+            ${slot.items.map(i => `<option value="${i}">${ITEM_NAMES[i] || i}</option>`).join('')}
+          </select>
+        </label>
+        <label><span class="lab">Шанс выпадения (0 — не выпадет, 1 — 100%)</span>
+          <input type="number" data-slot-drop="${slot.key}" min="0" max="1" step="0.1" value="0">
+        </label>
+      </div>
+      <details>
+        <summary>Зачарования (клик, чтобы открыть) · выбери предмет сначала</summary>
+        <div class="enchant-list" data-enchants="${slot.key}"></div>
+      </details>
+    `;
+    cont.appendChild(div);
+  });
+
+  document.querySelectorAll('.slot-item').forEach(sel => {
+    sel.addEventListener('change', () => {
+      const slotKey = sel.dataset.slot;
+      const list = document.querySelector(`[data-enchants="${slotKey}"]`);
+      const enchants = enchantsForItem(sel.value);
+      if (!enchants.length) {
+        list.innerHTML = '<p class="hint" style="grid-column:1/-1;">Для этого предмета зачарований нет.</p>';
+      } else {
+        list.innerHTML = enchants.map(e => `
+          <div class="enchant-row">
+            <label><input type="checkbox" data-ench="${slotKey}-${e.id}"> ${e.name} <span style="color:var(--muted);font-size:10px;">(ванилла: ${e.max})</span></label>
+            <input type="number" min="1" max="255" value="${e.max}" data-ench-lvl="${slotKey}-${e.id}" title="Уровень (1-255)">
+          </div>
+        `).join('');
+        list.querySelectorAll('input').forEach(i => i.addEventListener('input', generate));
+      }
+      generate();
+    });
+  });
+  document.querySelectorAll('[data-slot-drop]').forEach(i => i.addEventListener('input', generate));
+}
+
+function buildEffects() {
+  const cont = document.getElementById('effects-list');
+  cont.innerHTML = EFFECTS.map(e => `
+    <div class="enchant-row" style="grid-template-columns: 1fr 55px 80px;">
+      <label class="check-row"><input type="checkbox" data-eff="${e.id}"> ${e.name}</label>
+      <input type="number" min="0" max="255" value="0" data-eff-amp="${e.id}" title="Сила (0 = I)">
+      <input type="number" min="1" value="999999" data-eff-dur="${e.id}" title="Длительность в тиках">
+    </div>
+  `).join('');
+  cont.querySelectorAll('input').forEach(i => i.addEventListener('input', generate));
+}
+
+// ==================== ПАССАЖИРЫ ====================
+
+let passengerCount = 0;
+
+function addPassenger() {
+  passengerCount++;
+  const id = passengerCount;
+  const cont = document.getElementById('passengers');
+  const div = document.createElement('div');
+  div.className = 'passenger';
+  div.dataset.pid = id;
+  div.innerHTML = `
+    <div class="pass-row">
+      <span class="lvl">Уровень ${getPassLevel()}</span>
+      <select data-pass-mob="${id}"></select>
+    </div>
+    <button class="small-btn" onclick="removePassenger(${id})">✖</button>
+  `;
+  cont.appendChild(div);
+  // заполнить select
+  const sel = div.querySelector('select');
+  MOB_GROUPS.forEach(group => {
+    const og = document.createElement('optgroup');
+    og.label = group.name;
+    group.mobs.forEach(([mid, mname]) => {
+      const o = document.createElement('option');
+      o.value = mid; o.textContent = mname;
+      og.appendChild(o);
+    });
+    sel.appendChild(og);
+  });
+  sel.addEventListener('change', generate);
+  updatePassLevels();
+  generate();
+}
+
+function removePassenger(id) {
+  const el = document.querySelector(`[data-pid="${id}"]`);
+  if (el) el.remove();
+  updatePassLevels();
+  generate();
+}
+
+function getPassLevel() {
+  return document.querySelectorAll('.passenger').length + 1;
+}
+
+function updatePassLevels() {
+  document.querySelectorAll('.passenger').forEach((p, i) => {
+    p.querySelector('.lvl').textContent = `Уровень ${i + 2}`;
+  });
+}
+
+// ==================== ГЕНЕРАЦИЯ КОМАНДЫ ====================
+
+function buildEquipmentPart() {
+  const equipParts = [];
+  const dropParts = [];
+  SLOTS.forEach(slot => {
+    const sel = document.querySelector(`[data-slot="${slot.key}"]`);
+    const itemId = sel.value;
+    if (itemId) {
+      const enchants = [];
+      document.querySelectorAll(`[data-ench^="${slot.key}-"]:checked`).forEach(cb => {
+        const enchId = cb.dataset.ench.substring(slot.key.length + 1);
+        const lvlInput = document.querySelector(`[data-ench-lvl="${slot.key}-${enchId}"]`);
+        const lvl = parseInt(lvlInput.value) || 1;
+        enchants.push(`${enchId}:${lvl}`);
+      });
+      let itemStr = `${slot.key}:{id:${itemId},count:1`;
+      if (enchants.length) {
+        itemStr += `,components:{enchantments:{${enchants.join(',')}}}`;
+      }
+      itemStr += '}';
+      equipParts.push(itemStr);
+    }
+    const dropInput = document.querySelector(`[data-slot-drop="${slot.key}"]`);
+    const dropVal = parseFloat(dropInput.value);
+    if (!isNaN(dropVal) && dropVal !== 0) {
+      dropParts.push(`${slot.key}:${dropVal.toFixed(2)}f`);
+    }
+  });
+  return { equipParts, dropParts };
+}
+
+function buildMobNBT() {
+  const parts = [];
+
+  // Имя
+  const name = document.getElementById('name').value.trim();
+  if (name) {
+    const color = document.getElementById('name-color').value;
+    const bold = document.getElementById('name-bold').checked;
+    const italic = document.getElementById('name-italic').checked;
+    const nameObj = { text: name };
+    if (color) nameObj.color = color;
+    if (bold) nameObj.bold = true;
+    if (italic) nameObj.italic = true;
+    parts.push(`CustomName:${JSON.stringify(nameObj)}`);
+    if (document.getElementById('name-visible').checked) {
+      parts.push('CustomNameVisible:1b');
+    }
+  }
+
+  // Особенности
+  if (document.getElementById('baby').checked) parts.push('IsBaby:1b');
+  if (document.getElementById('invul').checked) parts.push('Invulnerable:1b');
+  if (document.getElementById('silent').checked) parts.push('Silent:1b');
+  if (document.getElementById('noai').checked) parts.push('NoAI:1b');
+  if (document.getElementById('noburn').checked) parts.push('Fire:-1s');
+  if (document.getElementById('onfire').checked) parts.push('Fire:32767s');
+  if (document.getElementById('glow').checked) parts.push('Glowing:1b');
+  if (document.getElementById('nogravity').checked) parts.push('NoGravity:1b');
+  if (document.getElementById('persist').checked) parts.push('PersistenceRequired:1b');
+  if (document.getElementById('nobreath').checked) parts.push('Air:32767s');
+  if (document.getElementById('rotate').checked) parts.push('Rotation:[0.0f,-90.0f]');
+
+  // Характеристики
+  const health = document.getElementById('health').value;
+  const attrs = [];
+  if (health) {
+    parts.push(`Health:${parseFloat(health).toFixed(1)}f`);
+    attrs.push(`{id:"minecraft:max_health",base:${parseFloat(health)}}`);
+  }
+  const speed = document.getElementById('speed').value;
+  if (speed) attrs.push(`{id:"minecraft:movement_speed",base:${parseFloat(speed)}}`);
+  const armor = document.getElementById('armor').value;
+  if (armor) attrs.push(`{id:"minecraft:armor",base:${parseInt(armor)}}`);
+  const attack = document.getElementById('attack').value;
+  if (attack) attrs.push(`{id:"minecraft:attack_damage",base:${parseFloat(attack)}}`);
+  const kb = document.getElementById('kb').value;
+  if (kb) attrs.push(`{id:"minecraft:knockback_resistance",base:${parseFloat(kb)}}`);
+  const scale = document.getElementById('scale').value;
+  if (scale) attrs.push(`{id:"minecraft:scale",base:${parseFloat(scale)}}`);
+  if (attrs.length) parts.push(`attributes:[${attrs.join(',')}]`);
+
+  // Снаряжение
+  const { equipParts, dropParts } = buildEquipmentPart();
+  if (equipParts.length) parts.push(`equipment:{${equipParts.join(',')}}`);
+  if (dropParts.length) parts.push(`drop_chances:{${dropParts.join(',')}}`);
+
+  // Эффекты
+  const effects = [];
+  document.querySelectorAll('[data-eff]:checked').forEach(cb => {
+    const id = cb.dataset.eff;
+    const amp = document.querySelector(`[data-eff-amp="${id}"]`).value || 0;
+    const dur = document.querySelector(`[data-eff-dur="${id}"]`).value || 999999;
+    effects.push(`{id:"minecraft:${id}",amplifier:${parseInt(amp)},duration:${parseInt(dur)},show_particles:1b}`);
+  });
+  if (effects.length) parts.push(`active_effects:[${effects.join(',')}]`);
+
+  // Пассажиры (вложенно: первый на main, второй на первом и т.д.)
+  const passSelects = Array.from(document.querySelectorAll('[data-pass-mob]'));
+  if (passSelects.length) {
+    // собираем с конца: самый верхний — самый внутренний
+    let nested = null;
+    for (let i = passSelects.length - 1; i >= 0; i--) {
+      const mobId = passSelects[i].value;
+      const p = { id: `minecraft:${mobId}` };
+      if (nested) p.Passengers = [nested];
+      nested = p;
+    }
+    // Преобразуем в SNBT-строку
+    parts.push(`Passengers:[${snbtify(nested)}]`);
+  }
+
+  return parts;
+}
+
+// Преобразует обычный JS-объект в SNBT-строку (для пассажиров)
+function snbtify(obj) {
+  if (Array.isArray(obj)) {
+    return '[' + obj.map(snbtify).join(',') + ']';
+  }
+  if (typeof obj === 'object' && obj !== null) {
+    const parts = Object.entries(obj).map(([k, v]) => {
+      if (k === 'id') return `${k}:"${v}"`;
+      return `${k}:${snbtify(v)}`;
+    });
+    return '{' + parts.join(',') + '}';
+  }
+  if (typeof obj === 'string') return `"${obj}"`;
+  return String(obj);
+}
+
+function generate() {
+  const mob = document.getElementById('mob').value;
+  const coords = document.getElementById('coords').value.trim() || '~ ~ ~';
+  const parts = buildMobNBT();
+
+  const nbt = parts.length ? ` {${parts.join(', ')}}` : '';
+  const cmd = `/summon minecraft:${mob} ${coords}${nbt}`;
+
+  document.getElementById('command-output').textContent = cmd;
+
+  const cc = document.getElementById('char-count');
+  cc.textContent = `Длина: ${cmd.length} символов`;
+  cc.className = 'char-count' + (cmd.length > 256 ? ' long' : '');
+  const warn = document.getElementById('length-warn');
+  warn.innerHTML = cmd.length > 256
+    ? '<div class="warn">⚠ Команда длиннее 256 символов — в чат не поместится. Используй командный блок: <code>/give @s command_block</code>, поставь его, правый клик, вставь команду.</div>'
+    : '';
+}
+
+function copyCmd(evt) {
+  const text = document.getElementById('command-output').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = evt.target;
+    const old = btn.textContent;
+    btn.textContent = '✓ Скопировано!';
+    setTimeout(() => btn.textContent = old, 1500);
+  });
+}
+
+function resetAll() {
+  if (!confirm('Сбросить все настройки?')) return;
+  document.querySelectorAll('input[type="text"], input[type="number"]').forEach(i => {
+    if (i.id === 'coords') i.value = '~ ~ ~';
+    else if (i.dataset.slotDrop) i.value = '0';
+    else if (i.dataset.effAmp) i.value = '0';
+    else if (i.dataset.effDur) i.value = '999999';
+    else if (i.dataset.enchLvl) i.value = i.max || 1;
+    else i.value = '';
+  });
+  document.querySelectorAll('input[type="checkbox"]').forEach(i => {
+    i.checked = (i.id === 'persist' || i.id === 'name-visible');
+  });
+  document.querySelectorAll('select').forEach(s => {
+    if (s.id === 'mob') s.selectedIndex = 0;
+    else if (!s.dataset.passMob) s.value = '';
+  });
+  document.querySelectorAll('[data-enchants]').forEach(el => el.innerHTML = '');
+  document.getElementById('passengers').innerHTML = '';
+  passengerCount = 0;
+  generate();
+}
+
+// ==================== СТАРТ ====================
+
+buildMobSelect();
+buildSlots();
+buildEffects();
+
+document.querySelectorAll('input, select').forEach(el => {
+  el.addEventListener('input', generate);
+  el.addEventListener('change', generate);
+});
+
+generate();
+</script>
+</body>
+</html>
