@@ -675,6 +675,13 @@ function buildSlotsForMob(prefix) {
           <input type="number" data-field="${prefix}-drop-${slot.key}" min="0" max="1" step="0.1" value="0">
         </label>
       </div>
+      <div class="dye-picker" data-dye-for="${prefix}-${slot.key}" style="display:none; margin-top:8px;">
+        <label class="check-row" style="gap:10px;">
+          <input type="checkbox" data-field="${prefix}-dyeon-${slot.key}">
+          Покрасить кожу
+          <input type="color" data-field="${prefix}-dye-${slot.key}" value="#a06540" style="width:48px; height:26px; padding:0; border:2px solid var(--border); background:var(--bg); cursor:pointer; margin-left:6px;">
+        </label>
+      </div>
       <details>
         <summary>Зачарования (выбери предмет сначала)</summary>
         <div class="enchant-list" data-ench-for="${prefix}-${slot.key}"></div>
@@ -688,6 +695,8 @@ function refreshEnchantList(prefix, slotKey) {
   const sel = document.querySelector(`[data-field="${prefix}-slot-${slotKey}"]`);
   const list = document.querySelector(`[data-ench-for="${prefix}-${slotKey}"]`);
   if (!sel || !list) return;
+  const dye = document.querySelector(`[data-dye-for="${prefix}-${slotKey}"]`);
+  if (dye) dye.style.display = (sel.value || '').startsWith('leather_') ? '' : 'none';
   const enchants = enchantsForItem(sel.value);
   if (!enchants.length) {
     list.innerHTML = '<p class="hint" style="grid-column:1/-1;">Для этого предмета зачарований нет.</p>';
@@ -871,8 +880,15 @@ function buildNBTPartsFor(prefix) {
         enchants.push(`${enchId}:${lvl}`);
       });
       const count = parseInt(val(prefix, `count-${slot.key}`)) || 1;
+      const comps = [];
+      if (enchants.length) comps.push(`enchantments:{${enchants.join(',')}}`);
+      if (itemId.startsWith('leather_') && val(prefix, `dyeon-${slot.key}`)) {
+        const hex = (val(prefix, `dye-${slot.key}`) || '#a06540').replace('#', '');
+        const rgb = parseInt(hex, 16);
+        comps.push(`"minecraft:dyed_color":${rgb}`);
+      }
       let itemStr = `${slot.key}:{id:${itemId},count:${count}`;
-      if (enchants.length) itemStr += `,components:{enchantments:{${enchants.join(',')}}}`;
+      if (comps.length) itemStr += `,components:{${comps.join(',')}}`;
       itemStr += '}';
       equipParts.push(itemStr);
     }
