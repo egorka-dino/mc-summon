@@ -275,6 +275,17 @@
     h1 { font-size: 13px; }
     .panel, .mob-body { padding: 12px; }
   }
+
+  .fav-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed var(--border); }
+  .fav-header h2 { margin: 0; border: none; padding: 0; }
+  .favorites-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+  .fav-card { padding: 10px; border: 2px solid var(--border); border-radius: 4px; min-width: 200px; background: var(--panel-2); }
+  .fav-card:hover { border-color: var(--accent-2); }
+  .fav-card .fav-name { font-weight: 600; font-size: 14px; }
+  .fav-card .fav-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+  .fav-actions { display: flex; gap: 6px; margin-top: 8px; }
+  .empty-favs { font-size: 13px; color: var(--muted); font-style: italic; }
+  #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--panel-3); border-radius: 4px; padding: 8px 14px; font-size: 13px; color: var(--text); opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 9999; }
 </style>
 </head>
 <body>
