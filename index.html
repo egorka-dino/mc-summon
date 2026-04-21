@@ -572,6 +572,8 @@ let enchSource = (prefix, slotKey) => {
   return list;
 };
 
+let favorites = { version: 1, items: [] };
+
 function createMobState() {
   return { id: nextMobId++, mobType: 'zombie' };
 }
@@ -1038,6 +1040,33 @@ function resetAll() {
   document.getElementById('coords').value = '~ ~ ~';
   renderAll();
   generate();
+}
+
+// ==================== ЛЮБИМЧИКИ ====================
+
+function loadFavorites() {
+  try {
+    const raw = localStorage.getItem('mc-summon:favorites');
+    if (!raw) return { version: 1, items: [] };
+    const data = JSON.parse(raw);
+    if (!data || !Array.isArray(data.items)) return { version: 1, items: [] };
+    return data;
+  } catch (e) {
+    console.warn('mc-summon: не удалось прочитать любимчиков из localStorage', e);
+    return { version: 1, items: [] };
+  }
+}
+
+function saveFavorites() {
+  try {
+    localStorage.setItem('mc-summon:favorites', JSON.stringify(favorites));
+  } catch (e) {
+    if (e.name === 'QuotaExceededError') {
+      alert('Не удалось сохранить: хранилище переполнено.');
+    } else {
+      throw e;
+    }
+  }
 }
 
 // ==================== СТАРТ ====================
