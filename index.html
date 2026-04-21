@@ -555,6 +555,23 @@ const NAME_COLORS = [
 let mobs = [];
 let nextMobId = 0;
 
+let fieldSource = (prefix, field) => {
+  const el = document.querySelector(`[data-field="${prefix}-${field}"]`);
+  if (!el) return null;
+  if (el.type === 'checkbox') return el.checked;
+  return el.value;
+};
+
+let enchSource = (prefix, slotKey) => {
+  const list = [];
+  document.querySelectorAll(`[data-field^="${prefix}-ench-${slotKey}-"]:checked`).forEach(cb => {
+    const enchId = cb.dataset.field.substring(`${prefix}-ench-${slotKey}-`.length);
+    const lvl = parseInt(fieldSource(prefix, `enchlvl-${slotKey}-${enchId}`)) || 1;
+    list.push({ id: enchId, lvl });
+  });
+  return list;
+};
+
 function createMobState() {
   return { id: nextMobId++, mobType: 'zombie' };
 }
@@ -878,10 +895,7 @@ function handleChange(e) {
 // ==================== ГЕНЕРАЦИЯ ====================
 
 function val(prefix, field) {
-  const el = document.querySelector(`[data-field="${prefix}-${field}"]`);
-  if (!el) return null;
-  if (el.type === 'checkbox') return el.checked;
-  return el.value;
+  return fieldSource(prefix, field);
 }
 
 function buildNBTPartsFor(prefix) {
@@ -935,9 +949,7 @@ function buildNBTPartsFor(prefix) {
     const itemId = val(prefix, `slot-${slot.key}`);
     if (itemId) {
       const enchants = [];
-      document.querySelectorAll(`[data-field^="${prefix}-ench-${slot.key}-"]:checked`).forEach(cb => {
-        const enchId = cb.dataset.field.substring(`${prefix}-ench-${slot.key}-`.length);
-        const lvl = parseInt(val(prefix, `enchlvl-${slot.key}-${enchId}`)) || 1;
+      enchSource(prefix, slot.key).forEach(({ id: enchId, lvl }) => {
         enchants.push(`${enchId}:${lvl}`);
       });
       const count = parseInt(val(prefix, `count-${slot.key}`)) || 1;
