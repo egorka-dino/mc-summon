@@ -620,12 +620,15 @@ function buildSlotsForMob(prefix) {
     div.className = 'slot';
     div.innerHTML = `
       <div class="slot-title">${slot.label}</div>
-      <div class="grid-2">
+      <div style="display:grid; grid-template-columns: 2fr 80px 1fr; gap:10px;">
         <label><span class="lab">Предмет</span>
           <select data-field="${prefix}-slot-${slot.key}" class="slot-item" data-prefix="${prefix}" data-slot-key="${slot.key}">
             <option value="">— пусто —</option>
             ${slot.items.map(i => `<option value="${i}">${ITEM_NAMES[i] || i}</option>`).join('')}
           </select>
+        </label>
+        <label><span class="lab">Кол-во</span>
+          <input type="number" data-field="${prefix}-count-${slot.key}" min="1" max="99" step="1" value="1">
         </label>
         <label><span class="lab">Шанс выпадения (0 – 1)</span>
           <input type="number" data-field="${prefix}-drop-${slot.key}" min="0" max="1" step="0.1" value="0">
@@ -822,7 +825,8 @@ function buildNBTPartsFor(prefix) {
         const lvl = parseInt(val(prefix, `enchlvl-${slot.key}-${enchId}`)) || 1;
         enchants.push(`${enchId}:${lvl}`);
       });
-      let itemStr = `${slot.key}:{id:${itemId},count:1`;
+      const count = parseInt(val(prefix, `count-${slot.key}`)) || 1;
+      let itemStr = `${slot.key}:{id:${itemId},count:${count}`;
       if (enchants.length) itemStr += `,components:{enchantments:{${enchants.join(',')}}}`;
       itemStr += '}';
       equipParts.push(itemStr);
