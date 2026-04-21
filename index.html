@@ -255,6 +255,19 @@
   .char-count.long { color: var(--danger); }
   footer { text-align: center; padding: 18px; color: var(--muted); font-size: 12px; }
 
+  .mob-picker { display: flex; flex-direction: column; gap: 4px; }
+  .mob-picker .mob-search {
+    background: var(--bg);
+    border: 2px solid var(--border);
+    color: var(--text);
+    padding: 5px 8px;
+    font-family: 'Jost', sans-serif;
+    font-size: 12px;
+    border-radius: 3px;
+    width: 100%;
+  }
+  .mob-picker .mob-search:focus { outline: none; border-color: var(--accent); }
+
   optgroup { font-style: normal; font-weight: 700; color: var(--accent-2); background: var(--panel); }
   option { color: var(--text); background: var(--panel-2); font-weight: normal; }
 
@@ -508,7 +521,9 @@ function createMobState() {
 // ==================== ПОСТРОЕНИЕ КАРТОЧКИ ====================
 
 function mobSelectHTML(prefix, selected) {
-  let html = `<select data-field="${prefix}-mob">`;
+  let html = `<div class="mob-picker">`;
+  html += `<input type="text" class="mob-search" data-mob-search="${prefix}" placeholder="🔎 Поиск по названию (рус/англ)…">`;
+  html += `<select data-field="${prefix}-mob">`;
   MOB_GROUPS.forEach(group => {
     html += `<optgroup label="${group.name}">`;
     group.mobs.forEach(([id, name]) => {
@@ -516,8 +531,34 @@ function mobSelectHTML(prefix, selected) {
     });
     html += `</optgroup>`;
   });
-  html += `</select>`;
+  html += `</select></div>`;
   return html;
+}
+
+function filterMobSelect(input) {
+  const wrapper = input.closest('.mob-picker');
+  if (!wrapper) return;
+  const select = wrapper.querySelector('select');
+  const q = input.value.trim().toLowerCase();
+  let firstVisible = null;
+  select.querySelectorAll('optgroup').forEach(og => {
+    let groupHasVisible = false;
+    og.querySelectorAll('option').forEach(opt => {
+      const match = !q || opt.textContent.toLowerCase().includes(q);
+      opt.hidden = !match;
+      opt.disabled = !match;
+      if (match) {
+        groupHasVisible = true;
+        if (!firstVisible) firstVisible = opt;
+      }
+    });
+    og.hidden = !groupHasVisible;
+    og.disabled = !groupHasVisible;
+  });
+  if (q && firstVisible && (select.selectedOptions[0]?.hidden ?? true)) {
+    select.value = firstVisible.value;
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+  }
 }
 
 function buildMobCard(mob, index) {
@@ -718,6 +759,10 @@ function setupEventDelegation() {
   });
 
   cont.addEventListener('input', (e) => {
+    if (e.target.classList && e.target.classList.contains('mob-search')) {
+      filterMobSelect(e.target);
+      return;
+    }
     clampNumber(e.target);
     handleChange(e);
     generate();
