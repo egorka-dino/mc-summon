@@ -305,6 +305,14 @@
   </div>
 
   <div class="panel">
+    <div class="fav-header">
+      <h2>⭐ Коллекция любимчиков</h2>
+      <button class="small sec" onclick="addFavorite()">⭐ Сохранить текущего</button>
+    </div>
+    <div id="favorites-list"></div>
+  </div>
+
+  <div class="panel">
     <h2>Мобы <span class="sub">основной + пассажиры (верхом)</span></h2>
     <div id="mobs-container"></div>
     <div class="passenger-controls">
@@ -1027,5 +1035,6 @@ setupEventDelegation();
 document.getElementById('coords').addEventListener('input', generate);
 generate();
 </script>
+<div id="toast"></div>
 </body>
 </html>
