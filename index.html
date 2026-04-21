@@ -473,6 +473,28 @@ const ENCHANTS = {
   ],
 };
 
+const TRIM_MATERIALS = [
+  ['quartz','Кварц'],['iron','Железо'],['netherite','Незерит'],['redstone','Редстоун'],
+  ['copper','Медь'],['gold','Золото'],['emerald','Изумруд'],['diamond','Алмаз'],
+  ['lapis','Лазурит'],['amethyst','Аметист'],['resin','Смола'],
+];
+const TRIM_PATTERNS = [
+  ['sentry','Часовой'],['dune','Дюна'],['coast','Берег'],['wild','Дикарь'],
+  ['ward','Страж'],['eye','Око'],['vex','Вредина'],['tide','Прилив'],
+  ['snout','Рыло'],['rib','Ребро'],['spire','Шпиль'],['shaper','Ваятель'],
+  ['silence','Тишина'],['raiser','Возвышение'],['host','Хозяин'],
+  ['flow','Поток'],['bolt','Молния'],['wayfinder','Путеводный'],
+];
+
+function canHaveTrim(itemId) {
+  if (!itemId) return false;
+  if (itemId === 'elytra') return false;
+  return itemId.endsWith('_helmet') || itemId === 'turtle_helmet'
+      || itemId.endsWith('_chestplate')
+      || itemId.endsWith('_leggings')
+      || itemId.endsWith('_boots');
+}
+
 function enchantsForItem(itemId) {
   if (!itemId) return [];
   if (itemId.endsWith('_helmet') || itemId === 'turtle_helmet') return [...ENCHANTS.armor, ...ENCHANTS.helmet_extra];
@@ -675,6 +697,24 @@ function buildSlotsForMob(prefix) {
           <input type="number" data-field="${prefix}-drop-${slot.key}" min="0" max="1" step="0.1" value="0">
         </label>
       </div>
+      <div class="trim-picker" data-trim-for="${prefix}-${slot.key}" style="display:none; margin-top:8px;">
+        <label class="check-row" style="gap:8px;">
+          <input type="checkbox" data-field="${prefix}-trimon-${slot.key}">
+          Отделка брони
+        </label>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:6px;">
+          <label><span class="lab">Материал</span>
+            <select data-field="${prefix}-trimmat-${slot.key}">
+              ${TRIM_MATERIALS.map(([v,n])=>`<option value="${v}">${n} (${v})</option>`).join('')}
+            </select>
+          </label>
+          <label><span class="lab">Узор</span>
+            <select data-field="${prefix}-trimpat-${slot.key}">
+              ${TRIM_PATTERNS.map(([v,n])=>`<option value="${v}">${n} (${v})</option>`).join('')}
+            </select>
+          </label>
+        </div>
+      </div>
       <div class="dye-picker" data-dye-for="${prefix}-${slot.key}" style="display:none; margin-top:8px;">
         <label class="check-row" style="gap:10px;">
           <input type="checkbox" data-field="${prefix}-dyeon-${slot.key}">
@@ -697,6 +737,8 @@ function refreshEnchantList(prefix, slotKey) {
   if (!sel || !list) return;
   const dye = document.querySelector(`[data-dye-for="${prefix}-${slotKey}"]`);
   if (dye) dye.style.display = (sel.value || '').startsWith('leather_') ? '' : 'none';
+  const trim = document.querySelector(`[data-trim-for="${prefix}-${slotKey}"]`);
+  if (trim) trim.style.display = canHaveTrim(sel.value) ? '' : 'none';
   const enchants = enchantsForItem(sel.value);
   if (!enchants.length) {
     list.innerHTML = '<p class="hint" style="grid-column:1/-1;">Для этого предмета зачарований нет.</p>';
@@ -886,6 +928,11 @@ function buildNBTPartsFor(prefix) {
         const hex = (val(prefix, `dye-${slot.key}`) || '#a06540').replace('#', '');
         const rgb = parseInt(hex, 16);
         comps.push(`"minecraft:dyed_color":${rgb}`);
+      }
+      if (canHaveTrim(itemId) && val(prefix, `trimon-${slot.key}`)) {
+        const mat = val(prefix, `trimmat-${slot.key}`) || 'iron';
+        const pat = val(prefix, `trimpat-${slot.key}`) || 'sentry';
+        comps.push(`"minecraft:trim":{material:"${mat}",pattern:"${pat}"}`);
       }
       let itemStr = `${slot.key}:{id:${itemId},count:${count}`;
       if (comps.length) itemStr += `,components:{${comps.join(',')}}`;
