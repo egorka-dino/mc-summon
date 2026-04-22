@@ -1189,7 +1189,8 @@ function renderFavorites() {
   list.innerHTML = `<div class="favorites-grid">${favorites.items.map(item => {
     const mainMobName = ALL_MOBS[item.mobOrder[0].mobType] || item.mobOrder[0].mobType;
     const passCount = item.mobOrder.length - 1;
-    const sub = mainMobName + (passCount > 0 ? ` · +${passCount} пассажиров` : '');
+    const passWord = passCount === 1 ? 'пассажир' : (passCount >= 2 && passCount <= 4 ? 'пассажира' : 'пассажиров');
+    const sub = mainMobName + (passCount > 0 ? ` · +${passCount} ${passWord}` : '');
     return `<div class="fav-card">
       <div class="fav-name">${escapeHtml(item.name)}</div>
       <div class="fav-sub">${escapeHtml(sub)}</div>
@@ -1211,6 +1212,7 @@ function addFavorite() {
   favorites.items.push({
     id: `fav-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
     name: name.trim(),
+    version: 1,
     createdAt: Date.now(),
     mobOrder: snapshot.mobOrder,
     fields: snapshot.fields,
