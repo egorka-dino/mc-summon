@@ -1264,6 +1264,8 @@ mobs.push(createMobState());
 renderAll();
 setupEventDelegation();
 document.getElementById('coords').addEventListener('input', generate);
+favorites = loadFavorites();
+renderFavorites();
 generate();
 </script>
 <div id="toast"></div>
