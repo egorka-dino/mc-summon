@@ -1069,6 +1069,22 @@ function saveFavorites() {
   }
 }
 
+function snapshotCurrent() {
+  const fields = {};
+  document.querySelectorAll('#mobs-container [data-field]').forEach(el => {
+    const key = el.dataset.field;          // e.g. "m3-name"
+    const m = key.match(/^m(\d+)-(.+)$/);
+    if (!m) return;
+    const mobId = parseInt(m[1]);
+    const fieldPart = m[2];
+    const idx = mobs.findIndex(mob => mob.id === mobId);
+    if (idx === -1) return;
+    fields[`${idx}-${fieldPart}`] = el.type === 'checkbox' ? el.checked : el.value;
+  });
+  const mobOrder = mobs.map(m => ({ mobType: m.mobType }));
+  return { mobOrder, fields };
+}
+
 // ==================== СТАРТ ====================
 mobs.push(createMobState());
 renderAll();
