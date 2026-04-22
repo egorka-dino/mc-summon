@@ -1132,6 +1132,42 @@ function buildCommandFromSnapshot(item) {
   return cmd;
 }
 
+function restoreSnapshot(item) {
+  mobs = item.mobOrder.map(m => {
+    const mob = createMobState();
+    mob.mobType = m.mobType;
+    return mob;
+  });
+  renderAll();
+
+  mobs.forEach((mob, idx) => {
+    const prefix = `m${mob.id}`;
+
+    // First: restore slot item selections and refresh enchant lists
+    SLOTS.forEach(slot => {
+      const v = item.fields[`${idx}-slot-${slot.key}`];
+      if (v !== undefined) {
+        const el = document.querySelector(`[data-field="${prefix}-slot-${slot.key}"]`);
+        if (el) { el.value = v; refreshEnchantList(prefix, slot.key); }
+      }
+    });
+
+    // Second: restore all other fields (includes enchant checkboxes now that lists exist)
+    Object.keys(item.fields).forEach(key => {
+      if (!key.startsWith(`${idx}-`)) return;
+      const fieldName = key.substring(`${idx}-`.length);
+      if (SLOTS.some(s => fieldName === `slot-${s.key}`)) return;  // already handled
+      const el = document.querySelector(`[data-field="${prefix}-${fieldName}"]`);
+      if (!el) return;
+      const v = item.fields[key];
+      if (el.type === 'checkbox') el.checked = (v === true || v === 'true');
+      else el.value = v !== undefined ? v : '';
+    });
+  });
+
+  generate();
+}
+
 // ==================== СТАРТ ====================
 mobs.push(createMobState());
 renderAll();
