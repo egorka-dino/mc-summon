@@ -1168,6 +1168,97 @@ function restoreSnapshot(item) {
   generate();
 }
 
+function escapeHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function showToast(text) {
+  const t = document.getElementById('toast');
+  t.textContent = text;
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.style.opacity = '0'; }, 1500);
+}
+
+function renderFavorites() {
+  const list = document.getElementById('favorites-list');
+  if (!favorites.items.length) {
+    list.innerHTML = '<p class="empty-favs">Пока пусто. Настрой моба и нажми ⭐ Сохранить текущего</p>';
+    return;
+  }
+  list.innerHTML = `<div class="favorites-grid">${favorites.items.map(item => {
+    const mainMobName = ALL_MOBS[item.mobOrder[0].mobType] || item.mobOrder[0].mobType;
+    const passCount = item.mobOrder.length - 1;
+    const sub = mainMobName + (passCount > 0 ? ` · +${passCount} пассажиров` : '');
+    return `<div class="fav-card">
+      <div class="fav-name">${escapeHtml(item.name)}</div>
+      <div class="fav-sub">${escapeHtml(sub)}</div>
+      <div class="fav-actions">
+        <button class="small" onclick="loadFavorite('${item.id}')">▶ Загрузить</button>
+        <button class="small sec" onclick="renameFavorite('${item.id}')">✏</button>
+        <button class="small info" onclick="copyFavoriteCommand('${item.id}')">📋</button>
+        <button class="small danger" onclick="removeFavorite('${item.id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function addFavorite() {
+  const defaultName = ALL_MOBS[mobs[0].mobType] || mobs[0].mobType;
+  const name = prompt('Название любимчика?', defaultName);
+  if (!name || !name.trim()) return;
+  const snapshot = snapshotCurrent();
+  favorites.items.push({
+    id: `fav-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+    name: name.trim(),
+    createdAt: Date.now(),
+    mobOrder: snapshot.mobOrder,
+    fields: snapshot.fields,
+  });
+  saveFavorites();
+  renderFavorites();
+  showToast('✓ Сохранено');
+}
+
+function loadFavorite(id) {
+  const item = favorites.items.find(f => f.id === id);
+  if (!item) return;
+  if (item.version !== undefined && item.version !== 1) {
+    alert('Этот любимчик сохранён в другой версии и не может быть загружен.');
+    return;
+  }
+  if (!confirm(`Заменить текущую настройку на «${item.name}»?`)) return;
+  restoreSnapshot(item);
+}
+
+function renameFavorite(id) {
+  const item = favorites.items.find(f => f.id === id);
+  if (!item) return;
+  const name = prompt('Новое название?', item.name);
+  if (!name || !name.trim()) return;
+  item.name = name.trim();
+  saveFavorites();
+  renderFavorites();
+  showToast('✓ Переименовано');
+}
+
+function copyFavoriteCommand(id) {
+  const item = favorites.items.find(f => f.id === id);
+  if (!item) return;
+  const cmd = buildCommandFromSnapshot(item);
+  navigator.clipboard.writeText(cmd).then(() => showToast('✓ Скопировано'));
+}
+
+function removeFavorite(id) {
+  const item = favorites.items.find(f => f.id === id);
+  if (!item) return;
+  if (!confirm(`Удалить любимчика «${item.name}»?`)) return;
+  favorites.items = favorites.items.filter(f => f.id !== id);
+  saveFavorites();
+  renderFavorites();
+  showToast('✓ Удалено');
+}
+
 // ==================== СТАРТ ====================
 mobs.push(createMobState());
 renderAll();
