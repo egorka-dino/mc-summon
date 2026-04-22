@@ -1085,6 +1085,53 @@ function snapshotCurrent() {
   return { mobOrder, fields };
 }
 
+function buildCommandFromSnapshot(item) {
+  const savedFieldSource = fieldSource;
+  const savedEnchSource = enchSource;
+
+  fieldSource = (prefix, field) => {
+    const idx = parseInt(prefix.substring(1));  // "m0" → 0
+    const v = item.fields[`${idx}-${field}`];
+    return v !== undefined ? v : null;
+  };
+
+  enchSource = (prefix, slotKey) => {
+    const idx = parseInt(prefix.substring(1));
+    const list = [];
+    const enchPrefix = `${idx}-ench-${slotKey}-`;
+    Object.keys(item.fields).forEach(key => {
+      if (key.startsWith(enchPrefix) && (item.fields[key] === true || item.fields[key] === 'true')) {
+        const enchId = key.substring(enchPrefix.length);
+        const lvl = parseInt(item.fields[`${idx}-enchlvl-${slotKey}-${enchId}`]) || 1;
+        list.push({ id: enchId, lvl });
+      }
+    });
+    return list;
+  };
+
+  const tempMobs = item.mobOrder.map((m, idx) => ({ id: idx, mobType: m.mobType }));
+
+  function buildAt(idx) {
+    const parts = buildNBTPartsFor(`m${idx}`);
+    if (idx < tempMobs.length - 1) {
+      const nextParts = buildAt(idx + 1);
+      const nextId = tempMobs[idx + 1].mobType;
+      const passNBT = `{id:"minecraft:${nextId}"` + (nextParts.length ? ',' + nextParts.join(',') : '') + '}';
+      parts.push(`Passengers:[${passNBT}]`);
+    }
+    return parts;
+  }
+
+  const mainParts = buildAt(0);
+  const mainType = tempMobs[0].mobType;
+  const nbt = mainParts.length ? ` {${mainParts.join(', ')}}` : '';
+  const cmd = `/summon minecraft:${mainType} ~ ~ ~${nbt}`;
+
+  fieldSource = savedFieldSource;
+  enchSource = savedEnchSource;
+  return cmd;
+}
+
 // ==================== СТАРТ ====================
 mobs.push(createMobState());
 renderAll();
