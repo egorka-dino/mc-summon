@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Генератор /summon — Minecraft 1.21.5+</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Jost:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <a href="index.html" class="nav-back">← mc-commands</a>
+  <h1>⚔ ГЕНЕРАТОР /SUMMON ⚔</h1>
+  <p>Minecraft Java Edition 1.21.5 и новее · v3.0</p>
+</header>
+
+<div class="container">
+
+  <div class="panel">
+    <h2>Координаты</h2>
+    <label><span class="lab">Где заспавнить</span>
+      <input type="text" id="coords" value="~ ~ ~" placeholder="~ ~ ~">
+    </label>
+    <p class="hint">~ ~ ~ — на месте игрока. ~ ~1 ~ — на 1 блок выше. Точные координаты: 100 64 -200.</p>
+  </div>
+
+  <div class="panel">
+    <div class="fav-header">
+      <h2>⭐ Коллекция любимчиков</h2>
+      <button class="small sec" onclick="addFavorite()">⭐ Сохранить текущего</button>
+    </div>
+    <div id="favorites-list"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Мобы <span class="sub">основной + пассажиры (верхом)</span></h2>
+    <div id="mobs-container"></div>
+    <div class="passenger-controls">
+      <button class="info" onclick="addPassenger()">+ Добавить пассажира</button>
+      <span class="hint" style="align-self:center;">Первый пассажир сидит на основном, второй на первом, и т.д.</span>
+    </div>
+  </div>
+
+  <div class="panel output-panel">
+    <h2>▶ Готовая команда</h2>
+    <div id="command-output"></div>
+    <div class="char-count" id="char-count"></div>
+    <div class="btn-row">
+      <button onclick="copyCmd(event)">📋 Копировать</button>
+      <button class="sec" onclick="generate()">🔄 Обновить</button>
+      <button class="danger" onclick="resetAll()">✖ Сброс всего</button>
+    </div>
+    <div id="length-warn"></div>
+  </div>
+
+  <div class="panel">
+    <h2>📖 Как пользоваться</h2>
+    <p style="font-size:13px; line-height:1.6;">
+    1. Настрой основного моба (зелёная карточка).<br>
+    2. Хочешь «куриного жокея»? Жми «+ Добавить пассажира» — появится синяя карточка с теми же настройками.<br>
+    3. Можно добавлять сколько угодно пассажиров — многоуровневый бутерброд (паук→скелет→зомби).<br>
+    4. Клик по шапке карточки — свернуть, чтобы не мешала.<br>
+    5. Команда обновляется автоматически. Копируй и вставляй в чат или командный блок.
+    </p>
+  </div>
+</div>
+
+<footer>v3.0 · каждый пассажир полностью кастомизируется</footer>
+
+<script>
+const MOB_GROUPS = [
+  { name: 'Враждебные', mobs: [
+    ['zombie', 'Зомби'], ['husk', 'Кадавр'], ['drowned', 'Утопленник'], ['zombie_villager', 'Зомби-житель'],
+    ['skeleton', 'Скелет'], ['stray', 'Заблудший'], ['wither_skeleton', 'Скелет-иссушитель'], ['bogged', 'Замшелый скелет'],
+    ['creeper', 'Крипер'], ['spider', 'Паук'], ['cave_spider', 'Пещерный паук'],
+    ['enderman', 'Странник Края'], ['endermite', 'Эндермит'], ['silverfish', 'Чешуйница'],
+    ['zombified_piglin', 'Зомби-пиглин'], ['piglin', 'Пиглин'], ['piglin_brute', 'Пиглин-громила'],
+    ['blaze', 'Ифрит'], ['ghast', 'Гаст'], ['magma_cube', 'Магма-куб'], ['slime', 'Слизень'],
+    ['hoglin', 'Хоглин'], ['zoglin', 'Зоглин'], ['shulker', 'Шалкер'], ['vex', 'Досаждатель'],
+    ['evoker', 'Призыватель'], ['vindicator', 'Поборник'], ['pillager', 'Разбойник'],
+    ['ravager', 'Разоритель'], ['illusioner', 'Иллюзионист'], ['witch', 'Ведьма'], ['phantom', 'Фантом'],
+    ['guardian', 'Страж'], ['elder_guardian', 'Древний страж'], ['warden', 'Хранитель'],
+    ['breeze', 'Бриз'], ['creaking', 'Скрипень'],
+  ]},
+  { name: 'Боссы', mobs: [
+    ['ender_dragon', 'Дракон Края'], ['wither', 'Иссушитель'],
+  ]},
+  { name: 'Нейтральные', mobs: [
+    ['wolf', 'Волк'], ['polar_bear', 'Белый медведь'], ['panda', 'Панда'], ['dolphin', 'Дельфин'],
+    ['fox', 'Лиса'], ['goat', 'Коза'], ['llama', 'Лама'], ['trader_llama', 'Торговая лама'],
+    ['bee', 'Пчела'], ['iron_golem', 'Железный голем'], ['snow_golem', 'Снежный голем'],
+    ['pufferfish', 'Рыба-фугу'],
+  ]},
+  { name: 'Мирные', mobs: [
+    ['cow', 'Корова'], ['mooshroom', 'Грибная корова'], ['pig', 'Свинья'], ['sheep', 'Овца'],
+    ['chicken', 'Курица'], ['rabbit', 'Кролик'],
+    ['horse', 'Лошадь'], ['donkey', 'Осёл'], ['mule', 'Мул'], ['skeleton_horse', 'Скелет-лошадь'], ['zombie_horse', 'Зомби-лошадь'],
+    ['cat', 'Кошка'], ['ocelot', 'Оцелот'], ['parrot', 'Попугай'],
+    ['villager', 'Житель'], ['wandering_trader', 'Странствующий торговец'],
+    ['axolotl', 'Аксолотль'], ['frog', 'Лягушка'], ['tadpole', 'Головастик'], ['turtle', 'Черепаха'],
+    ['bat', 'Летучая мышь'], ['squid', 'Кальмар'], ['glow_squid', 'Сияющий кальмар'],
+    ['cod', 'Треска'], ['salmon', 'Лосось'], ['tropical_fish', 'Тропическая рыба'],
+    ['camel', 'Верблюд'], ['sniffer', 'Нюхач'], ['armadillo', 'Броненосец'], ['allay', 'Аллай'],
+    ['strider', 'Лавоход'], ['happy_ghast', 'Добрый гаст'],
+  ]},
+  { name: 'Прочее', mobs: [
+    ['armor_stand', 'Стойка для брони'], ['item_frame', 'Рамка'], ['glow_item_frame', 'Сияющая рамка'],
+    ['minecart', 'Вагонетка'], ['boat', 'Лодка'], ['tnt', 'Динамит'],
+    ['firework_rocket', 'Фейерверк'], ['experience_orb', 'Сфера опыта'],
+    ['lightning_bolt', 'Молния'], ['area_effect_cloud', 'Облако эффектов'],
+  ]},
+];
+
+const ALL_MOBS = {};
+MOB_GROUPS.forEach(g => g.mobs.forEach(m => ALL_MOBS[m[0]] = m[1]));
+
+const SLOTS = [
+  { key: 'head', label: 'Шлем',         items: ['netherite_helmet','diamond_helmet','iron_helmet','golden_helmet','chainmail_helmet','leather_helmet','turtle_helmet','carved_pumpkin','player_head','zombie_head','skeleton_skull','creeper_head','dragon_head','piglin_head'] },
+  { key: 'chest', label: 'Нагрудник',   items: ['netherite_chestplate','diamond_chestplate','iron_chestplate','golden_chestplate','chainmail_chestplate','leather_chestplate','elytra'] },
+  { key: 'legs',  label: 'Штаны',        items: ['netherite_leggings','diamond_leggings','iron_leggings','golden_leggings','chainmail_leggings','leather_leggings'] },
+  { key: 'feet',  label: 'Ботинки',      items: ['netherite_boots','diamond_boots','iron_boots','golden_boots','chainmail_boots','leather_boots'] },
+  { key: 'mainhand', label: 'Правая рука (оружие)', items: ['netherite_sword','diamond_sword','iron_sword','golden_sword','stone_sword','wooden_sword','netherite_axe','diamond_axe','iron_axe','golden_axe','stone_axe','bow','crossbow','trident','mace','totem_of_undying','shield','stick','blaze_rod','nether_star','ender_pearl','snowball','egg','fire_charge'] },
+  { key: 'offhand',  label: 'Левая рука', items: ['totem_of_undying','shield','bow','crossbow','torch','arrow','spectral_arrow','firework_rocket','glow_berries','nether_star','map'] },
+];
+
+const ITEM_NAMES = {
+  netherite_helmet: 'Незеритовый шлем', diamond_helmet: 'Алмазный шлем', iron_helmet: 'Железный шлем',
+  golden_helmet: 'Золотой шлем', chainmail_helmet: 'Кольчужный шлем', leather_helmet: 'Кожаный шлем',
+  turtle_helmet: 'Черепаший панцирь', carved_pumpkin: 'Вырезанная тыква',
+  player_head: 'Голова игрока', zombie_head: 'Голова зомби', skeleton_skull: 'Череп скелета',
+  creeper_head: 'Голова крипера', dragon_head: 'Голова дракона', piglin_head: 'Голова пиглина',
+  netherite_chestplate: 'Незеритовый нагрудник', diamond_chestplate: 'Алмазный нагрудник',
+  iron_chestplate: 'Железный нагрудник', golden_chestplate: 'Золотой нагрудник',
+  chainmail_chestplate: 'Кольчужный нагрудник', leather_chestplate: 'Кожаный нагрудник', elytra: 'Элитры',
+  netherite_leggings: 'Незеритовые штаны', diamond_leggings: 'Алмазные штаны',
+  iron_leggings: 'Железные штаны', golden_leggings: 'Золотые штаны',
+  chainmail_leggings: 'Кольчужные штаны', leather_leggings: 'Кожаные штаны',
+  netherite_boots: 'Незеритовые ботинки', diamond_boots: 'Алмазные ботинки',
+  iron_boots: 'Железные ботинки', golden_boots: 'Золотые ботинки',
+  chainmail_boots: 'Кольчужные ботинки', leather_boots: 'Кожаные ботинки',
+  netherite_sword: 'Незеритовый меч', diamond_sword: 'Алмазный меч',
+  iron_sword: 'Железный меч', golden_sword: 'Золотой меч',
+  stone_sword: 'Каменный меч', wooden_sword: 'Деревянный меч',
+  netherite_axe: 'Незеритовый топор', diamond_axe: 'Алмазный топор', iron_axe: 'Железный топор',
+  golden_axe: 'Золотой топор', stone_axe: 'Каменный топор',
+  bow: 'Лук', crossbow: 'Арбалет', trident: 'Трезубец', mace: 'Булава',
+  totem_of_undying: 'Тотем бессмертия', shield: 'Щит',
+  torch: 'Факел', arrow: 'Стрела', spectral_arrow: 'Спектральная стрела',
+  firework_rocket: 'Фейерверк', glow_berries: 'Светящиеся ягоды',
+  stick: 'Палка', blaze_rod: 'Огненный стержень', nether_star: 'Звезда Нижнего мира',
+  ender_pearl: 'Жемчуг Края', snowball: 'Снежок', egg: 'Яйцо', fire_charge: 'Огненный шар', map: 'Карта',
+};
+
+const ENCHANTS = {
+  armor: [
+    { id: 'protection', name: 'Защита', max: 4 },
+    { id: 'fire_protection', name: 'Огнезащита', max: 4 },
+    { id: 'blast_protection', name: 'Взрывозащита', max: 4 },
+    { id: 'projectile_protection', name: 'Защита от снарядов', max: 4 },
+    { id: 'thorns', name: 'Шипы', max: 3 },
+    { id: 'unbreaking', name: 'Неразрушимость', max: 3 },
+    { id: 'mending', name: 'Починка', max: 1 },
+    { id: 'binding_curse', name: 'Проклятие несъёмности', max: 1 },
+    { id: 'vanishing_curse', name: 'Проклятие исчезновения', max: 1 },
+  ],
+  helmet_extra: [
+    { id: 'respiration', name: 'Подводное дыхание', max: 3 },
+    { id: 'aqua_affinity', name: 'Подводник', max: 1 },
+  ],
+  boots_extra: [
+    { id: 'feather_falling', name: 'Невесомость', max: 4 },
+    { id: 'depth_strider', name: 'Ходьба по воде', max: 3 },
+    { id: 'frost_walker', name: 'Ледоход', max: 2 },
+    { id: 'soul_speed', name: 'Скольжение по душам', max: 3 },
+  ],
+  sword: [
+    { id: 'sharpness', name: 'Острота', max: 5 },
+    { id: 'smite', name: 'Небесная кара (нежить)', max: 5 },
+    { id: 'bane_of_arthropods', name: 'Бич членистоногих', max: 5 },
+    { id: 'knockback', name: 'Отбрасывание', max: 2 },
+    { id: 'fire_aspect', name: 'Заговор огня', max: 2 },
+    { id: 'looting', name: 'Добыча', max: 3 },
+    { id: 'sweeping_edge', name: 'Разящий клинок', max: 3 },
+    { id: 'unbreaking', name: 'Неразрушимость', max: 3 },
+    { id: 'mending', name: 'Починка', max: 1 },
+  ],
+  bow: [
+    { id: 'power', name: 'Сила', max: 5 }, { id: 'punch', name: 'Отдача', max: 2 },
+    { id: 'flame', name: 'Горящая стрела', max: 1 }, { id: 'infinity', name: 'Бесконечность', max: 1 },
+    { id: 'unbreaking', name: 'Неразрушимость', max: 3 }, { id: 'mending', name: 'Починка', max: 1 },
+  ],
+  crossbow: [
+    { id: 'quick_charge', name: 'Быстрая зарядка', max: 3 },
+    { id: 'multishot', name: 'Мультивыстрел', max: 1 }, { id: 'piercing', name: 'Пронзание', max: 4 },
+    { id: 'unbreaking', name: 'Неразрушимость', max: 3 }, { id: 'mending', name: 'Починка', max: 1 },
+  ],
+  trident: [
+    { id: 'loyalty', name: 'Верность', max: 3 }, { id: 'impaling', name: 'Пронзающий', max: 5 },
+    { id: 'riptide', name: 'Тягучесть', max: 3 }, { id: 'channeling', name: 'Молния', max: 1 },
+    { id: 'unbreaking', name: 'Неразрушимость', max: 3 },
+  ],
+  mace: [
+    { id: 'density', name: 'Плотность', max: 5 }, { id: 'breach', name: 'Пробивание', max: 4 },
+    { id: 'wind_burst', name: 'Ветровой взрыв', max: 3 }, { id: 'smite', name: 'Небесная кара', max: 5 },
+    { id: 'fire_aspect', name: 'Заговор огня', max: 2 }, { id: 'unbreaking', name: 'Неразрушимость', max: 3 },
+  ],
+  axe: [
+    { id: 'sharpness', name: 'Острота', max: 5 }, { id: 'smite', name: 'Небесная кара', max: 5 },
+    { id: 'bane_of_arthropods', name: 'Бич членистоногих', max: 5 },
+    { id: 'efficiency', name: 'Эффективность', max: 5 },
+    { id: 'unbreaking', name: 'Неразрушимость', max: 3 }, { id: 'mending', name: 'Починка', max: 1 },
+  ],
+};
+
+const TRIM_MATERIALS = [
+  ['quartz','Кварц'],['iron','Железо'],['netherite','Незерит'],['redstone','Редстоун'],
+  ['copper','Медь'],['gold','Золото'],['emerald','Изумруд'],['diamond','Алмаз'],
+  ['lapis','Лазурит'],['amethyst','Аметист'],['resin','Смола'],
+];
+const TRIM_PATTERNS = [
+  ['sentry','Часовой'],['dune','Дюна'],['coast','Берег'],['wild','Дикарь'],
+  ['ward','Страж'],['eye','Око'],['vex','Вредина'],['tide','Прилив'],
+  ['snout','Рыло'],['rib','Ребро'],['spire','Шпиль'],['shaper','Ваятель'],
+  ['silence','Тишина'],['raiser','Возвышение'],['host','Хозяин'],
+  ['flow','Поток'],['bolt','Молния'],['wayfinder','Путеводный'],
+];
+
+function canHaveTrim(itemId) {
+  if (!itemId) return false;
+  if (itemId === 'elytra') return false;
+  return itemId.endsWith('_helmet') || itemId === 'turtle_helmet'
+      || itemId.endsWith('_chestplate')
+      || itemId.endsWith('_leggings')
+      || itemId.endsWith('_boots');
+}
+
+function enchantsForItem(itemId) {
+  if (!itemId) return [];
+  if (itemId.endsWith('_helmet') || itemId === 'turtle_helmet') return [...ENCHANTS.armor, ...ENCHANTS.helmet_extra];
+  if (itemId.endsWith('_chestplate') || itemId === 'elytra') return [...ENCHANTS.armor];
+  if (itemId.endsWith('_leggings')) return [...ENCHANTS.armor];
+  if (itemId.endsWith('_boots')) return [...ENCHANTS.armor, ...ENCHANTS.boots_extra];
+  if (itemId.endsWith('_sword')) return ENCHANTS.sword;
+  if (itemId.endsWith('_axe')) return ENCHANTS.axe;
+  if (itemId === 'bow') return ENCHANTS.bow;
+  if (itemId === 'crossbow') return ENCHANTS.crossbow;
+  if (itemId === 'trident') return ENCHANTS.trident;
+  if (itemId === 'mace') return ENCHANTS.mace;
+  return [];
+}
+
+const EFFECTS = [
+  ['speed','Скорость'],['slowness','Замедление'],['haste','Спешка'],['mining_fatigue','Усталость копания'],
+  ['strength','Сила'],['weakness','Слабость'],['jump_boost','Прыгучесть'],['regeneration','Регенерация'],
+  ['instant_health','Мгновенное лечение'],['instant_damage','Мгновенный урон'],
+  ['poison','Отравление'],['wither','Иссушение'],
+  ['resistance','Сопротивление урону'],['fire_resistance','Огнестойкость'],['water_breathing','Дыхание под водой'],
+  ['invisibility','Невидимость'],['night_vision','Ночное зрение'],['blindness','Слепота'],
+  ['nausea','Тошнота'],['hunger','Голод'],['saturation','Насыщение'],
+  ['levitation','Левитация'],['glowing','Свечение'],['slow_falling','Медленное падение'],
+  ['absorption','Поглощение'],['health_boost','Усиление здоровья'],['luck','Удача'],
+  ['conduit_power','Мощь проводника'],['dolphins_grace','Грация дельфина'],
+  ['hero_of_the_village','Герой деревни'],['darkness','Тьма'],['bad_omen','Дурное предзнаменование'],
+];
+
+const NAME_COLORS = [
+  ['', '— без цвета —'], ['white','белый'], ['gray','серый'], ['dark_gray','тёмно-серый'],
+  ['black','чёрный'], ['red','красный'], ['dark_red','тёмно-красный'],
+  ['gold','золотой'], ['yellow','жёлтый'], ['green','зелёный'], ['dark_green','тёмно-зелёный'],
+  ['aqua','бирюзовый'], ['dark_aqua','тёмно-бирюзовый'], ['blue','синий'], ['dark_blue','тёмно-синий'],
+  ['light_purple','розовый'], ['dark_purple','фиолетовый'],
+];
+
+// ==================== СОСТОЯНИЕ ====================
+let mobs = [];
+let nextMobId = 0;
+
+let fieldSource = (prefix, field) => {
+  const el = document.querySelector(`[data-field="${prefix}-${field}"]`);
+  if (!el) return null;
+  if (el.type === 'checkbox') return el.checked;
+  return el.value;
+};
+
+let enchSource = (prefix, slotKey) => {
+  const list = [];
+  document.querySelectorAll(`[data-field^="${prefix}-ench-${slotKey}-"]:checked`).forEach(cb => {
+    const enchId = cb.dataset.field.substring(`${prefix}-ench-${slotKey}-`.length);
+    const lvl = parseInt(fieldSource(prefix, `enchlvl-${slotKey}-${enchId}`)) || 1;
+    list.push({ id: enchId, lvl });
+  });
+  return list;
+};
+
+let favorites = { version: 1, items: [] };
+
+function createMobState() {
+  return { id: nextMobId++, mobType: 'zombie' };
+}
+
+// ==================== ПОСТРОЕНИЕ КАРТОЧКИ ====================
+
+function mobSelectHTML(prefix, selected) {
+  let html = `<div class="mob-picker">`;
+  html += `<input type="text" class="mob-search" data-mob-search="${prefix}" placeholder="🔎 Поиск по названию (рус/англ)…">`;
+  html += `<select data-field="${prefix}-mob">`;
+  MOB_GROUPS.forEach(group => {
+    html += `<optgroup label="${group.name}">`;
+    group.mobs.forEach(([id, name]) => {
+      html += `<option value="${id}"${id === selected ? ' selected' : ''}>${name} (${id})</option>`;
+    });
+    html += `</optgroup>`;
+  });
+  html += `</select></div>`;
+  return html;
+}
+
+function filterMobSelect(input) {
+  const wrapper = input.closest('.mob-picker');
+  if (!wrapper) return;
+  const select = wrapper.querySelector('select');
+  const q = input.value.trim().toLowerCase();
+  let firstVisible = null;
+  select.querySelectorAll('optgroup').forEach(og => {
+    let groupHasVisible = false;
+    og.querySelectorAll('option').forEach(opt => {
+      const match = !q || opt.textContent.toLowerCase().includes(q);
+      opt.hidden = !match;
+      opt.disabled = !match;
+      if (match) {
+        groupHasVisible = true;
+        if (!firstVisible) firstVisible = opt;
+      }
+    });
+    og.hidden = !groupHasVisible;
+    og.disabled = !groupHasVisible;
+  });
+  if (q && firstVisible && (select.selectedOptions[0]?.hidden ?? true)) {
+    select.value = firstVisible.value;
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+}
+
+function buildMobCard(mob, index) {
+  const isMain = index === 0;
+  const prefix = `m${mob.id}`;
+  const levelLabel = isMain ? 'ОСНОВНОЙ' : `ПАССАЖИР №${index}`;
+  const stackInfo = isMain ? 'снизу' : (index === 1 ? 'на основном' : `на пассажире №${index - 1}`);
+
+  const card = document.createElement('div');
+  card.className = `mob-card ${isMain ? 'main' : 'passenger'}`;
+  card.dataset.mobId = mob.id;
+
+  card.innerHTML = `
+    <div class="mob-head" data-toggle="${mob.id}">
+      <span class="lvl-badge">${levelLabel}</span>
+      <span class="mob-title">${ALL_MOBS[mob.mobType] || mob.mobType} <small>${stackInfo}</small></span>
+      ${!isMain ? `<button class="small danger" data-remove="${mob.id}">✖</button>` : ''}
+      <span class="arrow">▼</span>
+    </div>
+    <div class="mob-body">
+
+      <div class="section">
+        <div class="section-title">① Моб и имя</div>
+        <div class="grid-2">
+          <label><span class="lab">Вид моба</span>${mobSelectHTML(prefix, mob.mobType)}</label>
+          <label><span class="lab">Имя (необязательно)</span>
+            <input type="text" data-field="${prefix}-name" placeholder="например: Босс">
+          </label>
+          <label><span class="lab">Цвет имени</span>
+            <select data-field="${prefix}-name-color">
+              ${NAME_COLORS.map(([v,n]) => `<option value="${v}">${n}</option>`).join('')}
+            </select>
+          </label>
+        </div>
+        <div class="grid-3" style="margin-top:8px;">
+          <label class="check-row"><input type="checkbox" data-field="${prefix}-name-bold"> Жирное</label>
+          <label class="check-row"><input type="checkbox" data-field="${prefix}-name-italic"> Курсив</label>
+          <label class="check-row"><input type="checkbox" data-field="${prefix}-name-visible" checked> Всегда видно</label>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">② Характеристики (пусто = по умолчанию)</div>
+        <div class="grid-3">
+          <label><span class="lab">HP (1–1024)</span><input type="number" data-field="${prefix}-health" min="1" max="1024" step="1" placeholder="по умолч."></label>
+          <label><span class="lab">Скорость (0–2)</span><input type="number" data-field="${prefix}-speed" min="0" max="2" step="0.05" placeholder="по умолч."></label>
+          <label><span class="lab">Броня (0–30)</span><input type="number" data-field="${prefix}-armor" min="0" max="30" step="1" placeholder="по умолч."></label>
+          <label><span class="lab">Урон атаки (0–2048)</span><input type="number" data-field="${prefix}-attack" min="0" max="2048" step="0.5" placeholder="по умолч."></label>
+          <label><span class="lab">Сопр. отбрасыв. (0–1)</span><input type="number" data-field="${prefix}-kb" min="0" max="1" step="0.1" placeholder="по умолч."></label>
+          <label><span class="lab">Масштаб (0–16)</span><input type="number" data-field="${prefix}-scale" min="0" max="16" step="1" placeholder="1.0"></label>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">③ Особенности</div>
+        <div class="grid-3">
+          <label class="check-row"><input type="checkbox" data-field="${prefix}-baby"> Ребёнок</label>
+          <label class="check-row"><input type="checkbox" data-field="${prefix}-invul"> Неуязвимый</label>
+          <label class="check-row"><input type="checkbox" data-field="${prefix}-silent"> Бесшумный</label>
+          <label class="check-row"><input type="checkbox" data-field="${prefix}-noai"> Без ИИ</label>
+          <label class="check-row"><input type="checkbox" data-field="${prefix}-noburn"> Не горит на солнце</label>
+          <label class="check-row"><input type="checkbox" data-field="${prefix}-onfire"> Постоянно горит</label>
+          <label class="check-row"><input type="checkbox" data-field="${prefix}-glow"> Светится контуром</label>
+          <label class="check-row"><input type="checkbox" data-field="${prefix}-nogravity"> Без гравитации</label>
+          <label class="check-row"><input type="checkbox" data-field="${prefix}-persist" checked> Не исчезает</label>
+          <label class="check-row"><input type="checkbox" data-field="${prefix}-nobreath"> Не задыхается</label>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">④ Снаряжение и зачарования</div>
+        <div class="slots-container" data-slots-for="${prefix}"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">⑤ Эффекты зелий</div>
+        <details><summary>Открыть список эффектов</summary>
+          <div class="enchant-list">
+            ${EFFECTS.map(([eid, en]) => `
+              <div class="enchant-row" style="grid-template-columns: 1fr 50px 70px;">
+                <label><input type="checkbox" data-field="${prefix}-eff-${eid}"> ${en}</label>
+                <input type="number" min="0" max="255" value="0" data-field="${prefix}-effamp-${eid}" title="Сила (0 = I)">
+                <input type="number" min="1" max="1000000" value="999999" data-field="${prefix}-effdur-${eid}" title="Тики (макс. 1 000 000 ≈ 13.8 ч)">
+              </div>
+            `).join('')}
+          </div>
+          <p class="hint">Сила 0 = I уровень. Длительность в тиках (20 = 1 сек).</p>
+        </details>
+      </div>
+    </div>
+  `;
+  return card;
+}
+
+function buildSlotsForMob(prefix) {
+  const container = document.querySelector(`[data-slots-for="${prefix}"]`);
+  container.innerHTML = '';
+  SLOTS.forEach(slot => {
+    const div = document.createElement('div');
+    div.className = 'slot';
+    div.innerHTML = `
+      <div class="slot-title">${slot.label}</div>
+      <div style="display:grid; grid-template-columns: 2fr 80px 1fr; gap:10px;">
+        <label><span class="lab">Предмет</span>
+          <select data-field="${prefix}-slot-${slot.key}" class="slot-item" data-prefix="${prefix}" data-slot-key="${slot.key}">
+            <option value="">— пусто —</option>
+            ${slot.items.map(i => `<option value="${i}">${ITEM_NAMES[i] || i}</option>`).join('')}
+          </select>
+        </label>
+        <label><span class="lab">Кол-во</span>
+          <input type="number" data-field="${prefix}-count-${slot.key}" min="1" max="99" step="1" value="1">
+        </label>
+        <label><span class="lab">Шанс выпадения (0 – 1)</span>
+          <input type="number" data-field="${prefix}-drop-${slot.key}" min="0" max="1" step="0.1" value="0">
+        </label>
+      </div>
+      <div class="trim-picker" data-trim-for="${prefix}-${slot.key}" style="display:none; margin-top:8px;">
+        <label class="check-row" style="gap:8px;">
+          <input type="checkbox" data-field="${prefix}-trimon-${slot.key}">
+          Отделка брони
+        </label>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:6px;">
+          <label><span class="lab">Материал</span>
+            <select data-field="${prefix}-trimmat-${slot.key}">
+              ${TRIM_MATERIALS.map(([v,n])=>`<option value="${v}">${n} (${v})</option>`).join('')}
+            </select>
+          </label>
+          <label><span class="lab">Узор</span>
+            <select data-field="${prefix}-trimpat-${slot.key}">
+              ${TRIM_PATTERNS.map(([v,n])=>`<option value="${v}">${n} (${v})</option>`).join('')}
+            </select>
+          </label>
+        </div>
+      </div>
+      <div class="dye-picker" data-dye-for="${prefix}-${slot.key}" style="display:none; margin-top:8px;">
+        <label class="check-row" style="gap:10px;">
+          <input type="checkbox" data-field="${prefix}-dyeon-${slot.key}">
+          Покрасить кожу
+          <input type="color" data-field="${prefix}-dye-${slot.key}" value="#a06540" style="width:48px; height:26px; padding:0; border:2px solid var(--border); background:var(--bg); cursor:pointer; margin-left:6px;">
+        </label>
+      </div>
+      <details>
+        <summary>Зачарования (выбери предмет сначала)</summary>
+        <div class="enchant-list" data-ench-for="${prefix}-${slot.key}"></div>
+      </details>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function refreshEnchantList(prefix, slotKey) {
+  const sel = document.querySelector(`[data-field="${prefix}-slot-${slotKey}"]`);
+  const list = document.querySelector(`[data-ench-for="${prefix}-${slotKey}"]`);
+  if (!sel || !list) return;
+  const dye = document.querySelector(`[data-dye-for="${prefix}-${slotKey}"]`);
+  if (dye) dye.style.display = (sel.value || '').startsWith('leather_') ? '' : 'none';
+  const trim = document.querySelector(`[data-trim-for="${prefix}-${slotKey}"]`);
+  if (trim) trim.style.display = canHaveTrim(sel.value) ? '' : 'none';
+  const enchants = enchantsForItem(sel.value);
+  if (!enchants.length) {
+    list.innerHTML = '<p class="hint" style="grid-column:1/-1;">Для этого предмета зачарований нет.</p>';
+  } else {
+    list.innerHTML = enchants.map(e => `
+      <div class="enchant-row">
+        <label><input type="checkbox" data-field="${prefix}-ench-${slotKey}-${e.id}"> ${e.name} <span style="color:var(--muted);font-size:10px;">(${e.max})</span></label>
+        <input type="number" min="1" max="255" value="${e.max}" data-field="${prefix}-enchlvl-${slotKey}-${e.id}">
+      </div>
+    `).join('');
+  }
+}
+
+// ==================== УПРАВЛЕНИЕ ====================
+
+function renderAll() {
+  const cont = document.getElementById('mobs-container');
+  cont.innerHTML = '';
+  mobs.forEach((mob, i) => {
+    cont.appendChild(buildMobCard(mob, i));
+    buildSlotsForMob(`m${mob.id}`);
+  });
+}
+
+function addPassenger() {
+  const newMob = createMobState();
+  mobs.push(newMob);
+  const cont = document.getElementById('mobs-container');
+  const index = mobs.length - 1;
+  cont.appendChild(buildMobCard(newMob, index));
+  buildSlotsForMob(`m${newMob.id}`);
+  generate();
+}
+
+function removeMob(mobId) {
+  mobs = mobs.filter(m => m.id !== mobId);
+  const card = document.querySelector(`[data-mob-id="${mobId}"]`);
+  if (card) card.remove();
+  updateMobLabels();
+  generate();
+}
+
+function updateMobLabels() {
+  mobs.forEach((mob, idx) => {
+    const card = document.querySelector(`[data-mob-id="${mob.id}"]`);
+    if (!card) return;
+    card.querySelector('.lvl-badge').textContent = idx === 0 ? 'ОСНОВНОЙ' : `ПАССАЖИР №${idx}`;
+    const stackInfo = idx === 0 ? 'снизу' : (idx === 1 ? 'на основном' : `на пассажире №${idx - 1}`);
+    const title = card.querySelector('.mob-title');
+    title.innerHTML = `${ALL_MOBS[mob.mobType] || mob.mobType} <small>${stackInfo}</small>`;
+  });
+}
+
+// Делегирование событий на весь контейнер мобов
+function setupEventDelegation() {
+  const cont = document.getElementById('mobs-container');
+
+  cont.addEventListener('click', (e) => {
+    const rm = e.target.closest('[data-remove]');
+    if (rm) {
+      e.stopPropagation();
+      removeMob(parseInt(rm.dataset.remove));
+      return;
+    }
+    const head = e.target.closest('[data-toggle]');
+    if (head) {
+      head.closest('.mob-card').classList.toggle('collapsed');
+    }
+  });
+
+  cont.addEventListener('input', (e) => {
+    if (e.target.classList && e.target.classList.contains('mob-search')) {
+      filterMobSelect(e.target);
+      return;
+    }
+    clampNumber(e.target);
+    handleChange(e);
+    generate();
+  });
+  cont.addEventListener('change', (e) => {
+    clampNumber(e.target);
+    handleChange(e);
+    generate();
+  });
+}
+
+function clampNumber(el) {
+  if (el.type !== 'number' || el.value === '') return;
+  const val = parseFloat(el.value);
+  if (el.min !== '' && val < parseFloat(el.min)) el.value = el.min;
+  if (el.max !== '' && val > parseFloat(el.max)) el.value = el.max;
+}
+
+function handleChange(e) {
+  const el = e.target;
+
+  // смена вида моба — обновить заголовок карточки
+  const mobMatch = el.dataset.field && el.dataset.field.match(/^m(\d+)-mob$/);
+  if (mobMatch) {
+    const mobId = parseInt(mobMatch[1]);
+    const mob = mobs.find(m => m.id === mobId);
+    if (mob) {
+      mob.mobType = el.value;
+      const card = document.querySelector(`[data-mob-id="${mobId}"]`);
+      const title = card.querySelector('.mob-title');
+      const idx = mobs.indexOf(mob);
+      const stackInfo = idx === 0 ? 'снизу' : (idx === 1 ? 'на основном' : `на пассажире №${idx - 1}`);
+      title.innerHTML = `${ALL_MOBS[el.value]} <small>${stackInfo}</small>`;
+    }
+  }
+
+  // смена предмета в слоте — перестроить список зачарований
+  if (el.classList && el.classList.contains('slot-item')) {
+    refreshEnchantList(el.dataset.prefix, el.dataset.slotKey);
+  }
+}
+
+// ==================== ГЕНЕРАЦИЯ ====================
+
+function val(prefix, field) {
+  return fieldSource(prefix, field);
+}
+
+function buildNBTPartsFor(prefix) {
+  const parts = [];
+
+  const name = (val(prefix, 'name') || '').trim();
+  if (name) {
+    const color = val(prefix, 'name-color');
+    const bold = val(prefix, 'name-bold');
+    const italic = val(prefix, 'name-italic');
+    const nameObj = { text: name };
+    if (color) nameObj.color = color;
+    if (bold) nameObj.bold = true;
+    if (italic) nameObj.italic = true;
+    parts.push(`CustomName:${JSON.stringify(nameObj)}`);
+    if (val(prefix, 'name-visible')) parts.push('CustomNameVisible:1b');
+  }
+
+  if (val(prefix, 'baby')) parts.push('IsBaby:1b');
+  if (val(prefix, 'invul')) parts.push('Invulnerable:1b');
+  if (val(prefix, 'silent')) parts.push('Silent:1b');
+  if (val(prefix, 'noai')) parts.push('NoAI:1b');
+  if (val(prefix, 'noburn')) parts.push('Fire:-1s');
+  if (val(prefix, 'onfire')) parts.push('Fire:32767s');
+  if (val(prefix, 'glow')) parts.push('Glowing:1b');
+  if (val(prefix, 'nogravity')) parts.push('NoGravity:1b');
+  if (val(prefix, 'persist')) parts.push('PersistenceRequired:1b');
+  if (val(prefix, 'nobreath')) parts.push('Air:32767s');
+
+  const attrs = [];
+  const health = val(prefix, 'health');
+  if (health) {
+    parts.push(`Health:${parseFloat(health).toFixed(1)}f`);
+    attrs.push(`{id:"minecraft:max_health",base:${parseFloat(health)}}`);
+  }
+  const speed = val(prefix, 'speed');
+  if (speed) attrs.push(`{id:"minecraft:movement_speed",base:${parseFloat(speed)}}`);
+  const armor = val(prefix, 'armor');
+  if (armor) attrs.push(`{id:"minecraft:armor",base:${parseInt(armor)}}`);
+  const attack = val(prefix, 'attack');
+  if (attack) attrs.push(`{id:"minecraft:attack_damage",base:${parseFloat(attack)}}`);
+  const kb = val(prefix, 'kb');
+  if (kb) attrs.push(`{id:"minecraft:knockback_resistance",base:${parseFloat(kb)}}`);
+  const scale = val(prefix, 'scale');
+  if (scale) attrs.push(`{id:"minecraft:scale",base:${parseFloat(scale)}}`);
+  if (attrs.length) parts.push(`attributes:[${attrs.join(',')}]`);
+
+  const equipParts = [];
+  const dropParts = [];
+  SLOTS.forEach(slot => {
+    const itemId = val(prefix, `slot-${slot.key}`);
+    if (itemId) {
+      const enchants = [];
+      enchSource(prefix, slot.key).forEach(({ id: enchId, lvl }) => {
+        enchants.push(`${enchId}:${lvl}`);
+      });
+      const count = parseInt(val(prefix, `count-${slot.key}`)) || 1;
+      const comps = [];
+      if (enchants.length) comps.push(`enchantments:{${enchants.join(',')}}`);
+      if (itemId.startsWith('leather_') && val(prefix, `dyeon-${slot.key}`)) {
+        const hex = (val(prefix, `dye-${slot.key}`) || '#a06540').replace('#', '');
+        const rgb = parseInt(hex, 16);
+        comps.push(`"minecraft:dyed_color":${rgb}`);
+      }
+      if (canHaveTrim(itemId) && val(prefix, `trimon-${slot.key}`)) {
+        const mat = val(prefix, `trimmat-${slot.key}`) || 'iron';
+        const pat = val(prefix, `trimpat-${slot.key}`) || 'sentry';
+        comps.push(`"minecraft:trim":{material:"${mat}",pattern:"${pat}"}`);
+      }
+      let itemStr = `${slot.key}:{id:${itemId},count:${count}`;
+      if (comps.length) itemStr += `,components:{${comps.join(',')}}`;
+      itemStr += '}';
+      equipParts.push(itemStr);
+    }
+    const dropVal = parseFloat(val(prefix, `drop-${slot.key}`));
+    if (!isNaN(dropVal) && dropVal !== 0) dropParts.push(`${slot.key}:${dropVal.toFixed(2)}f`);
+  });
+  if (equipParts.length) parts.push(`equipment:{${equipParts.join(',')}}`);
+  if (dropParts.length) parts.push(`drop_chances:{${dropParts.join(',')}}`);
+
+  const effects = [];
+  EFFECTS.forEach(([eid]) => {
+    if (val(prefix, `eff-${eid}`)) {
+      const amp = parseInt(val(prefix, `effamp-${eid}`)) || 0;
+      const dur = parseInt(val(prefix, `effdur-${eid}`)) || 999999;
+      effects.push(`{id:"minecraft:${eid}",amplifier:${amp},duration:${dur},show_particles:1b}`);
+    }
+  });
+  if (effects.length) parts.push(`active_effects:[${effects.join(',')}]`);
+
+  return parts;
+}
+
+function generate() {
+  if (mobs.length === 0) return;
+  const coords = (document.getElementById('coords').value || '~ ~ ~').trim();
+
+  // Рекурсивное построение: внутренний пассажир входит в Passengers предыдущего
+  function buildAt(idx) {
+    const parts = buildNBTPartsFor(`m${mobs[idx].id}`);
+    if (idx < mobs.length - 1) {
+      const nextIdx = idx + 1;
+      const nextParts = buildAt(nextIdx);
+      const nextId = mobs[nextIdx].mobType;
+      const passNBT = `{id:"minecraft:${nextId}"` + (nextParts.length ? ',' + nextParts.join(',') : '') + '}';
+      parts.push(`Passengers:[${passNBT}]`);
+    }
+    return parts;
+  }
+
+  const mainParts = buildAt(0);
+  const mainType = mobs[0].mobType;
+  const nbt = mainParts.length ? ` {${mainParts.join(', ')}}` : '';
+  const cmd = `/summon minecraft:${mainType} ${coords}${nbt}`;
+
+  document.getElementById('command-output').textContent = cmd;
+
+  const cc = document.getElementById('char-count');
+  cc.textContent = `Длина: ${cmd.length} символов`;
+  cc.className = 'char-count' + (cmd.length > 256 ? ' long' : '');
+  const warn = document.getElementById('length-warn');
+  warn.innerHTML = cmd.length > 256
+    ? '<div class="warn">⚠ Команда длиннее 256 символов — в чат не поместится. Используй командный блок: <code>/give @s command_block</code>, поставь, правый клик, вставь команду.</div>'
+    : '';
+}
+
+function copyCmd(evt) {
+  const text = document.getElementById('command-output').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = evt.target;
+    const old = btn.textContent;
+    btn.textContent = '✓ Скопировано!';
+    setTimeout(() => btn.textContent = old, 1500);
+  });
+}
+
+function resetAll() {
+  if (!confirm('Сбросить все настройки и пассажиров?')) return;
+  mobs = [createMobState()];
+  document.getElementById('coords').value = '~ ~ ~';
+  renderAll();
+  generate();
+}
+
+// ==================== ЛЮБИМЧИКИ ====================
+
+function loadFavorites() {
+  try {
+    const raw = localStorage.getItem('mc-summon:favorites');
+    if (!raw) return { version: 1, items: [] };
+    const data = JSON.parse(raw);
+    if (!data || !Array.isArray(data.items)) return { version: 1, items: [] };
+    return data;
+  } catch (e) {
+    console.warn('mc-summon: не удалось прочитать любимчиков из localStorage', e);
+    return { version: 1, items: [] };
+  }
+}
+
+function saveFavorites() {
+  try {
+    localStorage.setItem('mc-summon:favorites', JSON.stringify(favorites));
+  } catch (e) {
+    if (e.name === 'QuotaExceededError') {
+      alert('Не удалось сохранить: хранилище переполнено.');
+    } else {
+      throw e;
+    }
+  }
+}
+
+function snapshotCurrent() {
+  const fields = {};
+  document.querySelectorAll('#mobs-container [data-field]').forEach(el => {
+    const key = el.dataset.field;          // e.g. "m3-name"
+    const m = key.match(/^m(\d+)-(.+)$/);
+    if (!m) return;
+    const mobId = parseInt(m[1]);
+    const fieldPart = m[2];
+    const idx = mobs.findIndex(mob => mob.id === mobId);
+    if (idx === -1) return;
+    fields[`${idx}-${fieldPart}`] = el.type === 'checkbox' ? el.checked : el.value;
+  });
+  const mobOrder = mobs.map(m => ({ mobType: m.mobType }));
+  return { mobOrder, fields };
+}
+
+function buildCommandFromSnapshot(item) {
+  const savedFieldSource = fieldSource;
+  const savedEnchSource = enchSource;
+
+  fieldSource = (prefix, field) => {
+    const idx = parseInt(prefix.substring(1));  // "m0" → 0
+    const v = item.fields[`${idx}-${field}`];
+    return v !== undefined ? v : null;
+  };
+
+  enchSource = (prefix, slotKey) => {
+    const idx = parseInt(prefix.substring(1));
+    const list = [];
+    const enchPrefix = `${idx}-ench-${slotKey}-`;
+    Object.keys(item.fields).forEach(key => {
+      if (key.startsWith(enchPrefix) && (item.fields[key] === true || item.fields[key] === 'true')) {
+        const enchId = key.substring(enchPrefix.length);
+        const lvl = parseInt(item.fields[`${idx}-enchlvl-${slotKey}-${enchId}`]) || 1;
+        list.push({ id: enchId, lvl });
+      }
+    });
+    return list;
+  };
+
+  const tempMobs = item.mobOrder.map((m, idx) => ({ id: idx, mobType: m.mobType }));
+
+  function buildAt(idx) {
+    const parts = buildNBTPartsFor(`m${idx}`);
+    if (idx < tempMobs.length - 1) {
+      const nextParts = buildAt(idx + 1);
+      const nextId = tempMobs[idx + 1].mobType;
+      const passNBT = `{id:"minecraft:${nextId}"` + (nextParts.length ? ',' + nextParts.join(',') : '') + '}';
+      parts.push(`Passengers:[${passNBT}]`);
+    }
+    return parts;
+  }
+
+  const mainParts = buildAt(0);
+  const mainType = tempMobs[0].mobType;
+  const nbt = mainParts.length ? ` {${mainParts.join(', ')}}` : '';
+  const cmd = `/summon minecraft:${mainType} ~ ~ ~${nbt}`;
+
+  fieldSource = savedFieldSource;
+  enchSource = savedEnchSource;
+  return cmd;
+}
+
+function restoreSnapshot(item) {
+  mobs = item.mobOrder.map(m => {
+    const mob = createMobState();
+    mob.mobType = m.mobType;
+    return mob;
+  });
+  renderAll();
+
+  mobs.forEach((mob, idx) => {
+    const prefix = `m${mob.id}`;
+
+    // First: restore slot item selections and refresh enchant lists
+    SLOTS.forEach(slot => {
+      const v = item.fields[`${idx}-slot-${slot.key}`];
+      if (v !== undefined) {
+        const el = document.querySelector(`[data-field="${prefix}-slot-${slot.key}"]`);
+        if (el) { el.value = v; refreshEnchantList(prefix, slot.key); }
+      }
+    });
+
+    // Second: restore all other fields (includes enchant checkboxes now that lists exist)
+    Object.keys(item.fields).forEach(key => {
+      if (!key.startsWith(`${idx}-`)) return;
+      const fieldName = key.substring(`${idx}-`.length);
+      if (SLOTS.some(s => fieldName === `slot-${s.key}`)) return;  // already handled
+      const el = document.querySelector(`[data-field="${prefix}-${fieldName}"]`);
+      if (!el) return;
+      const v = item.fields[key];
+      if (el.type === 'checkbox') el.checked = (v === true || v === 'true');
+      else el.value = v !== undefined ? v : '';
+    });
+  });
+
+  generate();
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function showToast(text) {
+  const t = document.getElementById('toast');
+  t.textContent = text;
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.style.opacity = '0'; }, 1500);
+}
+
+function renderFavorites() {
+  const list = document.getElementById('favorites-list');
+  if (!favorites.items.length) {
+    list.innerHTML = '<p class="empty-favs">Пока пусто. Настрой моба и нажми ⭐ Сохранить текущего</p>';
+    return;
+  }
+  list.innerHTML = `<div class="favorites-grid">${favorites.items.map(item => {
+    const mainMobName = ALL_MOBS[item.mobOrder[0].mobType] || item.mobOrder[0].mobType;
+    const passCount = item.mobOrder.length - 1;
+    const passWord = passCount === 1 ? 'пассажир' : (passCount >= 2 && passCount <= 4 ? 'пассажира' : 'пассажиров');
+    const sub = mainMobName + (passCount > 0 ? ` · +${passCount} ${passWord}` : '');
+    return `<div class="fav-card">
+      <div class="fav-name">${escapeHtml(item.name)}</div>
+      <div class="fav-sub">${escapeHtml(sub)}</div>
+      <div class="fav-actions">
+        <button class="small" onclick="loadFavorite('${item.id}')">▶ Загрузить</button>
+        <button class="small sec" onclick="renameFavorite('${item.id}')">✏</button>
+        <button class="small info" onclick="copyFavoriteCommand('${item.id}')">📋</button>
+        <button class="small danger" onclick="removeFavorite('${item.id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function addFavorite() {
+  const defaultName = ALL_MOBS[mobs[0].mobType] || mobs[0].mobType;
+  const name = prompt('Название любимчика?', defaultName);
+  if (!name || !name.trim()) return;
+  const snapshot = snapshotCurrent();
+  favorites.items.push({
+    id: `fav-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+    name: name.trim(),
+    version: 1,
+    createdAt: Date.now(),
+    mobOrder: snapshot.mobOrder,
+    fields: snapshot.fields,
+  });
+  saveFavorites();
+  renderFavorites();
+  showToast('✓ Сохранено');
+}
+
+function loadFavorite(id) {
+  const item = favorites.items.find(f => f.id === id);
+  if (!item) return;
+  if (item.version !== undefined && item.version !== 1) {
+    alert('Этот любимчик сохранён в другой версии и не может быть загружен.');
+    return;
+  }
+  if (!confirm(`Заменить текущую настройку на «${item.name}»?`)) return;
+  restoreSnapshot(item);
+}
+
+function renameFavorite(id) {
+  const item = favorites.items.find(f => f.id === id);
+  if (!item) return;
+  const name = prompt('Новое название?', item.name);
+  if (!name || !name.trim()) return;
+  item.name = name.trim();
+  saveFavorites();
+  renderFavorites();
+  showToast('✓ Переименовано');
+}
+
+function copyFavoriteCommand(id) {
+  const item = favorites.items.find(f => f.id === id);
+  if (!item) return;
+  const cmd = buildCommandFromSnapshot(item);
+  navigator.clipboard.writeText(cmd).then(() => showToast('✓ Скопировано'));
+}
+
+function removeFavorite(id) {
+  const item = favorites.items.find(f => f.id === id);
+  if (!item) return;
+  if (!confirm(`Удалить любимчика «${item.name}»?`)) return;
+  favorites.items = favorites.items.filter(f => f.id !== id);
+  saveFavorites();
+  renderFavorites();
+  showToast('✓ Удалено');
+}
+
+// ==================== СТАРТ ====================
+mobs.push(createMobState());
+renderAll();
+setupEventDelegation();
+document.getElementById('coords').addEventListener('input', generate);
+favorites = loadFavorites();
+renderFavorites();
+generate();
+</script>
+<div id="toast"></div>
+</body>
+</html>
