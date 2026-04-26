@@ -213,8 +213,14 @@ const ITEM_GROUPS = [
   { name: 'Луки и арбалеты', items: [
     ['bow','Лук'],['crossbow','Арбалет'],
   ]},
+  { name: 'Копья', items: [
+    ['wooden_spear','Деревянное копьё'],['stone_spear','Каменное копьё'],
+    ['copper_spear','Медное копьё'],['iron_spear','Железное копьё'],
+    ['golden_spear','Золотое копьё'],['diamond_spear','Алмазное копьё'],
+    ['netherite_spear','Незеритовое копьё'],
+  ]},
   { name: 'Другое оружие', items: [
-    ['trident','Трезубец'],['mace','Булава'],['spear','Копьё'],
+    ['trident','Трезубец'],['mace','Булава'],
   ]},
   { name: 'Кирки', items: [
     ['wooden_pickaxe','Деревянная кирка'],['stone_pickaxe','Каменная кирка'],
@@ -482,7 +488,7 @@ function enchantsForItem(itemId) {
   if (itemId === 'fishing_rod') return ENCHANTS.fishing_rod;
   if (itemId === 'shears') return ENCHANTS.shears;
   if (itemId === 'shield') return ENCHANTS.shield;
-  if (itemId === 'spear') return ENCHANTS.spear;
+  if (itemId.endsWith('_spear')) return ENCHANTS.spear;
   if (FOOD_ITEMS.has(itemId)) return ENCHANTS.sword;
   return [];
 }
