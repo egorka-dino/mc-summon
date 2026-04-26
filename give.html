@@ -793,22 +793,30 @@ function buildComponents() {
 
   const name = (val('name') || '').trim();
   if (name) {
-    const nameObj = { text: name };
     const color = val('name-color');
-    if (color) nameObj.color = color;
-    if (val('name-bold')) nameObj.bold = true;
-    if (val('name-italic')) nameObj.italic = true;
-    comps.push(`custom_name='${JSON.stringify(nameObj)}'`);
+    const bold = val('name-bold');
+    const italic = val('name-italic');
+    if (!color && !bold && !italic) {
+      comps.push(`custom_name='"${name}"'`);
+    } else {
+      const nameObj = { text: name };
+      if (color) nameObj.color = color;
+      if (bold) nameObj.bold = true;
+      if (italic) nameObj.italic = true;
+      comps.push(`custom_name='${JSON.stringify(nameObj)}'`);
+    }
   }
 
   const loreLines = [];
   for (let i = 0; i < 5; i++) {
     const line = (val(`lore-${i}`) || '').trim();
     if (!line) continue;
-    const loreObj = { text: line };
     const loreColor = val(`lore-color-${i}`);
-    if (loreColor) loreObj.color = loreColor;
-    loreLines.push(`'${JSON.stringify(loreObj)}'`);
+    if (!loreColor) {
+      loreLines.push(`'"${line}"'`);
+    } else {
+      loreLines.push(`'${JSON.stringify({ text: line, color: loreColor })}'`);
+    }
   }
   if (loreLines.length) comps.push(`lore=[${loreLines.join(',')}]`);
 
