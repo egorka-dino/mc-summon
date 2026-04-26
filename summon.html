@@ -405,6 +405,16 @@ function buildMobCard(mob, index) {
           <label class="check-row"><input type="checkbox" data-field="${prefix}-nogravity"> Без гравитации</label>
           <label class="check-row"><input type="checkbox" data-field="${prefix}-persist" checked> Не исчезает</label>
           <label class="check-row"><input type="checkbox" data-field="${prefix}-nobreath"> Не задыхается</label>
+          <label class="check-row boss-toggle">
+            <input type="checkbox" data-field="${prefix}-boss">
+            Босс
+            <button type="button" class="info-dot" data-boss-info="${mob.id}" aria-expanded="false" aria-controls="boss-info-${mob.id}">i</button>
+          </label>
+          <div class="boss-info" id="boss-info-${mob.id}" hidden>
+            Галочка добавляет мобу тег <code>boss</code>. Чтобы на сервере появилась bossbar, установи мод
+            <a href="https://github.com/egorka-dino/minecraft-mod-mob-bossbar/releases/" target="_blank" rel="noopener">minecraft-mod-mob-bossbar</a>
+            на сервер.
+          </div>
         </div>
       </div>
 
@@ -561,6 +571,17 @@ function setupEventDelegation() {
       removeMob(parseInt(rm.dataset.remove));
       return;
     }
+    const bossInfoButton = e.target.closest('[data-boss-info]');
+    if (bossInfoButton) {
+      e.preventDefault();
+      e.stopPropagation();
+      const info = document.getElementById(`boss-info-${bossInfoButton.dataset.bossInfo}`);
+      if (!info) return;
+      const isOpen = !info.hidden;
+      info.hidden = isOpen;
+      bossInfoButton.setAttribute('aria-expanded', String(!isOpen));
+      return;
+    }
     const head = e.target.closest('[data-toggle]');
     if (head) {
       head.closest('.mob-card').classList.toggle('collapsed');
@@ -646,6 +667,7 @@ function buildNBTPartsFor(prefix) {
   if (val(prefix, 'nogravity')) parts.push('NoGravity:1b');
   if (val(prefix, 'persist')) parts.push('PersistenceRequired:1b');
   if (val(prefix, 'nobreath')) parts.push('Air:32767s');
+  if (val(prefix, 'boss')) parts.push('Tags:["boss"]');
 
   const attrs = [];
   const health = val(prefix, 'health');

@@ -144,6 +144,44 @@
   input:focus, select:focus { outline: none; border-color: var(--accent); }
   input[type="checkbox"] { accent-color: var(--accent); width: 15px; height: 15px; cursor: pointer; }
   .check-row { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--text); padding: 3px 0; cursor: pointer; }
+  .boss-toggle { color: var(--accent-2); font-weight: 600; }
+  button.info-dot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    background: transparent;
+    border: 1px solid var(--accent-2);
+    border-radius: 50%;
+    color: var(--accent-2);
+    box-shadow: none;
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0;
+    line-height: 1;
+    cursor: help;
+  }
+  button.info-dot:hover { transform: none; box-shadow: none; background: rgba(255,179,71,0.12); }
+  .boss-info {
+    grid-column: 1 / -1;
+    padding: 9px 11px;
+    background: rgba(255,179,71,0.12);
+    border-left: 3px solid var(--accent-2);
+    border-radius: 3px;
+    color: var(--text);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .boss-info a { color: var(--accent-2); font-weight: 700; }
+  .boss-info code {
+    padding: 1px 4px;
+    background: var(--code-bg);
+    border-radius: 2px;
+    color: var(--code-text);
+  }
 
   .slot {
     background: rgba(0,0,0,0.2);
