@@ -1084,6 +1084,8 @@ function snapshotCurrent() {
     targetCustom: document.getElementById('target-custom').value,
     count: document.getElementById('item-count').value,
     explosions: JSON.parse(JSON.stringify(explosions)),
+    potionType: document.querySelector('input[name="potion-type"]:checked')?.value || 'potion',
+    potionModifier: document.querySelector('input[name="potion-modifier"]:checked')?.value || 'normal',
     fields,
   };
 }
@@ -1094,6 +1096,13 @@ function restoreSnapshot(snap) {
   document.getElementById('target-custom').value = snap.targetCustom || '';
   document.getElementById('item-count').value = snap.count || '1';
   onItemChange();
+  if (isPotion(snap.itemId)) {
+    const typeEl = document.querySelector(`input[name="potion-type"][value="${snap.potionType || 'potion'}"]`);
+    if (typeEl) typeEl.checked = true;
+    updatePotionModifiers(snap.itemId);
+    const modEl = document.querySelector(`input[name="potion-modifier"][value="${snap.potionModifier || 'normal'}"]`);
+    if (modEl && modEl.closest('label').style.display !== 'none') modEl.checked = true;
+  }
   Object.entries(snap.fields || {}).forEach(([key, v]) => {
     const el = document.querySelector(`[data-field="${key}"]`);
     if (!el) return;
