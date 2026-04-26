@@ -701,6 +701,8 @@ function onItemChange() {
   document.getElementById('section-dye').style.display = (itemId || '').startsWith('leather_') ? '' : 'none';
   document.getElementById('section-trim').style.display = canHaveTrim(itemId) ? '' : 'none';
   document.getElementById('section-firework').style.display = itemId === 'firework_rocket' ? '' : 'none';
+  document.getElementById('section-potion').style.display = isPotion(itemId) ? '' : 'none';
+  if (isPotion(itemId)) updatePotionModifiers(itemId);
   generate();
 }
 
@@ -827,6 +829,26 @@ function val(field) {
   const el = document.querySelector(`[data-field="${field}"]`);
   if (!el) return null;
   return el.type === 'checkbox' ? el.checked : el.value;
+}
+
+function isPotion(id) {
+  return (id || '').startsWith('potion:');
+}
+
+function updatePotionModifiers(itemId) {
+  const effect = itemId.split(':')[1];
+  const entry = POTIONS.find(p => p[0] === effect);
+  const hasLong   = entry ? entry[2] : false;
+  const hasStrong = entry ? entry[3] : false;
+
+  const longLabel   = document.getElementById('potion-mod-long');
+  const strongLabel = document.getElementById('potion-mod-strong');
+  longLabel.style.display   = hasLong   ? '' : 'none';
+  strongLabel.style.display = hasStrong ? '' : 'none';
+
+  const checked = document.querySelector('input[name="potion-modifier"]:checked');
+  if (checked && checked.value === 'long'   && !hasLong)   document.querySelector('input[name="potion-modifier"][value="normal"]').checked = true;
+  if (checked && checked.value === 'strong' && !hasStrong) document.querySelector('input[name="potion-modifier"][value="normal"]').checked = true;
 }
 
 function clampNumber(el) {
