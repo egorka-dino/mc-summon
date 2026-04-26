@@ -1,12 +1,19 @@
-# mc-summon
-  Веб-генератор команды /summon для Minecraft Java Edition 1.21.5+.
-  
+# mc-commands
+  Генераторы команд Minecraft Java Edition 1.21.5+.
+
+  ## Структура файлов
+  - `index.html` — лендинг mc-commands
+  - `summon.html` — генератор /summon
+  - `give.html` — генератор /give
+  - `style.css` — общий CSS
+
   ## Ключевые факты
   - Формат предметов: components:{enchantments:{id:lvl}} (без levels, было в 1.20.5)
   - Снаряжение мобов: единый блок equipment:{head, chest, legs, feet, mainhand, offhand}
+  - /give: компоненты в квадратных скобках [comp=val,...], формат 1.21.5
   - Деплой: git push — GitHub Pages автообновит egorka-dino.github.io/mc-summon
-  
+
   ## Стиль
   - Интерфейс на русском
   - Без внешних зависимостей кроме Google Fonts
-  - Один файл index.html, ни фреймворков, ни сборки
+  - Ни фреймворков, ни сборки
