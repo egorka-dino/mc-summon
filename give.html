@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Генератор /give — Minecraft 1.21.5+</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Jost:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .explosion-card {
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--border);
+    padding: 12px;
+    border-radius: 3px;
+    margin-bottom: 10px;
+  }
+  .color-entry {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin: 2px;
+  }
+  .color-entry input[type="color"] {
+    width: 36px;
+    height: 26px;
+    padding: 0;
+    border: 2px solid var(--border);
+    background: var(--bg);
+    cursor: pointer;
+    border-radius: 2px;
+  }
+  .colors-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 4px; }
+  .lore-row { display: grid; grid-template-columns: 1fr 130px; gap: 8px; margin-bottom: 6px; align-items: end; }
+  .item-picker { display: flex; flex-direction: column; gap: 4px; }
+  .item-picker .item-search {
+    background: var(--bg);
+    border: 2px solid var(--border);
+    color: var(--text);
+    padding: 5px 8px;
+    font-family: 'Jost', sans-serif;
+    font-size: 12px;
+    border-radius: 3px;
+    width: 100%;
+  }
+  .item-picker .item-search:focus { outline: none; border-color: var(--accent-2); }
+</style>
+</head>
+<body>
+<header>
+  <a href="index.html" class="nav-back">← mc-commands</a>
+  <h1 style="color:var(--accent-2);">⚙ ГЕНЕРАТОР /GIVE ⚙</h1>
+  <p>Minecraft Java Edition 1.21.5 и новее · v1.0</p>
+</header>
+
+<div class="container">
+
+  <div class="panel">
+    <h2>Цель и предмет</h2>
+    <div class="grid-2" style="margin-bottom:12px;">
+      <label>
+        <span class="lab">Кому выдать</span>
+        <div style="display:grid;grid-template-columns:100px 1fr;gap:8px;">
+          <select id="target-preset">
+            <option value="@s" selected>@s (себе)</option>
+            <option value="@p">@p (ближайший)</option>
+            <option value="@a">@a (всем)</option>
+            <option value="@r">@r (случайный)</option>
+          </select>
+          <input type="text" id="target-custom" placeholder="или свой селектор: @a[team=red]">
+        </div>
+      </label>
+      <label>
+        <span class="lab">Количество (1–64)</span>
+        <input type="number" id="item-count" min="1" max="64" value="1">
+      </label>
+    </div>
+    <label>
+      <span class="lab">Предмет</span>
+      <div class="item-picker">
+        <input type="text" class="item-search" id="item-search" placeholder="🔎 Поиск по названию (рус/англ)…">
+        <select id="item-select" size="1"></select>
+      </div>
+    </label>
+  </div>
+
+  <div class="panel">
+    <div class="fav-header">
+      <h2>⭐ Коллекция</h2>
+      <button class="small sec" onclick="addFavorite()">⭐ Сохранить</button>
+    </div>
+    <div id="favorites-list"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Параметры предмета</h2>
+
+    <div class="section" id="section-name">
+      <div class="section-title">① Имя и лор</div>
+      <div class="grid-2" style="margin-bottom:8px;">
+        <label><span class="lab">Кастомное имя</span>
+          <input type="text" data-field="name" placeholder="оставь пустым — без имени">
+        </label>
+        <label><span class="lab">Цвет имени</span>
+          <select data-field="name-color"></select>
+        </label>
+      </div>
+      <div class="grid-3" style="margin-bottom:12px;">
+        <label class="check-row"><input type="checkbox" data-field="name-bold"> Жирное</label>
+        <label class="check-row"><input type="checkbox" data-field="name-italic"> Курсив</label>
+      </div>
+      <div class="section-title" style="margin-top:4px;">Лор (до 5 строк)</div>
+      <div id="lore-rows"></div>
+    </div>
+
+    <div class="section" id="section-enchants" style="display:none;">
+      <div class="section-title">② Зачарования</div>
+      <div class="enchant-list" id="enchants-list"></div>
+    </div>
+
+    <div class="section" id="section-dye" style="display:none;">
+      <div class="section-title">③ Окраска (кожаная броня)</div>
+      <label class="check-row" style="gap:10px;">
+        <input type="checkbox" data-field="dye-on">
+        Покрасить
+        <input type="color" data-field="dye-color" value="#a06540" style="width:48px;height:26px;padding:0;border:2px solid var(--border);background:var(--bg);cursor:pointer;margin-left:6px;">
+      </label>
+    </div>
+
+    <div class="section" id="section-trim" style="display:none;">
+      <div class="section-title">④ Отделка брони</div>
+      <label class="check-row" style="gap:8px;margin-bottom:8px;">
+        <input type="checkbox" data-field="trim-on"> Включить отделку
+      </label>
+      <div class="grid-2">
+        <label><span class="lab">Материал</span><select data-field="trim-mat"></select></label>
+        <label><span class="lab">Узор</span><select data-field="trim-pat"></select></label>
+      </div>
+    </div>
+
+    <div class="section" id="section-food" style="display:none;">
+      <div class="section-title">⑤ Параметры еды</div>
+      <div class="grid-3" style="margin-bottom:10px;">
+        <label><span class="lab">Питательность (0–20)</span>
+          <input type="number" data-field="food-nutrition" min="0" max="20" value="4">
+        </label>
+        <label><span class="lab">Насыщение (0.0–20.0)</span>
+          <input type="number" data-field="food-saturation" min="0" max="20" step="0.1" value="0.6">
+        </label>
+        <label class="check-row" style="padding-top:18px;">
+          <input type="checkbox" data-field="food-always-eat"> Есть с полным голодом
+        </label>
+      </div>
+      <div class="section-title" style="margin-bottom:8px;">Эффекты при поедании (до 5)</div>
+      <div id="food-effects-rows"></div>
+    </div>
+
+    <div class="section" id="section-totem">
+      <div class="section-title">⑥ Тотем бессмертия</div>
+      <label class="check-row" style="margin-bottom:10px;">
+        <input type="checkbox" data-field="totem-on" id="totem-toggle"> Действует как тотем
+      </label>
+      <div id="totem-effects-block" style="display:none;">
+        <p class="hint" style="margin-bottom:8px;">Эффекты после срабатывания:</p>
+        <div id="totem-effects-rows"></div>
+      </div>
+    </div>
+
+    <div class="section" id="section-firework" style="display:none;">
+      <div class="section-title">⑦ Фейерверк</div>
+      <label style="margin-bottom:12px;max-width:200px;">
+        <span class="lab">Длительность полёта</span>
+        <select data-field="fw-duration">
+          <option value="1" selected>1 — короткий</option>
+          <option value="2">2 — средний</option>
+          <option value="3">3 — долгий</option>
+        </select>
+      </label>
+      <div id="explosions-container"></div>
+      <button class="info" id="add-explosion-btn" onclick="addExplosion()">+ Добавить взрыв</button>
+    </div>
+
+  </div>
+
+  <div class="panel output-panel">
+    <h2>▶ Готовая команда</h2>
+    <div id="command-output"></div>
+    <div class="char-count" id="char-count"></div>
+    <div class="btn-row">
+      <button onclick="copyCmd(event)">📋 Копировать</button>
+      <button class="sec" onclick="generate()">🔄 Обновить</button>
+      <button class="danger" onclick="resetAll()">✖ Сброс</button>
+    </div>
+    <div id="length-warn"></div>
+  </div>
+
+</div>
+
+<footer>v1.0 · /give generator · Minecraft 1.21.5+</footer>
+<div id="toast"></div>
+
+<script>
+const ITEM_GROUPS = [
+  { name: 'Мечи', items: [
+    ['wooden_sword','Деревянный меч'],['stone_sword','Каменный меч'],
+    ['iron_sword','Железный меч'],['golden_sword','Золотой меч'],
+    ['diamond_sword','Алмазный меч'],['netherite_sword','Незеритовый меч'],
+  ]},
+  { name: 'Топоры', items: [
+    ['wooden_axe','Деревянный топор'],['stone_axe','Каменный топор'],
+    ['iron_axe','Железный топор'],['golden_axe','Золотой топор'],
+    ['diamond_axe','Алмазный топор'],['netherite_axe','Незеритовый топор'],
+  ]},
+  { name: 'Луки и арбалеты', items: [
+    ['bow','Лук'],['crossbow','Арбалет'],
+  ]},
+  { name: 'Другое оружие', items: [
+    ['trident','Трезубец'],['mace','Булава'],
+  ]},
+  { name: 'Кирки', items: [
+    ['wooden_pickaxe','Деревянная кирка'],['stone_pickaxe','Каменная кирка'],
+    ['iron_pickaxe','Железная кирка'],['golden_pickaxe','Золотая кирка'],
+    ['diamond_pickaxe','Алмазная кирка'],['netherite_pickaxe','Незеритовая кирка'],
+  ]},
+  { name: 'Лопаты', items: [
+    ['wooden_shovel','Деревянная лопата'],['stone_shovel','Каменная лопата'],
+    ['iron_shovel','Железная лопата'],['golden_shovel','Золотая лопата'],
+    ['diamond_shovel','Алмазная лопата'],['netherite_shovel','Незеритовая лопата'],
+  ]},
+  { name: 'Мотыги', items: [
+    ['wooden_hoe','Деревянная мотыга'],['stone_hoe','Каменная мотыга'],
+    ['iron_hoe','Железная мотыга'],['golden_hoe','Золотая мотыга'],
+    ['diamond_hoe','Алмазная мотыга'],['netherite_hoe','Незеритовая мотыга'],
+  ]},
+  { name: 'Другие инструменты', items: [
+    ['shears','Ножницы'],['flint_and_steel','Кремень и сталь'],
+    ['fishing_rod','Удочка'],['carrot_on_a_stick','Морковка на удочке'],
+    ['warped_fungus_on_a_stick','Деформированный гриб на удочке'],
+    ['brush','Кисть'],['spyglass','Подзорная труба'],
+    ['compass','Компас'],['recovery_compass','Компас восстановления'],
+    ['clock','Часы'],['map','Карта'],['filled_map','Заполненная карта'],
+  ]},
+  { name: 'Шлемы', items: [
+    ['leather_helmet','Кожаный шлем'],['chainmail_helmet','Кольчужный шлем'],
+    ['iron_helmet','Железный шлем'],['golden_helmet','Золотой шлем'],
+    ['diamond_helmet','Алмазный шлем'],['netherite_helmet','Незеритовый шлем'],
+    ['turtle_helmet','Черепаший панцирь'],['carved_pumpkin','Вырезанная тыква'],
+    ['player_head','Голова игрока'],['zombie_head','Голова зомби'],
+    ['skeleton_skull','Череп скелета'],['creeper_head','Голова крипера'],
+    ['dragon_head','Голова дракона'],['piglin_head','Голова пиглина'],
+  ]},
+  { name: 'Нагрудники', items: [
+    ['leather_chestplate','Кожаный нагрудник'],['chainmail_chestplate','Кольчужный нагрудник'],
+    ['iron_chestplate','Железный нагрудник'],['golden_chestplate','Золотой нагрудник'],
+    ['diamond_chestplate','Алмазный нагрудник'],['netherite_chestplate','Незеритовый нагрудник'],
+    ['elytra','Элитры'],
+  ]},
+  { name: 'Штаны', items: [
+    ['leather_leggings','Кожаные штаны'],['chainmail_leggings','Кольчужные штаны'],
+    ['iron_leggings','Железные штаны'],['golden_leggings','Золотые штаны'],
+    ['diamond_leggings','Алмазные штаны'],['netherite_leggings','Незеритовые штаны'],
+  ]},
+  { name: 'Ботинки', items: [
+    ['leather_boots','Кожаные ботинки'],['chainmail_boots','Кольчужные ботинки'],
+    ['iron_boots','Железные ботинки'],['golden_boots','Золотые ботинки'],
+    ['diamond_boots','Алмазные ботинки'],['netherite_boots','Незеритовые ботинки'],
+  ]},
+  { name: 'Щиты', items: [
+    ['shield','Щит'],
+  ]},
+  { name: 'Еда', items: [
+    ['apple','Яблоко'],['golden_apple','Золотое яблоко'],['enchanted_golden_apple','Зачарованное золотое яблоко'],
+    ['bread','Хлеб'],['cooked_beef','Стейк'],['beef','Сырая говядина'],
+    ['cooked_porkchop','Жареная свинина'],['porkchop','Сырая свинина'],
+    ['cooked_chicken','Жареная курица'],['chicken','Сырая курица'],
+    ['cooked_mutton','Жареная баранина'],['mutton','Сырая баранина'],
+    ['cooked_rabbit','Жареный кролик'],['rabbit','Сырой кролик'],
+    ['cooked_cod','Жареная треска'],['cod','Сырая треска'],
+    ['cooked_salmon','Жареный лосось'],['salmon','Сырой лосось'],
+    ['tropical_fish','Тропическая рыба'],['pufferfish','Рыба-фугу'],
+    ['carrot','Морковь'],['golden_carrot','Золотая морковь'],
+    ['potato','Картофель'],['baked_potato','Запечённый картофель'],['poisonous_potato','Ядовитый картофель'],
+    ['melon_slice','Долька дыни'],['glistering_melon_slice','Блестящая долька дыни'],
+    ['pumpkin_pie','Тыквенный пирог'],
+    ['mushroom_stew','Грибной суп'],['rabbit_stew','Рагу из кролика'],['beetroot_soup','Суп из свёклы'],
+    ['suspicious_stew','Подозрительное рагу'],
+    ['cookie','Печенье'],['honey_bottle','Бутылочка мёда'],['dried_kelp','Сушёная ламинария'],
+    ['sweet_berries','Сладкие ягоды'],['glow_berries','Светящиеся ягоды'],
+    ['chorus_fruit','Плод хоруса'],['beetroot','Свёкла'],
+    ['rotten_flesh','Гнилая плоть'],['spider_eye','Паучий глаз'],
+  ]},
+  { name: 'Зелья', items: [
+    ['potion','Зелье'],['splash_potion','Бросаемое зелье'],
+    ['lingering_potion','Длительное зелье'],['tipped_arrow','Зачарованная стрела'],
+  ]},
+  { name: 'Стрелы', items: [
+    ['arrow','Стрела'],['spectral_arrow','Спектральная стрела'],
+  ]},
+  { name: 'Блоки', items: [
+    ['command_block','Командный блок'],['chain_command_block','Цепной командный блок'],['repeating_command_block','Повторяющийся командный блок'],
+    ['chest','Сундук'],['trapped_chest','Сундук-ловушка'],['ender_chest','Эндер-сундук'],
+    ['shulker_box','Ящик шалкера'],
+    ['furnace','Печь'],['blast_furnace','Доменная печь'],['smoker','Коптильня'],
+    ['crafting_table','Верстак'],['enchanting_table','Стол зачарований'],['anvil','Наковальня'],
+    ['beacon','Маяк'],['conduit','Проводник'],
+    ['spawner','Спаунер'],['trial_spawner','Испытательный спаунер'],['vault','Хранилище'],
+    ['barrier','Барьер'],['light','Свет'],['structure_void','Структурная пустота'],
+    ['stone','Камень'],['cobblestone','Булыжник'],['obsidian','Обсидиан'],['crying_obsidian','Плачущий обсидиан'],
+    ['netherrack','Незеррак'],['end_stone','Камень Края'],['deepslate','Глубинный сланец'],
+    ['glass','Стекло'],['tinted_glass','Тонированное стекло'],
+    ['dirt','Земля'],['grass_block','Блок травы'],['sand','Песок'],['gravel','Гравий'],
+    ['oak_log','Дубовое бревно'],['oak_planks','Дубовые доски'],
+    ['tnt','Динамит'],['respawn_anchor','Якорь возрождения'],
+    ['structure_block','Блок структуры'],['jigsaw','Блок джигсо'],
+  ]},
+  { name: 'Материалы', items: [
+    ['iron_ingot','Железный слиток'],['gold_ingot','Золотой слиток'],
+    ['netherite_ingot','Незеритовый слиток'],['netherite_scrap','Незеритовый обломок'],
+    ['diamond','Алмаз'],['emerald','Изумруд'],['amethyst_shard','Осколок аметиста'],
+    ['lapis_lazuli','Лазурит'],['redstone','Красный камень'],['quartz','Кварц'],
+    ['coal','Уголь'],['charcoal','Древесный уголь'],['flint','Кремень'],
+    ['string','Нить'],['feather','Перо'],['leather','Кожа'],['white_wool','Белая шерсть'],
+    ['bone','Кость'],['bone_meal','Костяная мука'],
+    ['blaze_rod','Огненный стержень'],['blaze_powder','Огненный порошок'],
+    ['ender_pearl','Жемчуг Края'],['ender_eye','Глаз Края'],
+    ['ghast_tear','Слеза гаста'],['magma_cream','Магмовый крем'],
+    ['phantom_membrane','Мембрана фантома'],['nautilus_shell','Раковина наутилуса'],
+    ['heart_of_the_sea','Морское сердце'],['turtle_scute','Черепашья чешуйка'],
+    ['armadillo_scute','Чешуйка броненосца'],['breeze_rod','Стержень бриза'],
+    ['rabbit_foot','Заячья лапка'],['rabbit_hide','Заячья шкурка'],
+    ['paper','Бумага'],['book','Книга'],['writable_book','Книга и перо'],['written_book','Написанная книга'],
+    ['name_tag','Бирка'],['lead','Поводок'],['saddle','Седло'],
+    ['stick','Палка'],['bowl','Миска'],
+    ['snowball','Снежок'],['egg','Яйцо'],['fire_charge','Огненный шар'],
+    ['experience_bottle','Бутылка опыта'],['glass_bottle','Стеклянная бутылка'],
+    ['bucket','Ведро'],['water_bucket','Ведро воды'],['lava_bucket','Ведро лавы'],['milk_bucket','Ведро молока'],
+    ['nether_star','Звезда Нижнего мира'],['resin_clump','Комок смолы'],
+  ]},
+  { name: 'Особые', items: [
+    ['totem_of_undying','Тотем бессмертия'],
+    ['nether_star','Звезда Нижнего мира'],
+    ['dragon_egg','Яйцо дракона'],
+    ['firework_rocket','Фейерверк'],['firework_star','Звезда фейерверка'],
+    ['bundle','Связка'],
+    ['knowledge_book','Книга знаний'],
+    ['debug_stick','Отладочная палка'],
+    ['trial_key','Ключ испытания'],['ominous_trial_key','Зловещий ключ испытания'],
+    ['ominous_bottle','Зловещая бутылка'],['wind_charge','Ветровой заряд'],
+  ]},
+];
+
+const ALL_ITEMS = {};
+ITEM_GROUPS.forEach(g => g.items.forEach(([id, name]) => ALL_ITEMS[id] = name));
+
+const FOOD_ITEMS = new Set([
+  'apple','golden_apple','enchanted_golden_apple',
+  'bread','cooked_beef','beef','cooked_porkchop','porkchop',
+  'cooked_chicken','chicken','cooked_mutton','mutton',
+  'cooked_rabbit','rabbit','cooked_cod','cod','cooked_salmon','salmon',
+  'tropical_fish','pufferfish','rotten_flesh','spider_eye',
+  'carrot','golden_carrot','potato','baked_potato','poisonous_potato',
+  'melon_slice','glistering_melon_slice','pumpkin_pie',
+  'mushroom_stew','rabbit_stew','beetroot_soup','suspicious_stew',
+  'cookie','honey_bottle','dried_kelp',
+  'sweet_berries','glow_berries','chorus_fruit','beetroot',
+  'milk_bucket',
+]);
+
+const ENCHANTS = {
+  armor: [
+    { id: 'protection', name: 'Защита', max: 4 },
+    { id: 'fire_protection', name: 'Огнезащита', max: 4 },
+    { id: 'blast_protection', name: 'Взрывозащита', max: 4 },
+    { id: 'projectile_protection', name: 'Защита от снарядов', max: 4 },
+    { id: 'thorns', name: 'Шипы', max: 3 },
+    { id: 'unbreaking', name: 'Неразрушимость', max: 3 },
+    { id: 'mending', name: 'Починка', max: 1 },
+    { id: 'binding_curse', name: 'Проклятие несъёмности', max: 1 },
+    { id: 'vanishing_curse', name: 'Проклятие исчезновения', max: 1 },
+  ],
+  helmet_extra: [
+    { id: 'respiration', name: 'Подводное дыхание', max: 3 },
+    { id: 'aqua_affinity', name: 'Подводник', max: 1 },
+  ],
+  boots_extra: [
+    { id: 'feather_falling', name: 'Невесомость', max: 4 },
+    { id: 'depth_strider', name: 'Ходьба по воде', max: 3 },
+    { id: 'frost_walker', name: 'Ледоход', max: 2 },
+    { id: 'soul_speed', name: 'Скольжение по душам', max: 3 },
+  ],
+  sword: [
+    { id: 'sharpness', name: 'Острота', max: 5 },
+    { id: 'smite', name: 'Небесная кара (нежить)', max: 5 },
+    { id: 'bane_of_arthropods', name: 'Бич членистоногих', max: 5 },
+    { id: 'knockback', name: 'Отбрасывание', max: 2 },
+    { id: 'fire_aspect', name: 'Заговор огня', max: 2 },
+    { id: 'looting', name: 'Добыча', max: 3 },
+    { id: 'sweeping_edge', name: 'Разящий клинок', max: 3 },
+    { id: 'unbreaking', name: 'Неразрушимость', max: 3 },
+    { id: 'mending', name: 'Починка', max: 1 },
+    { id: 'vanishing_curse', name: 'Проклятие исчезновения', max: 1 },
+  ],
+  bow: [
+    { id: 'power', name: 'Сила', max: 5 }, { id: 'punch', name: 'Отдача', max: 2 },
+    { id: 'flame', name: 'Горящая стрела', max: 1 }, { id: 'infinity', name: 'Бесконечность', max: 1 },
+    { id: 'unbreaking', name: 'Неразрушимость', max: 3 }, { id: 'mending', name: 'Починка', max: 1 },
+  ],
+  crossbow: [
+    { id: 'quick_charge', name: 'Быстрая зарядка', max: 3 },
+    { id: 'multishot', name: 'Мультивыстрел', max: 1 }, { id: 'piercing', name: 'Пронзание', max: 4 },
+    { id: 'unbreaking', name: 'Неразрушимость', max: 3 }, { id: 'mending', name: 'Починка', max: 1 },
+  ],
+  trident: [
+    { id: 'loyalty', name: 'Верность', max: 3 }, { id: 'impaling', name: 'Пронзающий', max: 5 },
+    { id: 'riptide', name: 'Тягучесть', max: 3 }, { id: 'channeling', name: 'Молния', max: 1 },
+    { id: 'unbreaking', name: 'Неразрушимость', max: 3 }, { id: 'mending', name: 'Починка', max: 1 },
+  ],
+  mace: [
+    { id: 'density', name: 'Плотность', max: 5 }, { id: 'breach', name: 'Пробивание', max: 4 },
+    { id: 'wind_burst', name: 'Ветровой взрыв', max: 3 }, { id: 'smite', name: 'Небесная кара', max: 5 },
+    { id: 'fire_aspect', name: 'Заговор огня', max: 2 }, { id: 'unbreaking', name: 'Неразрушимость', max: 3 },
+  ],
+  axe: [
+    { id: 'sharpness', name: 'Острота', max: 5 }, { id: 'smite', name: 'Небесная кара', max: 5 },
+    { id: 'bane_of_arthropods', name: 'Бич членистоногих', max: 5 },
+    { id: 'efficiency', name: 'Эффективность', max: 5 },
+    { id: 'unbreaking', name: 'Неразрушимость', max: 3 }, { id: 'mending', name: 'Починка', max: 1 },
+  ],
+  pickaxe: [
+    { id: 'efficiency', name: 'Эффективность', max: 5 },
+    { id: 'fortune', name: 'Удача', max: 3 },
+    { id: 'silk_touch', name: 'Шёлковое касание', max: 1 },
+    { id: 'unbreaking', name: 'Неразрушимость', max: 3 },
+    { id: 'mending', name: 'Починка', max: 1 },
+  ],
+  fishing_rod: [
+    { id: 'luck_of_the_sea', name: 'Рыбацкая удача', max: 3 },
+    { id: 'lure', name: 'Приманка', max: 3 },
+    { id: 'unbreaking', name: 'Неразрушимость', max: 3 },
+    { id: 'mending', name: 'Починка', max: 1 },
+  ],
+  shears: [
+    { id: 'efficiency', name: 'Эффективность', max: 5 },
+    { id: 'unbreaking', name: 'Неразрушимость', max: 3 },
+    { id: 'mending', name: 'Починка', max: 1 },
+  ],
+  shield: [
+    { id: 'unbreaking', name: 'Неразрушимость', max: 3 },
+    { id: 'mending', name: 'Починка', max: 1 },
+  ],
+};
+
+function enchantsForItem(itemId) {
+  if (!itemId) return [];
+  if (itemId === 'elytra') return [
+    { id: 'unbreaking', name: 'Неразрушимость', max: 3 },
+    { id: 'mending', name: 'Починка', max: 1 },
+  ];
+  if (itemId.endsWith('_helmet') || itemId === 'turtle_helmet') return [...ENCHANTS.armor, ...ENCHANTS.helmet_extra];
+  if (itemId.endsWith('_chestplate')) return [...ENCHANTS.armor];
+  if (itemId.endsWith('_leggings')) return [...ENCHANTS.armor];
+  if (itemId.endsWith('_boots')) return [...ENCHANTS.armor, ...ENCHANTS.boots_extra];
+  if (itemId.endsWith('_sword')) return ENCHANTS.sword;
+  if (itemId.endsWith('_axe')) return ENCHANTS.axe;
+  if (itemId === 'bow') return ENCHANTS.bow;
+  if (itemId === 'crossbow') return ENCHANTS.crossbow;
+  if (itemId === 'trident') return ENCHANTS.trident;
+  if (itemId === 'mace') return ENCHANTS.mace;
+  if (itemId.endsWith('_pickaxe')) return ENCHANTS.pickaxe;
+  if (itemId.endsWith('_shovel') || itemId.endsWith('_hoe')) return ENCHANTS.pickaxe;
+  if (itemId === 'fishing_rod') return ENCHANTS.fishing_rod;
+  if (itemId === 'shears') return ENCHANTS.shears;
+  if (itemId === 'shield') return ENCHANTS.shield;
+  return [];
+}
+
+function canHaveTrim(itemId) {
+  if (!itemId) return false;
+  if (itemId === 'elytra') return false;
+  return itemId.endsWith('_helmet') || itemId === 'turtle_helmet'
+      || itemId.endsWith('_chestplate')
+      || itemId.endsWith('_leggings')
+      || itemId.endsWith('_boots');
+}
+
+const EFFECTS = [
+  ['speed','Скорость'],['slowness','Замедление'],['haste','Спешка'],['mining_fatigue','Усталость копания'],
+  ['strength','Сила'],['weakness','Слабость'],['jump_boost','Прыгучесть'],['regeneration','Регенерация'],
+  ['instant_health','Мгновенное лечение'],['instant_damage','Мгновенный урон'],
+  ['poison','Отравление'],['wither','Иссушение'],
+  ['resistance','Сопротивление урону'],['fire_resistance','Огнестойкость'],['water_breathing','Дыхание под водой'],
+  ['invisibility','Невидимость'],['night_vision','Ночное зрение'],['blindness','Слепота'],
+  ['nausea','Тошнота'],['hunger','Голод'],['saturation','Насыщение'],
+  ['levitation','Левитация'],['glowing','Свечение'],['slow_falling','Медленное падение'],
+  ['absorption','Поглощение'],['health_boost','Усиление здоровья'],['luck','Удача'],
+  ['conduit_power','Мощь проводника'],['dolphins_grace','Грация дельфина'],
+  ['hero_of_the_village','Герой деревни'],['darkness','Тьма'],['bad_omen','Дурное предзнаменование'],
+];
+
+const NAME_COLORS = [
+  ['', '— без цвета —'], ['white','белый'], ['gray','серый'], ['dark_gray','тёмно-серый'],
+  ['black','чёрный'], ['red','красный'], ['dark_red','тёмно-красный'],
+  ['gold','золотой'], ['yellow','жёлтый'], ['green','зелёный'], ['dark_green','тёмно-зелёный'],
+  ['aqua','бирюзовый'], ['dark_aqua','тёмно-бирюзовый'], ['blue','синий'], ['dark_blue','тёмно-синий'],
+  ['light_purple','розовый'], ['dark_purple','фиолетовый'],
+];
+
+const TRIM_MATERIALS = [
+  ['quartz','Кварц'],['iron','Железо'],['netherite','Незерит'],['redstone','Редстоун'],
+  ['copper','Медь'],['gold','Золото'],['emerald','Изумруд'],['diamond','Алмаз'],
+  ['lapis','Лазурит'],['amethyst','Аметист'],['resin','Смола'],
+];
+const TRIM_PATTERNS = [
+  ['sentry','Часовой'],['dune','Дюна'],['coast','Берег'],['wild','Дикарь'],
+  ['ward','Страж'],['eye','Око'],['vex','Вредина'],['tide','Прилив'],
+  ['snout','Рыло'],['rib','Ребро'],['spire','Шпиль'],['shaper','Ваятель'],
+  ['silence','Тишина'],['raiser','Возвышение'],['host','Хозяин'],
+  ['flow','Поток'],['bolt','Молния'],['wayfinder','Путеводный'],
+];
+
+// ==================== СОСТОЯНИЕ ====================
+let explosions = [];
+let nextExplosionId = 0;
+let favorites = { version: 1, items: [] };
+
+// ==================== INIT ====================
+
+function initItemSelect() {
+  const sel = document.getElementById('item-select');
+  ITEM_GROUPS.forEach(group => {
+    const og = document.createElement('optgroup');
+    og.label = group.name;
+    group.items.forEach(([id, name]) => {
+      const opt = document.createElement('option');
+      opt.value = id;
+      opt.textContent = `${name} (${id})`;
+      og.appendChild(opt);
+    });
+    sel.appendChild(og);
+  });
+}
+
+function initNameColorSelects() {
+  const opts = NAME_COLORS.map(([v, n]) => `<option value="${v}">${n}</option>`).join('');
+  document.querySelectorAll('[data-field="name-color"]').forEach(s => s.innerHTML = opts);
+}
+
+function initTrimSelects() {
+  const matOpts = TRIM_MATERIALS.map(([v,n]) => `<option value="${v}">${n} (${v})</option>`).join('');
+  const patOpts = TRIM_PATTERNS.map(([v,n]) => `<option value="${v}">${n} (${v})</option>`).join('');
+  document.querySelector('[data-field="trim-mat"]').innerHTML = matOpts;
+  document.querySelector('[data-field="trim-pat"]').innerHTML = patOpts;
+}
+
+function initLoreRows() {
+  const cont = document.getElementById('lore-rows');
+  cont.innerHTML = '';
+  for (let i = 0; i < 5; i++) {
+    const colorOpts = NAME_COLORS.map(([v, n]) => `<option value="${v}">${n}</option>`).join('');
+    cont.innerHTML += `
+      <div class="lore-row">
+        <input type="text" data-field="lore-${i}" placeholder="Строка ${i + 1} лора">
+        <select data-field="lore-color-${i}">${colorOpts}</select>
+      </div>`;
+  }
+}
+
+function initFoodEffectsRows() {
+  const cont = document.getElementById('food-effects-rows');
+  cont.innerHTML = '';
+  const effOpts = EFFECTS.map(([id, name]) => `<option value="${id}">${name}</option>`).join('');
+  for (let i = 0; i < 5; i++) {
+    cont.innerHTML += `
+      <div class="enchant-row" style="grid-template-columns:20px 1fr 60px 60px 80px;margin-bottom:5px;font-size:12px;">
+        <input type="checkbox" data-field="food-eff-on-${i}">
+        <select data-field="food-eff-${i}">${effOpts}</select>
+        <input type="number" data-field="food-eff-amp-${i}" min="0" max="255" value="0" title="Сила (0=I)">
+        <input type="number" data-field="food-eff-dur-${i}" min="1" max="1000000" value="200" title="Длительность (тики)">
+        <input type="number" data-field="food-eff-prob-${i}" min="0" max="1" step="0.05" value="1.0" title="Шанс (0–1)">
+      </div>`;
+  }
+  cont.insertAdjacentHTML('beforeend', '<p class="hint">Сила 0=I, длительность в тиках, шанс 0–1</p>');
+}
+
+function initTotemEffectsRows() {
+  const cont = document.getElementById('totem-effects-rows');
+  const defaults = [
+    ['regeneration', 1, 900],
+    ['absorption', 1, 100],
+    ['fire_resistance', 0, 800],
+  ];
+  cont.innerHTML = '';
+  for (let i = 0; i < 3; i++) {
+    const [defId, defAmp, defDur] = defaults[i];
+    const opts = EFFECTS.map(([id, name]) =>
+      `<option value="${id}"${id === defId ? ' selected' : ''}>${name}</option>`
+    ).join('');
+    cont.innerHTML += `
+      <div class="enchant-row" style="grid-template-columns:20px 1fr 60px 80px;margin-bottom:5px;font-size:12px;">
+        <input type="checkbox" data-field="totem-eff-on-${i}" checked>
+        <select data-field="totem-eff-${i}">${opts}</select>
+        <input type="number" data-field="totem-eff-amp-${i}" min="0" max="255" value="${defAmp}" title="Сила (0=I)">
+        <input type="number" data-field="totem-eff-dur-${i}" min="1" max="1000000" value="${defDur}" title="Длительность (тики)">
+      </div>`;
+  }
+}
+
+// ==================== ITEM SEARCH ====================
+
+function filterItemSelect(query) {
+  const sel = document.getElementById('item-select');
+  const q = query.trim().toLowerCase();
+  let firstVisible = null;
+  sel.querySelectorAll('optgroup').forEach(og => {
+    let groupHasVisible = false;
+    og.querySelectorAll('option').forEach(opt => {
+      const match = !q || opt.textContent.toLowerCase().includes(q);
+      opt.hidden = !match;
+      opt.disabled = !match;
+      if (match) { groupHasVisible = true; if (!firstVisible) firstVisible = opt; }
+    });
+    og.hidden = !groupHasVisible;
+    og.disabled = !groupHasVisible;
+  });
+  if (q && firstVisible && (sel.selectedOptions[0]?.hidden ?? true)) {
+    sel.value = firstVisible.value;
+    onItemChange();
+  }
+}
+
+// ==================== ПАНЕЛИ ====================
+
+function onItemChange() {
+  const itemId = document.getElementById('item-select').value;
+  const enchants = enchantsForItem(itemId);
+  document.getElementById('section-enchants').style.display = enchants.length ? '' : 'none';
+  if (enchants.length) refreshEnchantList(enchants);
+  document.getElementById('section-food').style.display = FOOD_ITEMS.has(itemId) ? '' : 'none';
+  document.getElementById('section-dye').style.display = (itemId || '').startsWith('leather_') ? '' : 'none';
+  document.getElementById('section-trim').style.display = canHaveTrim(itemId) ? '' : 'none';
+  document.getElementById('section-firework').style.display = itemId === 'firework_rocket' ? '' : 'none';
+  generate();
+}
+
+function refreshEnchantList(enchants) {
+  const list = document.getElementById('enchants-list');
+  list.innerHTML = enchants.map(e => `
+    <div class="enchant-row">
+      <label><input type="checkbox" data-field="ench-${e.id}"> ${e.name} <span style="color:var(--muted);font-size:10px;">(${e.max})</span></label>
+      <input type="number" min="1" max="255" value="${e.max}" data-field="enchlvl-${e.id}">
+    </div>
+  `).join('');
+}
+
+// ==================== ФЕЙЕРВЕРКИ ====================
+
+function createExplosion() {
+  return { id: nextExplosionId++, shape: 'small_ball', colors: ['#ff0000'], fadeColors: [], trail: false, twinkle: false };
+}
+
+function addExplosion() {
+  if (explosions.length >= 8) return;
+  explosions.push(createExplosion());
+  renderExplosions();
+  generate();
+}
+
+function removeExplosion(id) {
+  explosions = explosions.filter(e => e.id !== id);
+  renderExplosions();
+  generate();
+}
+
+function renderExplosions() {
+  const cont = document.getElementById('explosions-container');
+  cont.innerHTML = explosions.map((exp, idx) => buildExplosionHTML(exp, idx)).join('');
+  document.getElementById('add-explosion-btn').style.display = explosions.length >= 8 ? 'none' : '';
+}
+
+function buildExplosionHTML(exp, idx) {
+  const shapes = [
+    ['small_ball','Шарик'],['large_ball','Большой шарик'],
+    ['star','Звезда'],['creeper','Крипер'],['burst','Вспышка']
+  ];
+  const shapeOpts = shapes.map(([v,n]) => `<option value="${v}"${exp.shape===v?' selected':''}>${n}</option>`).join('');
+  const colorsHTML = exp.colors.map((c, i) =>
+    `<span class="color-entry">
+      <input type="color" value="${c}" data-eid="${exp.id}" data-colortype="colors" data-ci="${i}" onchange="onExplosionColorChange(this)">
+      <button class="small danger" onclick="removeExplosionColor(${exp.id},'colors',${i})">×</button>
+    </span>`).join('');
+  const fadeHTML = exp.fadeColors.map((c, i) =>
+    `<span class="color-entry">
+      <input type="color" value="${c}" data-eid="${exp.id}" data-colortype="fade" data-ci="${i}" onchange="onExplosionColorChange(this)">
+      <button class="small danger" onclick="removeExplosionColor(${exp.id},'fade',${i})">×</button>
+    </span>`).join('');
+
+  return `<div class="explosion-card" data-explosion-id="${exp.id}">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <span class="slot-title">ВЗРЫВ ${idx + 1}</span>
+      <button class="small danger" onclick="removeExplosion(${exp.id})">✖ Удалить</button>
+    </div>
+    <div class="grid-2" style="margin-bottom:8px;">
+      <label><span class="lab">Форма</span>
+        <select data-eid="${exp.id}" data-expfield="shape" onchange="onExplosionFieldChange(this)">${shapeOpts}</select>
+      </label>
+      <div style="display:flex;flex-direction:column;gap:4px;padding-top:18px;">
+        <label class="check-row"><input type="checkbox" data-eid="${exp.id}" data-expfield="trail"${exp.trail?' checked':''} onchange="onExplosionFieldChange(this)"> След</label>
+        <label class="check-row"><input type="checkbox" data-eid="${exp.id}" data-expfield="twinkle"${exp.twinkle?' checked':''} onchange="onExplosionFieldChange(this)"> Мерцание</label>
+      </div>
+    </div>
+    <div style="margin-bottom:8px;">
+      <div class="section-title" style="font-size:8px;margin-bottom:4px;">Основные цвета</div>
+      <div class="colors-row">${colorsHTML}</div>
+      ${exp.colors.length < 8 ? `<button class="small info" style="margin-top:4px;" onclick="addExplosionColor(${exp.id},'colors')">+ Цвет</button>` : ''}
+    </div>
+    <div>
+      <div class="section-title" style="font-size:8px;margin-bottom:4px;">Цвета затухания</div>
+      <div class="colors-row">${fadeHTML}</div>
+      ${exp.fadeColors.length < 8 ? `<button class="small" style="margin-top:4px;" onclick="addExplosionColor(${exp.id},'fade')">+ Цвет затухания</button>` : ''}
+    </div>
+  </div>`;
+}
+
+function onExplosionFieldChange(el) {
+  const id = parseInt(el.dataset.eid);
+  const exp = explosions.find(e => e.id === id);
+  if (!exp) return;
+  const field = el.dataset.expfield;
+  if (field === 'shape') exp.shape = el.value;
+  else if (field === 'trail') exp.trail = el.checked;
+  else if (field === 'twinkle') exp.twinkle = el.checked;
+  generate();
+}
+
+function onExplosionColorChange(el) {
+  const id = parseInt(el.dataset.eid);
+  const exp = explosions.find(e => e.id === id);
+  if (!exp) return;
+  const arr = el.dataset.colortype === 'colors' ? exp.colors : exp.fadeColors;
+  arr[parseInt(el.dataset.ci)] = el.value;
+  generate();
+}
+
+function addExplosionColor(id, type) {
+  const exp = explosions.find(e => e.id === id);
+  if (!exp) return;
+  const arr = type === 'colors' ? exp.colors : exp.fadeColors;
+  if (arr.length < 8) arr.push('#ffffff');
+  renderExplosions();
+  generate();
+}
+
+function removeExplosionColor(id, type, ci) {
+  const exp = explosions.find(e => e.id === id);
+  if (!exp) return;
+  const arr = type === 'colors' ? exp.colors : exp.fadeColors;
+  arr.splice(ci, 1);
+  renderExplosions();
+  generate();
+}
+
+// ==================== ВСПОМОГАТЕЛЬНЫЕ ====================
+
+function val(field) {
+  const el = document.querySelector(`[data-field="${field}"]`);
+  if (!el) return null;
+  return el.type === 'checkbox' ? el.checked : el.value;
+}
+
+function clampNumber(el) {
+  if (el.type !== 'number' || el.value === '') return;
+  const v = parseFloat(el.value);
+  if (el.min !== '' && v < parseFloat(el.min)) el.value = el.min;
+  if (el.max !== '' && v > parseFloat(el.max)) el.value = el.max;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showToast(text) {
+  const t = document.getElementById('toast');
+  t.textContent = text;
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.style.opacity = '0'; }, 1500);
+}
+
+// ==================== ГЕНЕРАЦИЯ ====================
+
+function buildComponents() {
+  const comps = [];
+  const itemId = document.getElementById('item-select').value;
+
+  const name = (val('name') || '').trim();
+  if (name) {
+    const nameObj = { text: name };
+    const color = val('name-color');
+    if (color) nameObj.color = color;
+    if (val('name-bold')) nameObj.bold = true;
+    if (val('name-italic')) nameObj.italic = true;
+    comps.push(`custom_name='${JSON.stringify(nameObj)}'`);
+  }
+
+  const loreLines = [];
+  for (let i = 0; i < 5; i++) {
+    const line = (val(`lore-${i}`) || '').trim();
+    if (!line) continue;
+    const loreObj = { text: line };
+    const loreColor = val(`lore-color-${i}`);
+    if (loreColor) loreObj.color = loreColor;
+    loreLines.push(`'${JSON.stringify(loreObj)}'`);
+  }
+  if (loreLines.length) comps.push(`lore=[${loreLines.join(',')}]`);
+
+  const enchantParts = [];
+  document.querySelectorAll('[data-field^="ench-"]:checked').forEach(cb => {
+    const enchId = cb.dataset.field.substring('ench-'.length);
+    const lvl = parseInt(val(`enchlvl-${enchId}`)) || 1;
+    enchantParts.push(`${enchId}:${lvl}`);
+  });
+  if (enchantParts.length) comps.push(`enchantments={${enchantParts.join(',')}}`);
+
+  if ((itemId || '').startsWith('leather_') && val('dye-on')) {
+    const hex = (val('dye-color') || '#a06540').replace('#', '');
+    comps.push(`dyed_color=${parseInt(hex, 16)}`);
+  }
+
+  if (canHaveTrim(itemId) && val('trim-on')) {
+    const mat = val('trim-mat') || 'iron';
+    const pat = val('trim-pat') || 'sentry';
+    comps.push(`trim={material:"${mat}",pattern:"${pat}"}`);
+  }
+
+  if (FOOD_ITEMS.has(itemId)) {
+    const nutrition = parseInt(val('food-nutrition')) || 0;
+    const saturation = parseFloat(val('food-saturation')) || 0;
+    const alwaysEat = val('food-always-eat');
+    let foodStr = `food={nutrition:${nutrition},saturation:${saturation.toFixed(1)}f`;
+    if (alwaysEat) foodStr += ',can_always_eat:true';
+    foodStr += '}';
+    comps.push(foodStr);
+
+    const fxParts = [];
+    for (let i = 0; i < 5; i++) {
+      if (!val(`food-eff-on-${i}`)) continue;
+      const eff = val(`food-eff-${i}`);
+      if (!eff) continue;
+      const amp = parseInt(val(`food-eff-amp-${i}`)) || 0;
+      const dur = parseInt(val(`food-eff-dur-${i}`)) || 200;
+      const prob = parseFloat(val(`food-eff-prob-${i}`)) || 1.0;
+      fxParts.push(`{id:"minecraft:${eff}",duration:${dur},amplifier:${amp},probability:${prob.toFixed(2)}f}`);
+    }
+    if (fxParts.length) {
+      comps.push(`consumable={consume_seconds:1.6f,animation:"eat",on_consume_effects:[{type:"minecraft:apply_effects",effects:[${fxParts.join(',')}]}]}`);
+    }
+  }
+
+  if (val('totem-on')) {
+    const fxParts = [];
+    for (let i = 0; i < 3; i++) {
+      if (!val(`totem-eff-on-${i}`)) continue;
+      const eff = val(`totem-eff-${i}`);
+      if (!eff) continue;
+      const amp = parseInt(val(`totem-eff-amp-${i}`)) || 0;
+      const dur = parseInt(val(`totem-eff-dur-${i}`)) || 200;
+      fxParts.push(`{id:"minecraft:${eff}",duration:${dur},amplifier:${amp}}`);
+    }
+    const deathEffects = fxParts.length
+      ? `[{type:"minecraft:apply_effects",effects:[${fxParts.join(',')}]},{type:"minecraft:play_sound",sound:{sound_id:"minecraft:item.totem.use"}}]`
+      : `[{type:"minecraft:totem_of_undying"}]`;
+    comps.push(`death_protection={death_effects:${deathEffects}}`);
+  }
+
+  if (itemId === 'firework_rocket') {
+    const duration = val('fw-duration') || '1';
+    if (explosions.length > 0) {
+      const expStr = explosions.map(exp => {
+        const parts = [`shape:"${exp.shape}"`];
+        if (exp.colors.length) {
+          parts.push(`colors:[I;${exp.colors.map(c => parseInt(c.replace('#',''), 16)).join(',')}]`);
+        }
+        if (exp.fadeColors.length) {
+          parts.push(`fade_colors:[I;${exp.fadeColors.map(c => parseInt(c.replace('#',''), 16)).join(',')}]`);
+        }
+        if (exp.trail) parts.push('has_trail:true');
+        if (exp.twinkle) parts.push('has_twinkle:true');
+        return `{${parts.join(',')}}`;
+      }).join(',');
+      comps.push(`fireworks={flight_duration:${duration}b,explosions:[${expStr}]}`);
+    } else {
+      comps.push(`fireworks={flight_duration:${duration}b}`);
+    }
+  }
+
+  return comps;
+}
+
+function getTarget() {
+  const custom = (document.getElementById('target-custom').value || '').trim();
+  return custom || document.getElementById('target-preset').value;
+}
+
+function generate() {
+  const itemId = document.getElementById('item-select').value;
+  if (!itemId) {
+    document.getElementById('command-output').textContent = '— выберите предмет —';
+    return;
+  }
+  const target = getTarget();
+  const count = Math.max(1, Math.min(64, parseInt(document.getElementById('item-count').value) || 1));
+  const comps = buildComponents();
+  const compStr = comps.length ? `[${comps.join(',')}]` : '';
+  const cmd = `/give ${target} minecraft:${itemId}${compStr} ${count}`;
+
+  document.getElementById('command-output').textContent = cmd;
+  const cc = document.getElementById('char-count');
+  cc.textContent = `Длина: ${cmd.length} символов`;
+  cc.className = 'char-count' + (cmd.length > 256 ? ' long' : '');
+  document.getElementById('length-warn').innerHTML = cmd.length > 256
+    ? '<div class="warn">⚠ Команда длиннее 256 символов — используй командный блок: <code>/give @s command_block</code></div>'
+    : '';
+}
+
+function copyCmd(evt) {
+  const text = document.getElementById('command-output').textContent;
+  if (text === '— выберите предмет —') return;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = evt.target;
+    const old = btn.textContent;
+    btn.textContent = '✓ Скопировано!';
+    setTimeout(() => btn.textContent = old, 1500);
+  });
+}
+
+function resetAll() {
+  if (!confirm('Сбросить все параметры?')) return;
+  document.getElementById('item-select').selectedIndex = 0;
+  document.getElementById('item-search').value = '';
+  document.getElementById('target-custom').value = '';
+  document.getElementById('target-preset').value = '@s';
+  document.getElementById('item-count').value = '1';
+  explosions = [];
+  renderExplosions();
+  document.querySelectorAll('[data-field]').forEach(el => {
+    if (el.type === 'checkbox') el.checked = false;
+    else if (el.tagName === 'SELECT') el.selectedIndex = 0;
+    else el.value = el.defaultValue || '';
+  });
+  initTotemEffectsRows();
+  onItemChange();
+}
+
+// ==================== ЛЮБИМЧИКИ ====================
+
+function loadFavorites() {
+  try {
+    const raw = localStorage.getItem('mc-give:favorites');
+    if (!raw) return { version: 1, items: [] };
+    const data = JSON.parse(raw);
+    return (data && Array.isArray(data.items)) ? data : { version: 1, items: [] };
+  } catch { return { version: 1, items: [] }; }
+}
+
+function saveFavorites() {
+  try {
+    localStorage.setItem('mc-give:favorites', JSON.stringify(favorites));
+  } catch (e) {
+    if (e.name === 'QuotaExceededError') alert('Хранилище переполнено.');
+    else throw e;
+  }
+}
+
+function snapshotCurrent() {
+  const fields = {};
+  document.querySelectorAll('[data-field]').forEach(el => {
+    fields[el.dataset.field] = el.type === 'checkbox' ? el.checked : el.value;
+  });
+  return {
+    itemId: document.getElementById('item-select').value,
+    target: document.getElementById('target-preset').value,
+    targetCustom: document.getElementById('target-custom').value,
+    count: document.getElementById('item-count').value,
+    explosions: JSON.parse(JSON.stringify(explosions)),
+    fields,
+  };
+}
+
+function restoreSnapshot(snap) {
+  document.getElementById('item-select').value = snap.itemId;
+  document.getElementById('target-preset').value = snap.target || '@s';
+  document.getElementById('target-custom').value = snap.targetCustom || '';
+  document.getElementById('item-count').value = snap.count || '1';
+  onItemChange();
+  Object.entries(snap.fields || {}).forEach(([key, v]) => {
+    const el = document.querySelector(`[data-field="${key}"]`);
+    if (!el) return;
+    if (el.type === 'checkbox') el.checked = (v === true || v === 'true');
+    else el.value = v !== undefined ? v : '';
+  });
+  explosions = (snap.explosions || []).map(e => ({ ...e, id: nextExplosionId++ }));
+  if (document.getElementById('item-select').value === 'firework_rocket') renderExplosions();
+  generate();
+}
+
+function renderFavorites() {
+  const list = document.getElementById('favorites-list');
+  if (!favorites.items.length) {
+    list.innerHTML = '<p class="empty-favs">Пока пусто. Выбери предмет и нажми ⭐ Сохранить</p>';
+    return;
+  }
+  list.innerHTML = `<div class="favorites-grid">${favorites.items.map(item => {
+    const itemName = ALL_ITEMS[item.itemId] || item.itemId || '?';
+    return `<div class="fav-card">
+      <div class="fav-name">${escapeHtml(item.name)}</div>
+      <div class="fav-sub">${escapeHtml(itemName)}</div>
+      <div class="fav-actions">
+        <button class="small" onclick="loadFavorite('${item.id}')">▶ Загрузить</button>
+        <button class="small sec" onclick="renameFavorite('${item.id}')">✏</button>
+        <button class="small info" onclick="copyFavoriteCommand('${item.id}')">📋</button>
+        <button class="small danger" onclick="removeFavorite('${item.id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function addFavorite() {
+  const itemId = document.getElementById('item-select').value;
+  const defaultName = ALL_ITEMS[itemId] || itemId || 'Предмет';
+  const name = prompt('Название?', defaultName);
+  if (!name || !name.trim()) return;
+  const snap = snapshotCurrent();
+  snap._lastCmd = document.getElementById('command-output').textContent;
+  favorites.items.push({
+    id: `fav-${Date.now()}-${Math.random().toString(36).substring(2,7)}`,
+    name: name.trim(),
+    version: 1,
+    createdAt: Date.now(),
+    itemId: snap.itemId,
+    ...snap,
+  });
+  saveFavorites();
+  renderFavorites();
+  showToast('✓ Сохранено');
+}
+
+function loadFavorite(id) {
+  const item = favorites.items.find(f => f.id === id);
+  if (!item) return;
+  if (!confirm(`Заменить текущие параметры на «${item.name}»?`)) return;
+  restoreSnapshot(item);
+  showToast('✓ Загружено');
+}
+
+function renameFavorite(id) {
+  const item = favorites.items.find(f => f.id === id);
+  if (!item) return;
+  const name = prompt('Новое название?', item.name);
+  if (!name || !name.trim()) return;
+  item.name = name.trim();
+  saveFavorites();
+  renderFavorites();
+  showToast('✓ Переименовано');
+}
+
+function copyFavoriteCommand(id) {
+  const item = favorites.items.find(f => f.id === id);
+  if (!item) return;
+  const cmd = item._lastCmd || `/give ${item.target || '@s'} minecraft:${item.itemId} ${item.count || 1}`;
+  navigator.clipboard.writeText(cmd).then(() => showToast('✓ Скопировано'));
+}
+
+function removeFavorite(id) {
+  const item = favorites.items.find(f => f.id === id);
+  if (!item) return;
+  if (!confirm(`Удалить «${item.name}»?`)) return;
+  favorites.items = favorites.items.filter(f => f.id !== id);
+  saveFavorites();
+  renderFavorites();
+  showToast('✓ Удалено');
+}
+
+// ==================== ТОТЕМ ====================
+document.getElementById('totem-toggle').addEventListener('change', function() {
+  document.getElementById('totem-effects-block').style.display = this.checked ? '' : 'none';
+  generate();
+});
+
+// ==================== EVENT DELEGATION ====================
+document.querySelector('.container').addEventListener('input', e => {
+  clampNumber(e.target);
+  generate();
+});
+document.querySelector('.container').addEventListener('change', e => {
+  if (e.target.id === 'item-select') { onItemChange(); return; }
+  clampNumber(e.target);
+  generate();
+});
+document.getElementById('item-search').addEventListener('input', e => filterItemSelect(e.target.value));
+
+// ==================== СТАРТ ====================
+initItemSelect();
+initNameColorSelects();
+initTrimSelects();
+initLoreRows();
+initFoodEffectsRows();
+initTotemEffectsRows();
+favorites = loadFavorites();
+renderFavorites();
+generate();
+</script>
+</body>
+</html>
