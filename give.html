@@ -179,6 +179,29 @@
       <button class="info" id="add-explosion-btn" onclick="addExplosion()">+ Добавить взрыв</button>
     </div>
 
+    <div class="section" id="section-potion" style="display:none;">
+      <div class="section-title">⑧ Параметры зелья</div>
+      <div class="grid-2">
+        <div>
+          <span class="lab">Тип</span>
+          <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px;">
+            <label class="check-row"><input type="radio" name="potion-type" value="potion" checked> Обычное</label>
+            <label class="check-row"><input type="radio" name="potion-type" value="splash_potion"> Бросаемое</label>
+            <label class="check-row"><input type="radio" name="potion-type" value="lingering_potion"> Длительное</label>
+            <label class="check-row"><input type="radio" name="potion-type" value="tipped_arrow"> Зачарованная стрела</label>
+          </div>
+        </div>
+        <div>
+          <span class="lab">Мощность</span>
+          <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px;">
+            <label class="check-row"><input type="radio" name="potion-modifier" value="normal" checked> Обычное</label>
+            <label class="check-row" id="potion-mod-long"><input type="radio" name="potion-modifier" value="long"> Продлённое</label>
+            <label class="check-row" id="potion-mod-strong"><input type="radio" name="potion-modifier" value="strong"> Усиленное II</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <div class="panel output-panel">
