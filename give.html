@@ -799,11 +799,11 @@ function buildComponents() {
     if (!color && !bold && !italic) {
       comps.push(`custom_name='${name}'`);
     } else {
-      const nameObj = { text: name };
-      if (color) nameObj.color = color;
-      if (bold) nameObj.bold = true;
-      if (italic) nameObj.italic = true;
-      comps.push(`custom_name='${JSON.stringify(nameObj)}'`);
+      const parts = [`text:"${name}"`];
+      if (color) parts.push(`color:"${color}"`);
+      if (bold) parts.push(`bold:true`);
+      if (italic) parts.push(`italic:true`);
+      comps.push(`custom_name={${parts.join(',')}}`);
     }
   }
 
@@ -815,7 +815,7 @@ function buildComponents() {
     if (!loreColor) {
       loreLines.push(`'${line}'`);
     } else {
-      loreLines.push(`'${JSON.stringify({ text: line, color: loreColor })}'`);
+      loreLines.push(`{text:"${line}",color:"${loreColor}"}`);
     }
   }
   if (loreLines.length) comps.push(`lore=[${loreLines.join(',')}]`);
