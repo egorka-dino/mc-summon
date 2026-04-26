@@ -876,6 +876,13 @@ function buildComponents() {
   const comps = [];
   const itemId = document.getElementById('item-select').value;
 
+  if (isPotion(itemId)) {
+    const base = itemId.split(':')[1];
+    const mod = document.querySelector('input[name="potion-modifier"]:checked')?.value || 'normal';
+    const effectId = mod === 'long' ? `long_${base}` : mod === 'strong' ? `strong_${base}` : base;
+    comps.push(`potion_contents={potion:"minecraft:${effectId}"}`);
+  }
+
   const name = (val('name') || '').trim();
   if (name) {
     const color = val('name-color');
@@ -994,11 +1001,14 @@ function getTarget() {
 }
 
 function generate() {
-  const itemId = document.getElementById('item-select').value;
-  if (!itemId) {
+  const rawItemId = document.getElementById('item-select').value;
+  if (!rawItemId) {
     document.getElementById('command-output').textContent = '— выберите предмет —';
     return;
   }
+  const itemId = isPotion(rawItemId)
+    ? (document.querySelector('input[name="potion-type"]:checked')?.value || 'potion')
+    : rawItemId;
   const target = getTarget();
   const count = Math.max(1, Math.min(64, parseInt(document.getElementById('item-count').value) || 1));
   const comps = buildComponents();
