@@ -797,7 +797,7 @@ function buildComponents() {
     const bold = val('name-bold');
     const italic = val('name-italic');
     if (!color && !bold && !italic) {
-      comps.push(`custom_name='"${name}"'`);
+      comps.push(`custom_name='${name}'`);
     } else {
       const nameObj = { text: name };
       if (color) nameObj.color = color;
@@ -813,7 +813,7 @@ function buildComponents() {
     if (!line) continue;
     const loreColor = val(`lore-color-${i}`);
     if (!loreColor) {
-      loreLines.push(`'"${line}"'`);
+      loreLines.push(`'${line}'`);
     } else {
       loreLines.push(`'${JSON.stringify({ text: line, color: loreColor })}'`);
     }
