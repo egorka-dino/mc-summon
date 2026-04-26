@@ -1050,6 +1050,8 @@ function resetAll() {
     else el.value = el.defaultValue || '';
   });
   initTotemEffectsRows();
+  document.querySelector('input[name="potion-type"][value="potion"]').checked = true;
+  document.querySelector('input[name="potion-modifier"][value="normal"]').checked = true;
   onItemChange();
 }
 
