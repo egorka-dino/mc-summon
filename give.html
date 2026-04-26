@@ -199,6 +199,28 @@
 <div id="toast"></div>
 
 <script>
+const POTIONS = [
+  ['swiftness',       'Зелье скорости',               true,  true ],
+  ['slowness',        'Зелье замедления',              true,  true ],
+  ['strength',        'Зелье силы',                   true,  true ],
+  ['healing',         'Зелье исцеления',               false, true ],
+  ['harming',         'Зелье вреда',                   false, true ],
+  ['regeneration',    'Зелье регенерации',             true,  true ],
+  ['poison',          'Зелье яда',                     true,  true ],
+  ['fire_resistance', 'Зелье огнестойкости',           true,  false],
+  ['water_breathing', 'Зелье подводного дыхания',      true,  false],
+  ['night_vision',    'Зелье ночного зрения',          true,  false],
+  ['invisibility',    'Зелье невидимости',             true,  false],
+  ['leaping',         'Зелье прыгучести',              true,  true ],
+  ['weakness',        'Зелье слабости',                true,  false],
+  ['luck',            'Зелье удачи',                   false, false],
+  ['turtle_master',   'Зелье черепахи',                true,  true ],
+  ['slow_falling',    'Зелье медленного падения',      true,  false],
+  ['wind_charged',    'Зелье ветряного заряда',        false, false],
+  ['weaving',         'Зелье плетения',                false, false],
+  ['oozing',          'Зелье просачивания',            false, false],
+  ['infested',        'Зелье заражения',               false, false],
+];
 const ITEM_GROUPS = [
   { name: 'Мечи', items: [
     ['wooden_sword','Деревянный меч'],['stone_sword','Каменный меч'],
@@ -294,10 +316,7 @@ const ITEM_GROUPS = [
     ['chorus_fruit','Плод хоруса'],['beetroot','Свёкла'],
     ['rotten_flesh','Гнилая плоть'],['spider_eye','Паучий глаз'],
   ]},
-  { name: 'Зелья', items: [
-    ['potion','Зелье'],['splash_potion','Бросаемое зелье'],
-    ['lingering_potion','Длительное зелье'],['tipped_arrow','Зачарованная стрела'],
-  ]},
+  { name: 'Зелья', items: POTIONS.map(([id, name]) => [`potion:${id}`, name]) },
   { name: 'Стрелы', items: [
     ['arrow','Стрела'],['spectral_arrow','Спектральная стрела'],
   ]},
