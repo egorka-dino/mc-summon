@@ -214,7 +214,7 @@ const ITEM_GROUPS = [
     ['bow','Лук'],['crossbow','Арбалет'],
   ]},
   { name: 'Другое оружие', items: [
-    ['trident','Трезубец'],['mace','Булава'],
+    ['trident','Трезубец'],['mace','Булава'],['spear','Копьё'],
   ]},
   { name: 'Кирки', items: [
     ['wooden_pickaxe','Деревянная кирка'],['stone_pickaxe','Каменная кирка'],
@@ -447,6 +447,18 @@ const ENCHANTS = {
     { id: 'unbreaking', name: 'Неразрушимость', max: 3 },
     { id: 'mending', name: 'Починка', max: 1 },
   ],
+  spear: [
+    { id: 'sharpness', name: 'Острота', max: 5 },
+    { id: 'smite', name: 'Небесная кара', max: 5 },
+    { id: 'bane_of_arthropods', name: 'Бич членистоногих', max: 5 },
+    { id: 'impaling', name: 'Пронзающий', max: 5 },
+    { id: 'knockback', name: 'Отбрасывание', max: 2 },
+    { id: 'fire_aspect', name: 'Заговор огня', max: 2 },
+    { id: 'looting', name: 'Добыча', max: 3 },
+    { id: 'unbreaking', name: 'Неразрушимость', max: 3 },
+    { id: 'mending', name: 'Починка', max: 1 },
+    { id: 'vanishing_curse', name: 'Проклятие исчезновения', max: 1 },
+  ],
 };
 
 function enchantsForItem(itemId) {
@@ -470,6 +482,8 @@ function enchantsForItem(itemId) {
   if (itemId === 'fishing_rod') return ENCHANTS.fishing_rod;
   if (itemId === 'shears') return ENCHANTS.shears;
   if (itemId === 'shield') return ENCHANTS.shield;
+  if (itemId === 'spear') return ENCHANTS.spear;
+  if (FOOD_ITEMS.has(itemId)) return ENCHANTS.sword;
   return [];
 }
 
