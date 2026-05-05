@@ -41,6 +41,11 @@
     </div>
   </div>
 
+  <div class="panel preview-panel">
+    <h2>👁 Предпросмотр</h2>
+    <div id="summon-preview"></div>
+  </div>
+
   <div class="panel output-panel">
     <h2>▶ Готовая команда</h2>
     <div id="command-output"></div>
@@ -764,6 +769,111 @@ function generate() {
   warn.innerHTML = cmd.length > 256
     ? '<div class="warn">⚠ Команда длиннее 256 символов — в чат не поместится. Используй командный блок: <code>/give @s command_block</code>, поставь, правый клик, вставь команду.</div>'
     : '';
+
+  renderPreview();
+}
+
+function previewValue(prefix, field) {
+  const value = val(prefix, field);
+  return value === null || value === undefined ? '' : String(value).trim();
+}
+
+function previewFlags(prefix) {
+  const flags = [];
+  if (val(prefix, 'baby')) flags.push('ребёнок');
+  if (val(prefix, 'boss')) flags.push('босс');
+  if (val(prefix, 'invul')) flags.push('неуязвимый');
+  if (val(prefix, 'noai')) flags.push('без ИИ');
+  if (val(prefix, 'glow')) flags.push('светится');
+  if (val(prefix, 'nogravity')) flags.push('без гравитации');
+  if (val(prefix, 'silent')) flags.push('бесшумный');
+  if (val(prefix, 'persist')) flags.push('не исчезает');
+  return flags;
+}
+
+function previewStats(prefix) {
+  return [
+    ['HP', previewValue(prefix, 'health')],
+    ['Скорость', previewValue(prefix, 'speed')],
+    ['Броня', previewValue(prefix, 'armor')],
+    ['Урон', previewValue(prefix, 'attack')],
+    ['Отбрасывание', previewValue(prefix, 'kb')],
+    ['Масштаб', previewValue(prefix, 'scale')],
+  ].filter(([, value]) => value).map(([label, value]) => `${label}: ${escapeHtml(value)}`);
+}
+
+function previewGear(prefix) {
+  const rows = [];
+  SLOTS.forEach(slot => {
+    const itemId = previewValue(prefix, `slot-${slot.key}`);
+    if (!itemId) return;
+    const count = parseInt(val(prefix, `count-${slot.key}`)) || 1;
+    const enchants = enchSource(prefix, slot.key).map(({ id, lvl }) => {
+      const known = enchantsForItem(itemId).find(e => e.id === id);
+      return `${known ? known.name : id} ${lvl}`;
+    });
+    const extras = [];
+    if (count > 1) extras.push(`${count} шт.`);
+    if (itemId.startsWith('leather_') && val(prefix, `dyeon-${slot.key}`)) extras.push('окрашено');
+    if (canHaveTrim(itemId) && val(prefix, `trimon-${slot.key}`)) extras.push('отделка');
+    if (enchants.length) extras.push(enchants.join(', '));
+
+    rows.push(`
+      <li>
+        <span>${escapeHtml(slot.label)}</span>
+        <strong>${escapeHtml(ITEM_NAMES[itemId] || itemId)}</strong>
+        ${extras.length ? `<em>${escapeHtml(extras.join(' · '))}</em>` : ''}
+      </li>
+    `);
+  });
+  return rows;
+}
+
+function previewEffects(prefix) {
+  const rows = [];
+  EFFECTS.forEach(([id, name]) => {
+    if (!val(prefix, `eff-${id}`)) return;
+    const amp = parseInt(val(prefix, `effamp-${id}`)) || 0;
+    const dur = parseInt(val(prefix, `effdur-${id}`)) || 999999;
+    const level = amp + 1;
+    const seconds = Math.round(dur / 20);
+    const time = dur >= 999999 ? 'очень долго' : `${seconds} сек.`;
+    rows.push(`${name} ${level} (${time})`);
+  });
+  return rows;
+}
+
+function renderPreview() {
+  const box = document.getElementById('summon-preview');
+  if (!box) return;
+
+  box.innerHTML = mobs.map((mob, index) => {
+    const prefix = `m${mob.id}`;
+    const typeId = previewValue(prefix, 'mob') || mob.mobType;
+    const mobName = ALL_MOBS[typeId] || typeId;
+    const customName = previewValue(prefix, 'name');
+    const title = customName || mobName;
+    const role = index === 0 ? 'Основной моб' : `Пассажир ${index}`;
+    const relation = index === 0 ? 'нижний уровень' : (index === 1 ? 'сидит на основном мобе' : `сидит на пассажире ${index - 1}`);
+    const stats = previewStats(prefix);
+    const flags = previewFlags(prefix);
+    const gear = previewGear(prefix);
+    const effects = previewEffects(prefix);
+
+    return `
+      <div class="preview-card ${index === 0 ? 'main' : 'passenger'}">
+        <div class="preview-top">
+          <span class="preview-role">${role}</span>
+          <span class="preview-relation">${relation}</span>
+        </div>
+        <div class="preview-title">${escapeHtml(title)}</div>
+        <div class="preview-type">${escapeHtml(mobName)} <code>${escapeHtml(typeId)}</code></div>
+        ${(stats.length || flags.length) ? `<div class="preview-chips">${stats.concat(flags.map(escapeHtml)).map(x => `<span>${x}</span>`).join('')}</div>` : ''}
+        ${gear.length ? `<ul class="preview-gear">${gear.join('')}</ul>` : '<p class="preview-empty">Без снаряжения</p>'}
+        ${effects.length ? `<div class="preview-effects"><span>Эффекты:</span> ${escapeHtml(effects.join(', '))}</div>` : ''}
+      </div>
+    `;
+  }).join('');
 }
 
 function copyCmd(evt) {
