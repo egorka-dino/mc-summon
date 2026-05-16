@@ -30,7 +30,7 @@
     text-align: center;
     border-bottom: 2px solid var(--border);
   }
-  h1 {
+  header h1 {
     font-family: 'Press Start 2P', monospace;
     font-size: 18px;
     margin: 0 0 6px;
@@ -701,7 +701,7 @@
   }
 
   @media (max-width: 600px) {
-    h1 { font-size: 13px; }
+    header h1 { font-size: 13px; }
     .auth-corner {
       position: static;
       justify-content: center;

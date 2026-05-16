@@ -33,6 +33,43 @@ body {
   padding: 24px;
 }
 
+.auth-page .cl-headerTitle {
+  color: #1f2328;
+  font-family: "Jost", sans-serif;
+  letter-spacing: 0;
+  text-shadow: none;
+}
+
+.auth-page .cl-headerSubtitle,
+.auth-page .cl-socialButtonsBlockButtonText,
+.auth-page .cl-formFieldLabel,
+.auth-page .cl-footerActionText,
+.auth-page .cl-footerActionLink {
+  font-family: "Jost", sans-serif;
+  letter-spacing: 0;
+  text-shadow: none;
+}
+
+.auth-page .cl-formFieldInput {
+  background: #fff;
+  color: #1f2328;
+  font-family: "Jost", sans-serif;
+  letter-spacing: 0;
+  text-shadow: none;
+}
+
+.auth-page .cl-formButtonPrimary {
+  font-family: "Jost", sans-serif;
+  letter-spacing: 0;
+  text-shadow: none;
+  transform: none;
+}
+
+.auth-page .cl-formButtonPrimary:hover,
+.auth-page .cl-formButtonPrimary:active {
+  transform: none;
+}
+
 .admin-page {
   min-height: 100vh;
   padding: 28px 18px;

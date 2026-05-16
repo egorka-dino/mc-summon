@@ -3,6 +3,10 @@ import type React from "react";
 import "../style.css";
 import "./globals.css";
 
+const clerkLocalization = {
+  socialButtonsBlockButton: "Войти через портал",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -11,7 +15,7 @@ export default function RootLayout({
   return (
     <html lang="ru">
       <body>
-        <ClerkProvider>{children}</ClerkProvider>
+        <ClerkProvider localization={clerkLocalization}>{children}</ClerkProvider>
       </body>
     </html>
   );
