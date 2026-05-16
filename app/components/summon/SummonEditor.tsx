@@ -3,10 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ALL_MOBS,
+  BANNER_PATTERNS,
   canHaveTrim,
+  DYE_COLORS,
   EFFECTS,
   enchantsForItem,
   isFireball,
+  isShield,
   ITEM_NAMES,
   MOB_GROUPS,
   NAME_COLORS,
@@ -145,6 +148,15 @@ function makeRandomSnapshot() {
           snapshot = setIndexedField(snapshot, index, `trimon-${slot.key}`, true);
           snapshot = setIndexedField(snapshot, index, `trimmat-${slot.key}`, pick(TRIM_MATERIALS)[0]);
           snapshot = setIndexedField(snapshot, index, `trimpat-${slot.key}`, pick(TRIM_PATTERNS)[0]);
+        }
+        if (isShield(itemId) && chance(0.7)) {
+          snapshot = setIndexedField(snapshot, index, `shieldon-${slot.key}`, true);
+          snapshot = setIndexedField(snapshot, index, `shieldbase-${slot.key}`, pick(DYE_COLORS)[0]);
+          const layerCount = randomInt(1, 4);
+          for (let layerIndex = 0; layerIndex < layerCount; layerIndex++) {
+            snapshot = setIndexedField(snapshot, index, `shieldpat-${slot.key}-${layerIndex}`, pick(BANNER_PATTERNS)[0]);
+            snapshot = setIndexedField(snapshot, index, `shieldcolor-${slot.key}-${layerIndex}`, pick(DYE_COLORS)[0]);
+          }
         }
         enchantsForItem(itemId).filter(() => chance(0.24)).slice(0, randomInt(1, 3)).forEach((enchant) => {
           snapshot = setIndexedField(snapshot, index, `ench-${slot.key}-${enchant.id}`, true);
@@ -345,10 +357,25 @@ function MobCard({ index, snapshot, updateField, removeMob }: { index: number; s
   </div>;
 }
 
+function ShieldColorPicker({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  const selected = DYE_COLORS.find(([id]) => id === value) || DYE_COLORS[0];
+  return <div className="shield-color-picker"><div className="shield-color-name">{selected[1]} ({selected[0]})</div><div className="shield-color-swatches">{DYE_COLORS.map(([id, name, hex]) => <button className={`shield-color-swatch${id === value ? " active" : ""}`} style={{ backgroundColor: hex }} title={`${name} (${id})`} aria-label={name} type="button" key={id} onClick={() => onChange(id)} />)}</div></div>;
+}
+
 function SlotEditor({ index, slot, snapshot, updateField }: { index: number; slot: (typeof SLOTS)[number]; snapshot: SummonSnapshot; updateField: (index: number, field: string, value: SummonFieldValue) => void }) {
   const itemId = read(snapshot, index, `slot-${slot.key}`);
   const enchants = enchantsForItem(itemId);
-  return <div className="slot"><div className="slot-title">{slot.label}</div><div className="slot-grid"><label><span className="lab">Предмет</span><select className="slot-item" value={itemId} onChange={(event) => updateField(index, `slot-${slot.key}`, event.target.value)}><option value="">— пусто —</option>{slot.items.map((item) => <option key={item} value={item}>{ITEM_NAMES[item as keyof typeof ITEM_NAMES] || item}</option>)}</select></label><label><span className="lab">Кол-во</span><input type="number" min="1" max="99" value={read(snapshot, index, `count-${slot.key}`) || "1"} onChange={(event) => updateField(index, `count-${slot.key}`, event.target.value)} /></label><label><span className="lab">Шанс выпадения</span><input type="number" min="0" max="1" step="0.1" value={read(snapshot, index, `drop-${slot.key}`) || "0"} onChange={(event) => updateField(index, `drop-${slot.key}`, event.target.value)} /></label></div>{itemId.startsWith("leather_") ? <label className="check-row"><input type="checkbox" checked={checked(snapshot, index, `dyeon-${slot.key}`)} onChange={(event) => updateField(index, `dyeon-${slot.key}`, event.target.checked)} /> Покрасить кожу <input type="color" value={read(snapshot, index, `dye-${slot.key}`) || "#a06540"} onChange={(event) => updateField(index, `dye-${slot.key}`, event.target.value)} /></label> : null}{canHaveTrim(itemId) ? <div className="trim-picker"><label className="check-row"><input type="checkbox" checked={checked(snapshot, index, `trimon-${slot.key}`)} onChange={(event) => updateField(index, `trimon-${slot.key}`, event.target.checked)} /> Отделка брони</label><div className="grid-2"><select value={read(snapshot, index, `trimmat-${slot.key}`) || "iron"} onChange={(event) => updateField(index, `trimmat-${slot.key}`, event.target.value)}>{TRIM_MATERIALS.map(([value, name]) => <option key={value} value={value}>{name} ({value})</option>)}</select><select value={read(snapshot, index, `trimpat-${slot.key}`) || "sentry"} onChange={(event) => updateField(index, `trimpat-${slot.key}`, event.target.value)}>{TRIM_PATTERNS.map(([value, name]) => <option key={value} value={value}>{name} ({value})</option>)}</select></div></div> : null}<details><summary>Зачарования {enchants.length ? "" : "(выбери предмет сначала)"}</summary><div className="enchant-list">{enchants.length ? enchants.map((enchant) => <div className="enchant-row" key={enchant.id}><label><input type="checkbox" checked={checked(snapshot, index, `ench-${slot.key}-${enchant.id}`)} onChange={(event) => updateField(index, `ench-${slot.key}-${enchant.id}`, event.target.checked)} /> {enchant.name} <span style={{ color: "var(--muted)", fontSize: 10 }}>({enchant.max})</span></label><input type="number" min="1" max="255" value={read(snapshot, index, `enchlvl-${slot.key}-${enchant.id}`) || enchant.max} onChange={(event) => updateField(index, `enchlvl-${slot.key}-${enchant.id}`, event.target.value)} /></div>) : <p className="hint">Для этого предмета зачарований нет.</p>}</div></details></div>;
+  const shieldLayers = Array.from({ length: 16 }, (_, layerIndex) => ({
+    layerIndex,
+    pattern: read(snapshot, index, `shieldpat-${slot.key}-${layerIndex}`),
+  }));
+  const visibleShieldLayers = shieldLayers.filter((layer) => layer.pattern);
+  const nextShieldLayer = shieldLayers.find((layer) => !layer.pattern)?.layerIndex;
+  const addShieldLayer = () => {
+    if (nextShieldLayer === undefined) return;
+    updateField(index, `shieldpat-${slot.key}-${nextShieldLayer}`, "stripe_center");
+  };
+  return <div className="slot"><div className="slot-title">{slot.label}</div><div className="slot-grid"><label><span className="lab">Предмет</span><select className="slot-item" value={itemId} onChange={(event) => updateField(index, `slot-${slot.key}`, event.target.value)}><option value="">— пусто —</option>{slot.items.map((item) => <option key={item} value={item}>{ITEM_NAMES[item as keyof typeof ITEM_NAMES] || item}</option>)}</select></label><label><span className="lab">Кол-во</span><input type="number" min="1" max="99" value={read(snapshot, index, `count-${slot.key}`) || "1"} onChange={(event) => updateField(index, `count-${slot.key}`, event.target.value)} /></label><label><span className="lab">Шанс выпадения</span><input type="number" min="0" max="1" step="0.1" value={read(snapshot, index, `drop-${slot.key}`) || "0"} onChange={(event) => updateField(index, `drop-${slot.key}`, event.target.value)} /></label></div>{itemId.startsWith("leather_") ? <label className="check-row"><input type="checkbox" checked={checked(snapshot, index, `dyeon-${slot.key}`)} onChange={(event) => updateField(index, `dyeon-${slot.key}`, event.target.checked)} /> Покрасить кожу <input type="color" value={read(snapshot, index, `dye-${slot.key}`) || "#a06540"} onChange={(event) => updateField(index, `dye-${slot.key}`, event.target.value)} /></label> : null}{canHaveTrim(itemId) ? <div className="trim-picker"><label className="check-row"><input type="checkbox" checked={checked(snapshot, index, `trimon-${slot.key}`)} onChange={(event) => updateField(index, `trimon-${slot.key}`, event.target.checked)} /> Отделка брони</label><div className="grid-2"><select value={read(snapshot, index, `trimmat-${slot.key}`) || "iron"} onChange={(event) => updateField(index, `trimmat-${slot.key}`, event.target.value)}>{TRIM_MATERIALS.map(([value, name]) => <option key={value} value={value}>{name} ({value})</option>)}</select><select value={read(snapshot, index, `trimpat-${slot.key}`) || "sentry"} onChange={(event) => updateField(index, `trimpat-${slot.key}`, event.target.value)}>{TRIM_PATTERNS.map(([value, name]) => <option key={value} value={value}>{name} ({value})</option>)}</select></div></div> : null}{isShield(itemId) ? <div className="shield-picker"><label className="check-row"><input type="checkbox" checked={checked(snapshot, index, `shieldon-${slot.key}`)} onChange={(event) => updateField(index, `shieldon-${slot.key}`, event.target.checked)} /> Узоры щита</label>{checked(snapshot, index, `shieldon-${slot.key}`) ? <><label><span className="lab">Базовый цвет</span><select value={read(snapshot, index, `shieldbase-${slot.key}`) || "white"} onChange={(event) => updateField(index, `shieldbase-${slot.key}`, event.target.value)}>{DYE_COLORS.map(([value, name]) => <option key={value} value={value}>{name} ({value})</option>)}</select></label><ShieldColorPicker value={read(snapshot, index, `shieldbase-${slot.key}`) || "white"} onChange={(value) => updateField(index, `shieldbase-${slot.key}`, value)} /><div className="shield-layers">{visibleShieldLayers.map(({ layerIndex }) => <div className="shield-layer" key={layerIndex}><span className="shield-layer-index">{layerIndex + 1}</span><select value={read(snapshot, index, `shieldpat-${slot.key}-${layerIndex}`) || "stripe_center"} onChange={(event) => updateField(index, `shieldpat-${slot.key}-${layerIndex}`, event.target.value)}>{BANNER_PATTERNS.map(([value, name]) => <option key={value} value={value}>{name} ({value})</option>)}</select><div className="shield-layer-color"><select value={read(snapshot, index, `shieldcolor-${slot.key}-${layerIndex}`) || "black"} onChange={(event) => updateField(index, `shieldcolor-${slot.key}-${layerIndex}`, event.target.value)}>{DYE_COLORS.map(([value, name]) => <option key={value} value={value}>{name}</option>)}</select><ShieldColorPicker value={read(snapshot, index, `shieldcolor-${slot.key}-${layerIndex}`) || "black"} onChange={(value) => updateField(index, `shieldcolor-${slot.key}-${layerIndex}`, value)} /></div><button className="small danger" type="button" onClick={() => updateField(index, `shieldpat-${slot.key}-${layerIndex}`, "")}>×</button></div>)}</div>{nextShieldLayer !== undefined ? <button className="small info" type="button" onClick={addShieldLayer}>+ Добавить слой</button> : <p className="hint">Максимум 16 слоёв.</p>}</> : null}</div> : null}<details><summary>Зачарования {enchants.length ? "" : "(выбери предмет сначала)"}</summary><div className="enchant-list">{enchants.length ? enchants.map((enchant) => <div className="enchant-row" key={enchant.id}><label><input type="checkbox" checked={checked(snapshot, index, `ench-${slot.key}-${enchant.id}`)} onChange={(event) => updateField(index, `ench-${slot.key}-${enchant.id}`, event.target.checked)} /> {enchant.name} <span style={{ color: "var(--muted)", fontSize: 10 }}>({enchant.max})</span></label><input type="number" min="1" max="255" value={read(snapshot, index, `enchlvl-${slot.key}-${enchant.id}`) || enchant.max} onChange={(event) => updateField(index, `enchlvl-${slot.key}-${enchant.id}`, event.target.value)} /></div>) : <p className="hint">Для этого предмета зачарований нет.</p>}</div></details></div>;
 }
 
 function Preview({ snapshot }: { snapshot: SummonSnapshot }) {

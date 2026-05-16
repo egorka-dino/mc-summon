@@ -43,6 +43,63 @@
     width: 100%;
   }
   .item-picker .item-search:focus { outline: none; border-color: var(--accent-2); }
+  .shield-card {
+    display: grid;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: rgba(0,0,0,0.2);
+  }
+  .shield-layer-row {
+    display: grid;
+    grid-template-columns: 28px minmax(0,1.5fr) minmax(120px,0.8fr) 34px 34px 34px;
+    gap: 6px;
+    align-items: end;
+    margin-bottom: 6px;
+  }
+  .shield-layer-num {
+    display: grid;
+    place-items: center;
+    height: 30px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .shield-swatches {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(22px, 1fr));
+    gap: 4px;
+  }
+  .shield-color-picker {
+    display: grid;
+    gap: 5px;
+  }
+  .shield-color-label {
+    min-height: 18px;
+    color: var(--muted);
+    font-size: 11px;
+  }
+  .shield-swatch {
+    min-width: 22px;
+    height: 22px;
+    cursor: pointer;
+    border: 2px solid var(--border);
+    border-radius: 2px;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25);
+  }
+  .shield-swatch:hover,
+  .shield-swatch.active {
+    border-color: var(--accent-2);
+    transform: translateY(-1px);
+  }
+  .shield-swatch.active {
+    box-shadow: 0 0 0 2px rgba(255,179,71,0.22), inset 0 0 0 1px rgba(0,0,0,0.35);
+  }
+  @media (max-width: 760px) {
+    .shield-layer-row { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
@@ -139,6 +196,27 @@
       <div class="grid-2">
         <label><span class="lab">Материал</span><select data-field="trim-mat"></select></label>
         <label><span class="lab">Узор</span><select data-field="trim-pat"></select></label>
+      </div>
+    </div>
+
+    <div class="section" id="section-shield" style="display:none;">
+      <div class="section-title">④ Узоры щита</div>
+      <div class="shield-card">
+        <label class="check-row" style="gap:8px;">
+          <input type="checkbox" data-field="shield-on"> Включить узоры и цвет щита
+        </label>
+        <div id="shield-options" style="display:none;">
+          <div class="grid-2" style="margin-bottom:10px;">
+            <label><span class="lab">Базовый цвет</span><select data-field="shield-base"></select></label>
+            <div>
+              <span class="lab">Выбор цвета</span>
+              <div class="shield-color-picker" id="shield-base-picker"></div>
+            </div>
+          </div>
+          <div id="shield-layers"></div>
+          <button class="small info" type="button" id="add-shield-layer-btn" onclick="addShieldLayer()">+ Добавить слой</button>
+          <p class="hint">Слои идут сверху вниз как в ткацком станке. Доступны все vanilla registry ID узоров из Java 1.21.5.</p>
+        </div>
       </div>
     </div>
 
@@ -584,10 +662,44 @@ const TRIM_PATTERNS = [
   ['silence','Тишина'],['raiser','Возвышение'],['host','Хозяин'],
   ['flow','Поток'],['bolt','Молния'],['wayfinder','Путеводный'],
 ];
+const DYE_COLORS = [
+  ['white','Белый','#f9fffe'],['light_gray','Светло-серый','#9d9d97'],
+  ['gray','Серый','#474f52'],['black','Чёрный','#1d1d21'],
+  ['brown','Коричневый','#835432'],['red','Красный','#b02e26'],
+  ['orange','Оранжевый','#f9801d'],['yellow','Жёлтый','#fed83d'],
+  ['lime','Лаймовый','#80c71f'],['green','Зелёный','#5e7c16'],
+  ['cyan','Бирюзовый','#169c9c'],['light_blue','Голубой','#3ab3da'],
+  ['blue','Синий','#3c44aa'],['purple','Фиолетовый','#8932b8'],
+  ['magenta','Пурпурный','#c74ebd'],['pink','Розовый','#f38baa'],
+];
+const BANNER_PATTERNS = [
+  ['square_bottom_left','Нижний левый угол'],['square_bottom_right','Нижний правый угол'],
+  ['square_top_left','Верхний левый угол'],['square_top_right','Верхний правый угол'],
+  ['stripe_bottom','Нижняя полоса'],['stripe_top','Верхняя полоса'],
+  ['stripe_left','Левая полоса'],['stripe_right','Правая полоса'],
+  ['stripe_center','Вертикальная полоса'],['stripe_middle','Горизонтальная полоса'],
+  ['stripe_downright','Диагональ вниз вправо'],['stripe_downleft','Диагональ вниз влево'],
+  ['small_stripes','Частые вертикальные полосы'],['cross','Косой крест'],
+  ['straight_cross','Прямой крест'],['triangle_bottom','Треугольник снизу'],
+  ['triangle_top','Треугольник сверху'],['triangles_bottom','Зубцы снизу'],
+  ['triangles_top','Зубцы сверху'],['diagonal_left','Диагональная половина слева'],
+  ['diagonal_right','Диагональная половина справа'],['diagonal_up_left','Обратная диагональная половина слева'],
+  ['diagonal_up_right','Обратная диагональная половина справа'],['circle','Круг'],
+  ['rhombus','Ромб'],['half_vertical','Левая половина'],
+  ['half_vertical_right','Правая половина'],['half_horizontal','Верхняя половина'],
+  ['half_horizontal_bottom','Нижняя половина'],['border','Кайма'],
+  ['curly_border','Зубчатая кайма'],['gradient','Градиент вниз'],
+  ['gradient_up','Градиент вверх'],['bricks','Кирпичная кладка'],
+  ['globe','Глобус'],['creeper','Крипер'],['skull','Череп'],
+  ['flower','Цветок'],['mojang','Нечто'],['piglin','Рыло пиглина'],
+  ['flow','Поток'],['guster','Вихрь'],
+];
 
 // ==================== СОСТОЯНИЕ ====================
 let explosions = [];
 let nextExplosionId = 0;
+let shieldLayers = [];
+let nextShieldLayerId = 0;
 let favorites = { version: 1, items: [] };
 
 // ==================== INIT ====================
@@ -617,6 +729,29 @@ function initTrimSelects() {
   const patOpts = TRIM_PATTERNS.map(([v,n]) => `<option value="${v}">${n} (${v})</option>`).join('');
   document.querySelector('[data-field="trim-mat"]').innerHTML = matOpts;
   document.querySelector('[data-field="trim-pat"]').innerHTML = patOpts;
+}
+
+function initShieldSelects() {
+  const colorOpts = DYE_COLORS.map(([v,n]) => `<option value="${v}">${n} (${v})</option>`).join('');
+  document.querySelector('[data-field="shield-base"]').innerHTML = colorOpts;
+  renderShieldColorPicker(document.getElementById('shield-base-picker'), 'base', val('shield-base') || 'white');
+  if (!shieldLayers.length) addShieldLayer(false);
+}
+
+function renderShieldColorPicker(container, target, selected) {
+  if (!container) return;
+  const selectedEntry = DYE_COLORS.find(([id]) => id === selected) || DYE_COLORS[0];
+  container.innerHTML = `
+    <div class="shield-color-label">${selectedEntry[1]} (${selectedEntry[0]})</div>
+    <div class="shield-swatches">
+      ${DYE_COLORS.map(([id, name, hex]) => `
+        <button class="shield-swatch${id === selected ? ' active' : ''}" type="button" style="background:${hex}" title="${name} (${id})" aria-label="${name}" data-color-target="${target}" data-color-value="${id}"></button>
+      `).join('')}
+    </div>`;
+}
+
+function refreshShieldBasePicker() {
+  renderShieldColorPicker(document.getElementById('shield-base-picker'), 'base', val('shield-base') || 'white');
 }
 
 function initLoreRows() {
@@ -705,6 +840,7 @@ function onItemChange() {
   document.getElementById('section-food').style.display = FOOD_ITEMS.has(itemId) ? '' : 'none';
   document.getElementById('section-dye').style.display = (itemId || '').startsWith('leather_') ? '' : 'none';
   document.getElementById('section-trim').style.display = canHaveTrim(itemId) ? '' : 'none';
+  document.getElementById('section-shield').style.display = itemId === 'shield' ? '' : 'none';
   document.getElementById('section-firework').style.display = itemId === 'firework_rocket' ? '' : 'none';
   document.getElementById('section-potion').style.display = isPotion(itemId) ? '' : 'none';
   if (isPotion(itemId)) updatePotionModifiers(itemId);
@@ -828,6 +964,90 @@ function removeExplosionColor(id, type, ci) {
   generate();
 }
 
+// ==================== ЩИТЫ ====================
+
+function createShieldLayer(pattern = 'stripe_center', color = 'black') {
+  return { id: nextShieldLayerId++, pattern, color };
+}
+
+function addShieldLayer(shouldGenerate = true) {
+  if (shieldLayers.length >= 16) return;
+  shieldLayers.push(createShieldLayer());
+  renderShieldLayers();
+  if (shouldGenerate) generate();
+}
+
+function removeShieldLayer(id) {
+  shieldLayers = shieldLayers.filter(layer => layer.id !== id);
+  renderShieldLayers();
+  generate();
+}
+
+function moveShieldLayer(id, dir) {
+  const idx = shieldLayers.findIndex(layer => layer.id === id);
+  const next = idx + dir;
+  if (idx < 0 || next < 0 || next >= shieldLayers.length) return;
+  [shieldLayers[idx], shieldLayers[next]] = [shieldLayers[next], shieldLayers[idx]];
+  renderShieldLayers();
+  generate();
+}
+
+function renderShieldLayers() {
+  const cont = document.getElementById('shield-layers');
+  const patternOpts = BANNER_PATTERNS.map(([v,n]) => `<option value="${v}">${n} (${v})</option>`).join('');
+  const colorOpts = DYE_COLORS.map(([v,n]) => `<option value="${v}">${n}</option>`).join('');
+  cont.innerHTML = shieldLayers.map((layer, idx) => `
+    <div class="shield-layer-row" data-shield-layer-id="${layer.id}">
+      <span class="shield-layer-num">${idx + 1}</span>
+      <label><span class="lab">Узор</span>
+        <select data-layer-field="pattern" data-layer-id="${layer.id}">${patternOpts}</select>
+      </label>
+      <label><span class="lab">Цвет</span>
+        <select data-layer-field="color" data-layer-id="${layer.id}">${colorOpts}</select>
+      </label>
+      <button class="small" type="button" onclick="moveShieldLayer(${layer.id},-1)" ${idx === 0 ? 'disabled' : ''}>↑</button>
+      <button class="small" type="button" onclick="moveShieldLayer(${layer.id},1)" ${idx === shieldLayers.length - 1 ? 'disabled' : ''}>↓</button>
+      <button class="small danger" type="button" onclick="removeShieldLayer(${layer.id})">×</button>
+      <div style="grid-column:2 / -1;">
+        <span class="lab">Быстрый выбор цвета слоя</span>
+        <div class="shield-color-picker" data-layer-color-picker="${layer.id}"></div>
+      </div>
+    </div>`).join('');
+  shieldLayers.forEach(layer => {
+    const patternEl = cont.querySelector(`[data-layer-id="${layer.id}"][data-layer-field="pattern"]`);
+    const colorEl = cont.querySelector(`[data-layer-id="${layer.id}"][data-layer-field="color"]`);
+    if (patternEl) patternEl.value = layer.pattern;
+    if (colorEl) colorEl.value = layer.color;
+    renderShieldColorPicker(cont.querySelector(`[data-layer-color-picker="${layer.id}"]`), `layer:${layer.id}`, layer.color);
+  });
+  document.getElementById('add-shield-layer-btn').style.display = shieldLayers.length >= 16 ? 'none' : '';
+}
+
+function onShieldLayerChange(el) {
+  const id = parseInt(el.dataset.layerId, 10);
+  const layer = shieldLayers.find(item => item.id === id);
+  if (!layer) return;
+  layer[el.dataset.layerField] = el.value;
+  if (el.dataset.layerField === 'color') renderShieldLayers();
+  generate();
+}
+
+function setShieldColor(target, color) {
+  if (target === 'base') {
+    setRandomField('shield-base', color);
+    refreshShieldBasePicker();
+    generate();
+    return;
+  }
+  const match = target.match(/^layer:(\d+)$/);
+  if (!match) return;
+  const layer = shieldLayers.find(item => item.id === parseInt(match[1], 10));
+  if (!layer) return;
+  layer.color = color;
+  renderShieldLayers();
+  generate();
+}
+
 // ==================== ВСПОМОГАТЕЛЬНЫЕ ====================
 
 function val(field) {
@@ -934,6 +1154,15 @@ function buildComponents() {
     const mat = val('trim-mat') || 'iron';
     const pat = val('trim-pat') || 'sentry';
     comps.push(`trim={material:"${mat}",pattern:"${pat}"}`);
+  }
+
+  if (itemId === 'shield' && val('shield-on')) {
+    const base = val('shield-base') || 'white';
+    comps.push(`base_color="${base}"`);
+    if (shieldLayers.length) {
+      const patterns = shieldLayers.map(layer => `{pattern:"minecraft:${layer.pattern}",color:"${layer.color}"}`);
+      comps.push(`banner_patterns=[${patterns.join(',')}]`);
+    }
   }
 
   if (FOOD_ITEMS.has(itemId)) {
@@ -1055,6 +1284,8 @@ function resetAll() {
   document.getElementById('item-count').value = '1';
   explosions = [];
   renderExplosions();
+  shieldLayers = [createShieldLayer()];
+  renderShieldLayers();
   document.querySelectorAll('[data-field]').forEach(el => {
     if (el.type === 'checkbox') el.checked = false;
     else if (el.tagName === 'SELECT') el.selectedIndex = 0;
@@ -1063,6 +1294,7 @@ function resetAll() {
   initTotemEffectsRows();
   document.querySelector('input[name="potion-type"][value="potion"]').checked = true;
   document.querySelector('input[name="potion-modifier"][value="normal"]').checked = true;
+  document.getElementById('shield-options').style.display = 'none';
   onItemChange();
 }
 
@@ -1105,6 +1337,8 @@ function clearGiveOptionsForRandom() {
   filterItemSelect('');
   explosions = [];
   renderExplosions();
+  shieldLayers = [createShieldLayer()];
+  renderShieldLayers();
   document.querySelectorAll('[data-field]').forEach(el => {
     if (el.type === 'checkbox') el.checked = false;
     else if (el.tagName === 'SELECT') el.selectedIndex = 0;
@@ -1114,6 +1348,7 @@ function clearGiveOptionsForRandom() {
   document.querySelector('input[name="potion-type"][value="potion"]').checked = true;
   document.querySelector('input[name="potion-modifier"][value="normal"]').checked = true;
   document.getElementById('totem-effects-block').style.display = 'none';
+  document.getElementById('shield-options').style.display = 'none';
 }
 
 function getRandomItemId() {
@@ -1166,6 +1401,16 @@ function randomizeArmorDetails(itemId) {
     setRandomField('trim-mat', pick(TRIM_MATERIALS)[0]);
     setRandomField('trim-pat', pick(TRIM_PATTERNS)[0]);
   }
+}
+
+function randomizeShieldDetails(itemId) {
+  if (itemId !== 'shield' || !chance(0.82)) return;
+  setRandomField('shield-on', true);
+  setRandomField('shield-base', pick(DYE_COLORS)[0]);
+  refreshShieldBasePicker();
+  document.getElementById('shield-options').style.display = '';
+  shieldLayers = Array.from({ length: randInt(1, 5) }, () => createShieldLayer(pick(BANNER_PATTERNS)[0], pick(DYE_COLORS)[0]));
+  renderShieldLayers();
 }
 
 function randomizeFoodDetails(itemId) {
@@ -1239,6 +1484,7 @@ function randomizeGive() {
   randomizeTextFields();
   randomizeEnchantments(itemId);
   randomizeArmorDetails(itemId);
+  randomizeShieldDetails(itemId);
   randomizeFoodDetails(itemId);
   randomizePotionDetails(itemId);
   randomizeFireworkDetails(itemId);
@@ -1279,6 +1525,7 @@ function snapshotCurrent() {
     targetCustom: document.getElementById('target-custom').value,
     count: document.getElementById('item-count').value,
     explosions: JSON.parse(JSON.stringify(explosions)),
+    shieldLayers: JSON.parse(JSON.stringify(shieldLayers)),
     potionType: document.querySelector('input[name="potion-type"]:checked')?.value || 'potion',
     potionModifier: document.querySelector('input[name="potion-modifier"]:checked')?.value || 'normal',
     fields,
@@ -1306,6 +1553,10 @@ function restoreSnapshot(snap) {
   });
   explosions = (snap.explosions || []).map(e => ({ ...e, id: nextExplosionId++ }));
   if (document.getElementById('item-select').value === 'firework_rocket') renderExplosions();
+  shieldLayers = (snap.shieldLayers || [createShieldLayer()]).map(layer => ({ ...layer, id: nextShieldLayerId++ }));
+  renderShieldLayers();
+  document.getElementById('shield-options').style.display = val('shield-on') ? '' : 'none';
+  refreshShieldBasePicker();
   generate();
 }
 
@@ -1391,6 +1642,10 @@ document.getElementById('totem-toggle').addEventListener('change', function() {
   document.getElementById('totem-effects-block').style.display = this.checked ? '' : 'none';
   generate();
 });
+document.querySelector('[data-field="shield-on"]').addEventListener('change', function() {
+  document.getElementById('shield-options').style.display = this.checked ? '' : 'none';
+  generate();
+});
 
 // ==================== EVENT DELEGATION ====================
 document.querySelector('.container').addEventListener('input', e => {
@@ -1399,8 +1654,15 @@ document.querySelector('.container').addEventListener('input', e => {
 });
 document.querySelector('.container').addEventListener('change', e => {
   if (e.target.id === 'item-select') { onItemChange(); return; }
+  if (e.target.dataset.layerField) { onShieldLayerChange(e.target); return; }
+  if (e.target.dataset.field === 'shield-base') refreshShieldBasePicker();
   clampNumber(e.target);
   generate();
+});
+document.querySelector('.container').addEventListener('click', e => {
+  const btn = e.target.closest('[data-color-target]');
+  if (!btn) return;
+  setShieldColor(btn.dataset.colorTarget, btn.dataset.colorValue);
 });
 document.getElementById('item-search').addEventListener('input', e => filterItemSelect(e.target.value));
 
@@ -1408,6 +1670,7 @@ document.getElementById('item-search').addEventListener('input', e => filterItem
 initItemSelect();
 initNameColorSelects();
 initTrimSelects();
+initShieldSelects();
 initLoreRows();
 initFoodEffectsRows();
 initTotemEffectsRows();

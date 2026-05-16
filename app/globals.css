@@ -354,6 +354,79 @@ body {
   gap: 10px;
 }
 
+.shield-picker {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.shield-layers {
+  display: grid;
+  gap: 6px;
+}
+
+.shield-layer {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1.2fr) minmax(180px, 1fr) 34px;
+  gap: 6px;
+  align-items: center;
+}
+
+.shield-layer-color {
+  display: grid;
+  gap: 6px;
+}
+
+.shield-layer-index {
+  display: grid;
+  place-items: center;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.shield-color-picker {
+  display: grid;
+  gap: 6px;
+}
+
+.shield-color-name {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.shield-color-swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(24px, 1fr));
+  gap: 5px;
+}
+
+.shield-color-swatch {
+  min-width: 24px;
+  height: 24px;
+  cursor: pointer;
+  border: 2px solid var(--border);
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.24);
+}
+
+.shield-color-swatch:hover,
+.shield-color-swatch.active {
+  border-color: var(--accent-2);
+  transform: translateY(-1px);
+}
+
+.shield-color-swatch.active {
+  box-shadow: 0 0 0 2px rgba(255, 179, 71, 0.22), inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+
 .summon-help {
   max-width: 780px;
   margin: 0;
@@ -383,7 +456,8 @@ body {
   .admin-editor,
   .admin-form-grid,
   .admin-json-grid,
-  .slot-grid {
+  .slot-grid,
+  .shield-layer {
     grid-template-columns: 1fr;
   }
 }

@@ -1,8 +1,11 @@
 import {
+  BANNER_PATTERNS,
   canHaveTrim,
+  DYE_COLORS,
   EFFECTS,
   enchantsForItem,
   isFireball,
+  isShield,
   ITEM_NAMES,
   SLOTS,
   type SummonFieldValue,
@@ -114,6 +117,19 @@ export function buildNBTPartsFor(snapshot: SummonSnapshot, index: number) {
         const pat = asString(read(snapshot, index, `trimpat-${slot.key}`)) || "sentry";
         comps.push(`"minecraft:trim":{material:"${mat}",pattern:"${pat}"}`);
       }
+      if (isShield(itemId) && asBool(read(snapshot, index, `shieldon-${slot.key}`))) {
+        const base = asString(read(snapshot, index, `shieldbase-${slot.key}`)) || "white";
+        const validColors = new Set<string>(DYE_COLORS.map(([id]) => id));
+        const validPatterns = new Set<string>(BANNER_PATTERNS.map(([id]) => id));
+        const layers = Array.from({ length: 16 }, (_, layerIndex) => {
+          const pattern = asString(read(snapshot, index, `shieldpat-${slot.key}-${layerIndex}`)) || "";
+          const color = asString(read(snapshot, index, `shieldcolor-${slot.key}-${layerIndex}`)) || "black";
+          if (!validPatterns.has(pattern) || !validColors.has(color)) return "";
+          return `{pattern:"minecraft:${pattern}",color:"${color}"}`;
+        }).filter(Boolean);
+        if (validColors.has(base)) comps.push(`base_color:"${base}"`);
+        if (layers.length) comps.push(`banner_patterns:[${layers.join(",")}]`);
+      }
       equipParts.push(`${slot.key}:{id:${itemId},count:${count}${comps.length ? `,components:{${comps.join(",")}}` : ""}}`);
     }
 
@@ -187,6 +203,10 @@ export function getPreviewData(snapshot: SummonSnapshot, index: number) {
     if (count > 1) extras.push(`${count} шт.`);
     if (itemId.startsWith("leather_") && asBool(read(snapshot, index, `dyeon-${slot.key}`))) extras.push("окрашено");
     if (canHaveTrim(itemId) && asBool(read(snapshot, index, `trimon-${slot.key}`))) extras.push("отделка");
+    if (isShield(itemId) && asBool(read(snapshot, index, `shieldon-${slot.key}`))) {
+      const layerCount = Array.from({ length: 16 }, (_, layerIndex) => read(snapshot, index, `shieldpat-${slot.key}-${layerIndex}`)).filter(hasValue).length;
+      extras.push(layerCount ? `узоры: ${layerCount}` : "цвет щита");
+    }
     const enchants = enchantSelections(snapshot, index, slot.key).map(({ id, lvl }) => {
       const known = enchantsForItem(itemId).find((enchant) => enchant.id === id);
       return `${known ? known.name : id} ${lvl}`;

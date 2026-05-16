@@ -195,6 +195,74 @@ export const TRIM_PATTERNS = [
   ['flow','Поток'],['bolt','Молния'],['wayfinder','Путеводный'],
 ];
 
+export const DYE_COLORS = [
+  ['white', 'Белый', '#f9fffe'],
+  ['light_gray', 'Светло-серый', '#9d9d97'],
+  ['gray', 'Серый', '#474f52'],
+  ['black', 'Чёрный', '#1d1d21'],
+  ['brown', 'Коричневый', '#835432'],
+  ['red', 'Красный', '#b02e26'],
+  ['orange', 'Оранжевый', '#f9801d'],
+  ['yellow', 'Жёлтый', '#fed83d'],
+  ['lime', 'Лаймовый', '#80c71f'],
+  ['green', 'Зелёный', '#5e7c16'],
+  ['cyan', 'Бирюзовый', '#169c9c'],
+  ['light_blue', 'Голубой', '#3ab3da'],
+  ['blue', 'Синий', '#3c44aa'],
+  ['purple', 'Фиолетовый', '#8932b8'],
+  ['magenta', 'Пурпурный', '#c74ebd'],
+  ['pink', 'Розовый', '#f38baa'],
+] as const;
+
+export const BANNER_PATTERNS = [
+  ['square_bottom_left', 'Нижний левый угол'],
+  ['square_bottom_right', 'Нижний правый угол'],
+  ['square_top_left', 'Верхний левый угол'],
+  ['square_top_right', 'Верхний правый угол'],
+  ['stripe_bottom', 'Нижняя полоса'],
+  ['stripe_top', 'Верхняя полоса'],
+  ['stripe_left', 'Левая полоса'],
+  ['stripe_right', 'Правая полоса'],
+  ['stripe_center', 'Вертикальная полоса'],
+  ['stripe_middle', 'Горизонтальная полоса'],
+  ['stripe_downright', 'Диагональ вниз вправо'],
+  ['stripe_downleft', 'Диагональ вниз влево'],
+  ['small_stripes', 'Частые вертикальные полосы'],
+  ['cross', 'Косой крест'],
+  ['straight_cross', 'Прямой крест'],
+  ['triangle_bottom', 'Треугольник снизу'],
+  ['triangle_top', 'Треугольник сверху'],
+  ['triangles_bottom', 'Зубцы снизу'],
+  ['triangles_top', 'Зубцы сверху'],
+  ['diagonal_left', 'Диагональная половина слева'],
+  ['diagonal_right', 'Диагональная половина справа'],
+  ['diagonal_up_left', 'Обратная диагональная половина слева'],
+  ['diagonal_up_right', 'Обратная диагональная половина справа'],
+  ['circle', 'Круг'],
+  ['rhombus', 'Ромб'],
+  ['half_vertical', 'Левая половина'],
+  ['half_vertical_right', 'Правая половина'],
+  ['half_horizontal', 'Верхняя половина'],
+  ['half_horizontal_bottom', 'Нижняя половина'],
+  ['border', 'Кайма'],
+  ['curly_border', 'Зубчатая кайма'],
+  ['gradient', 'Градиент вниз'],
+  ['gradient_up', 'Градиент вверх'],
+  ['bricks', 'Кирпичная кладка'],
+  ['globe', 'Глобус'],
+  ['creeper', 'Крипер'],
+  ['skull', 'Череп'],
+  ['flower', 'Цветок'],
+  ['mojang', 'Нечто'],
+  ['piglin', 'Рыло пиглина'],
+  ['flow', 'Поток'],
+  ['guster', 'Вихрь'],
+] as const;
+
+export function isShield(itemId: string) {
+  return itemId === 'shield';
+}
+
 export function canHaveTrim(itemId: string) {
   if (!itemId) return false;
   if (itemId === 'elytra') return false;
