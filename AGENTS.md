@@ -3,20 +3,19 @@
 
   ## Текущий стек
   - Сайт деплоится на Vercel как Next.js-приложение.
-  - Используется Next.js App Router, TypeScript, React и route handlers.
-  - `/summon` уже мигрирован на общий React-редактор, который используется и на публичной странице, и в админке шаблонов.
-  - Остальные пользовательские генераторы пока остаются legacy HTML/CSS/JS без переписывания в React.
+  - Используется Next.js App Router, TypeScript, React, server components, client components и route handlers для API.
+  - `/summon` использует общий React-редактор, который используется и на публичной странице, и в админке шаблонов.
+  - `/give` использует React-редактор с сохранением старого формата избранного в `localStorage`.
   - Авторизация подключена через Clerk (`@clerk/nextjs`).
   - База данных подключается через Neon serverless (`@neondatabase/serverless`).
   - Внешние зависимости уже есть; новые добавлять только при явной пользе и без утяжеления простых генераторов.
 
   ## Структура файлов
-  - `app/route.ts` — главная `/`, отдает legacy `index.html` через Next.js.
+  - `app/page.tsx` — React-лендинг `/`.
   - `app/summon/page.tsx` — React-страница `/summon`, использует общий редактор мобов.
   - `app/components/summon/` — общий React-редактор `/summon`, данные мобов/предметов и генерация команды.
-  - `app/give/route.ts` — `/give`, отдает legacy `give.html`.
-  - `app/style.css/route.ts` — `/style.css`, отдает корневой `style.css`.
-  - `app/lib/legacy-page.ts` — чтение legacy HTML, нормализация ссылок и вставка auth-блока Clerk.
+  - `app/give/page.tsx` — React-страница `/give`, использует редактор предметов.
+  - `app/components/give/` — React-редактор `/give`, данные предметов и генерация команды.
   - `app/layout.tsx` и `app/globals.css` — общий React layout и стили для Next.js/Clerk-страниц.
   - `app/sign-in/`, `app/sign-up/`, `app/sign-out/` — страницы авторизации Clerk.
   - `app/api/health/route.ts` — healthcheck Next.js runtime.
@@ -25,9 +24,7 @@
   - `app/api/auth/google/route.ts` — совместимый редирект старого Google-входа на Clerk sign-in.
   - `app/server/db.ts` — Neon client и проверка подключения.
   - `proxy.ts` — Clerk middleware; пропускает запросы, если ключи Clerk не настроены.
-  - `index.html` — legacy лендинг mc-commands.
-  - `give.html` — legacy генератор `/give`.
-  - `style.css` — общий CSS для legacy страниц.
+  - `style.css` — общий CSS для публичных React-страниц и редакторов.
   - `next.config.ts`, `tsconfig.json`, `package.json`, `vercel.json` — конфигурация Next.js, TypeScript, npm и Vercel.
 
   ## Локальная разработка
@@ -48,9 +45,8 @@
   ## Стиль
   - Интерфейс на русском
   - Блок «Что нового» на лендинге группировать по датам релиза, новые даты выше старых
-  - Legacy-страницы должны оставаться легкими: обычные HTML/CSS/JS, без клиентских фреймворков внутри генераторов.
   - Google Fonts допустимы; новые внешние клиентские ресурсы добавлять осторожно.
-  - Не переписывать legacy HTML в React без отдельного решения на такую миграцию.
+  - Не возвращать пользовательские генераторы в legacy HTML/CSS/JS.
 
   ## Оповещения
   - После функциональных изменений, заметных игрокам или пользователям сайта, предлагать опубликовать сообщение в Minecraft-чате через Telegram-бота.
