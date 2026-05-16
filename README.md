@@ -19,7 +19,7 @@
 
 1. Зайти на [vercel.com](https://vercel.com) и войти через GitHub
 2. Нажать **Add New...** → **Project**
-3. Импортировать репозиторий `egorka-dino/mc-summon`
+3. Импортировать репозиторий `egorka-dino/mc-commands`
 4. Framework Preset оставить **Other**
 5. Build Command оставить пустым
 6. Output Directory оставить пустым

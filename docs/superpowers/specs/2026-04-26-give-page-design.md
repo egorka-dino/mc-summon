@@ -1,7 +1,7 @@
 # Дизайн: страница /give + реструктуризация в mc-commands
 
 **Дата:** 2026-04-26  
-**Проект:** mc-summon → mc-commands  
+**Проект:** mc-commands  
 **Minecraft:** Java Edition 1.21.5+
 
 ---
@@ -15,14 +15,14 @@
 ## Структура файлов
 
 ```
-mc-summon/
+mc-commands/
 ├── index.html        ← лендинг «mc-commands», две карточки-ссылки
 ├── summon.html       ← текущий index.html (CSS → style.css, добавить nav)
 ├── give.html         ← новая страница генератора /give
 └── style.css         ← общий CSS: переменные, шрифты, кнопки, панели, утилиты
 ```
 
-GitHub Pages поддерживает несколько HTML-файлов в корне репозитория.
+Vercel поддерживает несколько HTML-файлов в корне статического проекта.
 
 ---
 
