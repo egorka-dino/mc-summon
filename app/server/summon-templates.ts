@@ -1,4 +1,3 @@
-import { SUMMON_PRESETS_DEFAULT } from "../components/summon/data";
 import { getSql } from "./db";
 
 export type SummonTemplate = {
@@ -10,7 +9,7 @@ export type SummonTemplate = {
   mobOrder: Array<{ mobType: string }>;
   fields: Record<string, string | number | boolean | null>;
   enabled: boolean;
-  source: "default" | "database";
+  source: "database";
   hasDatabaseRecord: boolean;
   createdAt?: string | null;
   updatedAt?: string | null;
@@ -35,15 +34,6 @@ type DbTemplateRow = {
 };
 
 let tableReady = false;
-
-export function getDefaultSummonTemplates(): SummonTemplate[] {
-  return SUMMON_PRESETS_DEFAULT.map((template) => ({
-    ...template,
-    enabled: true,
-    source: "default" as const,
-    hasDatabaseRecord: false,
-  }));
-}
 
 async function ensureTemplatesTable() {
   if (tableReady) {
@@ -102,23 +92,8 @@ async function getDatabaseTemplates() {
 }
 
 export async function listSummonTemplates({ admin = false } = {}) {
-  const defaults = getDefaultSummonTemplates();
   const databaseTemplates = await getDatabaseTemplates();
-  const databaseById = new Map(databaseTemplates.map((template) => [template.id, template]));
-  const defaultIds = new Set(defaults.map((template) => template.id));
-
-  const mergedDefaults = defaults.map((template) => databaseById.get(template.id) || template);
-  const customTemplates = databaseTemplates
-    .filter((template) => !defaultIds.has(template.id))
-    .sort((a, b) => {
-      const category = a.category.localeCompare(b.category, "ru");
-      if (category !== 0) return category;
-      return a.name.localeCompare(b.name, "ru");
-    });
-
-  return [...mergedDefaults, ...customTemplates].filter(
-    (template) => admin || template.enabled,
-  );
+  return databaseTemplates.filter((template) => admin || template.enabled);
 }
 
 export function validateSummonTemplate(input: Partial<TemplateInput>): TemplateInput {

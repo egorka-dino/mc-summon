@@ -14,7 +14,6 @@ import {
   RANDOM_MOBS,
   RANDOM_NAMES,
   SLOTS,
-  SUMMON_PRESETS_DEFAULT,
   TRIM_MATERIALS,
   TRIM_PATTERNS,
   type SummonFieldValue,
@@ -175,7 +174,7 @@ export function SummonEditor({ adminMode = false, initialSnapshot, templates, on
   const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [toast, setToast] = useState("");
   const command = useMemo(() => buildSummonCommand(snapshot, coords), [snapshot, coords]);
-  const presets: SummonTemplateLike[] = templates?.length ? templates : SUMMON_PRESETS_DEFAULT;
+  const presets: SummonTemplateLike[] = templates || [];
 
   useEffect(() => {
     if (initialSnapshot) setSnapshot(normalizeSnapshot(initialSnapshot));
@@ -257,7 +256,7 @@ export function SummonEditor({ adminMode = false, initialSnapshot, templates, on
           <h2>Шаблоны мобов <span className="sub">общие для всех</span></h2>
           <div className="preset-picker">
             <label><span className="lab">Выбери шаблон</span>
-              <select value={presetId} onChange={(event) => applyPreset(event.target.value)}>
+              <select disabled={!presets.length} value={presetId} onChange={(event) => applyPreset(event.target.value)}>
                 <option value="">— выбери готового моба —</option>
                 {[...new Set(presets.map((preset) => preset.category))].map((category) => (
                   <optgroup label={category} key={category}>
@@ -267,7 +266,7 @@ export function SummonEditor({ adminMode = false, initialSnapshot, templates, on
               </select>
             </label>
             <div className="preset-description">
-              {selectedPreset ? <><strong>{selectedPreset.name}</strong><span>{selectedPreset.description}</span><code>{selectedPreset.mobOrder.map((mob) => ALL_MOBS[mob.mobType] || mob.mobType).join(" -> ")}</code></> : <span>Шаблон сразу заменит текущего моба и пассажиров.</span>}
+              {selectedPreset ? <><strong>{selectedPreset.name}</strong><span>{selectedPreset.description}</span><code>{selectedPreset.mobOrder.map((mob) => ALL_MOBS[mob.mobType] || mob.mobType).join(" -> ")}</code></> : presets.length ? <span>Шаблон сразу заменит текущего моба и пассажиров.</span> : <span>Пока нет общих шаблонов.</span>}
             </div>
           </div>
         </section>

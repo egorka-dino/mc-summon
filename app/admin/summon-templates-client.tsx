@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { SummonEditor } from "../components/summon/SummonEditor";
 import type { SummonSnapshot } from "../components/summon/data";
 import type { SummonTemplate } from "../server/summon-templates";
@@ -18,7 +18,6 @@ type Draft = {
   version: number;
   enabled: boolean;
   snapshot: SummonSnapshot;
-  source: SummonTemplate["source"];
   hasDatabaseRecord: boolean;
 };
 
@@ -31,7 +30,6 @@ function toDraft(template: SummonTemplate): Draft {
     version: template.version,
     enabled: template.enabled,
     snapshot: { mobOrder: template.mobOrder, fields: template.fields },
-    source: template.source,
     hasDatabaseRecord: template.hasDatabaseRecord,
   };
 }
@@ -48,7 +46,6 @@ function newDraft(): Draft {
       mobOrder: [{ mobType: "zombie" }],
       fields: { "0-mob": "zombie", "0-persist": true, "0-name-visible": true },
     },
-    source: "database",
     hasDatabaseRecord: false,
   };
 }
@@ -61,11 +58,6 @@ export function SummonTemplatesClient({ initialTemplates, databaseReady }: Props
   );
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
-
-  const selectedTemplate = useMemo(
-    () => templates.find((template) => template.id === selectedId),
-    [selectedId, templates],
-  );
 
   function selectTemplate(id: string) {
     const template = templates.find((item) => item.id === id);
@@ -97,6 +89,9 @@ export function SummonTemplatesClient({ initialTemplates, databaseReady }: Props
     if (nextTemplate) {
       setSelectedId(nextTemplate.id);
       setDraft(toDraft(nextTemplate));
+    } else {
+      setSelectedId("");
+      setDraft(newDraft());
     }
   }
 
@@ -133,7 +128,7 @@ export function SummonTemplatesClient({ initialTemplates, databaseReady }: Props
   }
 
   async function deleteOverride() {
-    if (!draft.id || !confirm(`Удалить запись «${draft.name}» из базы?`)) return;
+    if (!draft.id || !confirm(`Удалить шаблон «${draft.name}»?`)) return;
 
     setBusy(true);
     setStatus("");
@@ -144,16 +139,12 @@ export function SummonTemplatesClient({ initialTemplates, databaseReady }: Props
       );
       const data = await response.json();
       if (!response.ok || !data.ok) {
-        throw new Error(data.error || "Не удалось удалить запись");
+        throw new Error(data.error || "Не удалось удалить шаблон");
       }
       await refreshTemplates();
-      setStatus(
-        selectedTemplate?.source === "default"
-          ? "DB-правка удалена, встроенный шаблон снова используется как база."
-          : "Шаблон удалён.",
-      );
+      setStatus("Шаблон удалён.");
     } catch (e) {
-      setStatus(e instanceof Error ? e.message : "Не удалось удалить запись");
+      setStatus(e instanceof Error ? e.message : "Не удалось удалить шаблон");
     } finally {
       setBusy(false);
     }
@@ -164,7 +155,6 @@ export function SummonTemplatesClient({ initialTemplates, databaseReady }: Props
       ...draft,
       id: `${draft.id}-copy`,
       name: `${draft.name} копия`,
-      source: "database" as const,
       hasDatabaseRecord: false,
     };
     setSelectedId("");
@@ -190,11 +180,11 @@ export function SummonTemplatesClient({ initialTemplates, databaseReady }: Props
         </div>
         {!databaseReady ? (
           <p className="admin-warning">
-            DATABASE_URL не настроен. Можно смотреть встроенные шаблоны, но сохранять правки нельзя.
+            Хранилище шаблонов не настроено, сохранять правки нельзя.
           </p>
         ) : null}
         <div className="admin-template-buttons">
-          {templates.map((template) => (
+          {templates.length ? templates.map((template) => (
             <button
               className={template.id === selectedId ? "active" : ""}
               key={template.id}
@@ -203,11 +193,11 @@ export function SummonTemplatesClient({ initialTemplates, databaseReady }: Props
             >
               <span>{template.name}</span>
               <small>
-                {template.category} · {template.source === "database" ? "DB" : "встроенный"}
+                {template.category}
                 {!template.enabled ? " · выключен" : ""}
               </small>
             </button>
-          ))}
+          )) : <p className="admin-warning">Пока нет шаблонов.</p>}
         </div>
       </div>
 
@@ -216,14 +206,14 @@ export function SummonTemplatesClient({ initialTemplates, databaseReady }: Props
           <h2>Редактор</h2>
           <div className="admin-inline-actions">
             <button type="button" onClick={duplicateTemplate}>
-              Копия
+              Копировать
             </button>
             <button
               type="button"
               disabled={busy || !draft.hasDatabaseRecord}
               onClick={deleteOverride}
             >
-              Удалить DB-запись
+              Удалить
             </button>
             <button type="button" disabled={busy || !databaseReady} onClick={saveTemplate}>
               Сохранить

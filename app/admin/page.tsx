@@ -2,7 +2,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { getAuthUser, isAdminFromMetadata, isClerkConfigured } from "../server/auth";
 import { getDatabaseUrlStatus } from "../server/db";
-import { getDefaultSummonTemplates, listSummonTemplates } from "../server/summon-templates";
+import { listSummonTemplates, type SummonTemplate } from "../server/summon-templates";
 import { SummonTemplatesClient } from "./summon-templates-client";
 
 export const dynamic = "force-dynamic";
@@ -49,13 +49,13 @@ export default async function AdminPage() {
   }
 
   const databaseReady = getDatabaseUrlStatus().configured;
-  let templates = getDefaultSummonTemplates();
+  let templates: SummonTemplate[] = [];
 
   if (databaseReady) {
     try {
       templates = await listSummonTemplates({ admin: true });
     } catch {
-      templates = getDefaultSummonTemplates();
+      templates = [];
     }
   }
 
@@ -96,7 +96,7 @@ export default async function AdminPage() {
           <h2>Проверки</h2>
           <div className="admin-actions">
             <a href="/api/health">API health</a>
-            <a href="/api/db/health">DB health</a>
+            <a href="/api/db/health">Storage health</a>
             <a href="/api/auth/status">Auth status</a>
           </div>
         </article>

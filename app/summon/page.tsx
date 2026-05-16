@@ -1,19 +1,19 @@
 import { AuthCorner } from "../components/AuthCorner";
 import { SummonEditor } from "../components/summon/SummonEditor";
-import { SUMMON_PRESETS_DEFAULT } from "../components/summon/data";
+import type { SummonTemplateLike } from "../components/summon/data";
 import { getDatabaseUrlStatus } from "../server/db";
 import { listSummonTemplates } from "../server/summon-templates";
 
 export const dynamic = "force-dynamic";
 
 export default async function SummonPage() {
-  let templates = SUMMON_PRESETS_DEFAULT;
+  let templates: SummonTemplateLike[] = [];
 
   if (getDatabaseUrlStatus().configured) {
     try {
       templates = await listSummonTemplates();
     } catch {
-      templates = SUMMON_PRESETS_DEFAULT;
+      templates = [];
     }
   }
 

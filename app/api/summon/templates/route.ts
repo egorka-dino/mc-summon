@@ -1,5 +1,5 @@
 import { getDatabaseUrlStatus } from "../../../server/db";
-import { getDefaultSummonTemplates, listSummonTemplates } from "../../../server/summon-templates";
+import { listSummonTemplates } from "../../../server/summon-templates";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -8,8 +8,8 @@ export async function GET() {
   if (!getDatabaseUrlStatus().configured) {
     return Response.json({
       ok: true,
-      source: "default",
-      templates: getDefaultSummonTemplates(),
+      source: "database",
+      templates: [],
     });
   }
 
@@ -22,8 +22,8 @@ export async function GET() {
   } catch {
     return Response.json({
       ok: true,
-      source: "default",
-      templates: getDefaultSummonTemplates(),
+      source: "database",
+      templates: [],
     });
   }
 }
