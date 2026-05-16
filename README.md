@@ -25,6 +25,7 @@
 - `/api/health` проверяет, что backend-слой Next.js отвечает
 - `/api/db/health` проверяет подключение к Neon Postgres
 - `/sign-in` и `/sign-up` отдают готовые страницы Clerk
+- `/admin` показывает базовую админку для пользователей с ролью `admin`
 - `/api/auth/google` перенаправляет на Clerk sign-in для старых ссылок
 - `/api/auth/status` показывает готовность Clerk и текущего пользователя
 
@@ -61,6 +62,16 @@ NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
 ```
 
 Google-вход включается в панели Clerk: **User & Authentication** → **Social connections** → **Google**. OAuth client ID/secret хранит Clerk, а не приложение.
+
+Администратор задаётся в Clerk через metadata пользователя. В панели Clerk открыть нужного пользователя и добавить в **Public metadata** или **Private metadata**:
+
+```json
+{
+  "role": "admin"
+}
+```
+
+Также поддерживаются варианты `{ "admin": true }` и `{ "roles": ["admin"] }`. Сайт не доверяет `unsafeMetadata`, потому что эти данные может менять сам пользователь.
 
 В Clerk нужно добавить домены приложения:
 

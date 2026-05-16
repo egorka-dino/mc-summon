@@ -1,11 +1,7 @@
 import { readFile } from "node:fs/promises";
-import { currentUser } from "@clerk/nextjs/server";
+import { getAuthUser, isClerkConfigured, type AuthUser } from "../server/auth";
 
 type LegacyPage = "home" | "summon" | "give";
-type AuthUser = {
-  name: string;
-  imageUrl: string | null;
-} | null;
 
 const LEGACY_FILES: Record<LegacyPage, URL> = {
   home: new URL("../../index.html", import.meta.url),
@@ -35,34 +31,6 @@ function escapeHtml(value: string) {
     .replaceAll("'", "&#39;");
 }
 
-function isClerkConfigured() {
-  return (
-    Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) &&
-    Boolean(process.env.CLERK_SECRET_KEY)
-  );
-}
-
-async function getAuthUser(): Promise<AuthUser> {
-  if (!isClerkConfigured()) {
-    return null;
-  }
-
-  const user = await currentUser();
-
-  if (!user) {
-    return null;
-  }
-
-  return {
-    name:
-      user.fullName ||
-      user.primaryEmailAddress?.emailAddress ||
-      user.username ||
-      "Игрок",
-    imageUrl: user.imageUrl || null,
-  };
-}
-
 function renderAuthCorner(user: AuthUser, currentPath: string) {
   if (!user) {
     if (!isClerkConfigured()) {
@@ -85,10 +53,14 @@ function renderAuthCorner(user: AuthUser, currentPath: string) {
     ? `<img src="${escapeHtml(user.imageUrl)}" alt="" class="auth-avatar">`
     : "";
   const callbackUrl = encodeURIComponent(currentPath);
+  const adminLink = user.isAdmin
+    ? `<a class="auth-link admin-link" href="/admin">Админка</a>`
+    : "";
 
   return `
 <div class="auth-corner signed-in">
   <span class="auth-user">${image}<span>${name}</span></span>
+  ${adminLink}
   <a class="auth-link" href="/sign-out?redirect_url=${callbackUrl}">Выйти</a>
 </div>`;
 }

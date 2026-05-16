@@ -1,10 +1,17 @@
-@import url("https://fonts.googleapis.com/css2?family=Jost:wght@400;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Jost:wght@400;600;700&family=Press+Start+2P&display=swap");
 
 :root {
   --auth-bg: #1a1d22;
   --auth-panel: #2a2e35;
+  --auth-panel-2: #343941;
+  --auth-border: #4a4f58;
   --auth-text: #e8e6df;
+  --auth-muted: #9aa0a6;
   --auth-accent: #6ab04c;
+  --auth-accent-2: #ffb347;
+  --auth-accent-3: #8ab4f8;
+  --auth-code: #0e1013;
+  --auth-code-text: #a7e85f;
 }
 
 * {
@@ -24,4 +31,145 @@ body {
   min-height: 100vh;
   place-items: center;
   padding: 24px;
+}
+
+.admin-page {
+  min-height: 100vh;
+  padding: 28px 18px;
+  background-image:
+    radial-gradient(circle at 15% 0%, rgba(106, 176, 76, 0.08) 0%, transparent 38%),
+    radial-gradient(circle at 85% 100%, rgba(255, 179, 71, 0.06) 0%, transparent 38%);
+}
+
+.admin-panel,
+.admin-card {
+  width: min(920px, 100%);
+  margin: 0 auto;
+  background: var(--auth-panel);
+  border: 2px solid var(--auth-border);
+  border-radius: 4px;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.3);
+}
+
+.admin-panel {
+  padding: 24px;
+}
+
+.admin-hero {
+  border-color: var(--auth-accent);
+}
+
+.admin-back {
+  display: inline-block;
+  margin-bottom: 14px;
+  color: var(--auth-muted);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.admin-back:hover {
+  color: var(--auth-accent);
+}
+
+.admin-kicker {
+  margin: 0 0 10px;
+  color: var(--auth-accent-2);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.admin-page h1,
+.admin-page h2 {
+  font-family: "Press Start 2P", monospace;
+  letter-spacing: 0;
+}
+
+.admin-page h1 {
+  margin: 0 0 12px;
+  color: var(--auth-accent);
+  font-size: 20px;
+  line-height: 1.45;
+  text-shadow: 3px 3px 0 #000;
+}
+
+.admin-page h2 {
+  margin: 0 0 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed var(--auth-border);
+  color: var(--auth-accent-2);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.admin-page p {
+  max-width: 720px;
+  margin: 0;
+  color: var(--auth-muted);
+  line-height: 1.65;
+}
+
+.admin-page code {
+  padding: 1px 5px;
+  border-radius: 2px;
+  background: var(--auth-code);
+  color: var(--auth-code-text);
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  width: min(920px, 100%);
+  margin: 16px auto 0;
+}
+
+.admin-card {
+  padding: 18px;
+}
+
+.admin-card dl {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+
+.admin-card dl div {
+  display: grid;
+  gap: 3px;
+}
+
+.admin-card dt {
+  color: var(--auth-muted);
+  font-size: 12px;
+}
+
+.admin-card dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--auth-text);
+  font-weight: 600;
+}
+
+.admin-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-actions a {
+  display: block;
+  padding: 9px 11px;
+  border: 2px solid var(--auth-border);
+  border-radius: 3px;
+  background: var(--auth-panel-2);
+  color: var(--auth-text);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.admin-actions a:hover {
+  border-color: var(--auth-accent-3);
+  color: var(--auth-accent-3);
 }

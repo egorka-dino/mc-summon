@@ -90,6 +90,14 @@
     border-color: var(--accent-2);
     color: var(--accent-2);
   }
+  .admin-link {
+    border-color: var(--accent-2);
+    color: var(--accent-2);
+  }
+  .admin-link:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
   .container {
     max-width: 1200px;
     margin: 0 auto;

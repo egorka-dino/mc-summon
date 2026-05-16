@@ -1,12 +1,10 @@
-import { currentUser } from "@clerk/nextjs/server";
+import { getAuthUser, isClerkConfigured } from "../../../server/auth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const configured =
-    Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) &&
-    Boolean(process.env.CLERK_SECRET_KEY);
-  const user = configured ? await currentUser() : null;
+  const configured = isClerkConfigured();
+  const user = await getAuthUser();
 
   return Response.json({
     provider: "clerk",
@@ -15,9 +13,10 @@ export async function GET() {
     user: user
       ? {
           id: user.id,
-          name: user.fullName,
-          email: user.primaryEmailAddress?.emailAddress,
+          name: user.name,
+          email: user.email,
           image: user.imageUrl,
+          isAdmin: user.isAdmin,
         }
       : null,
   });
