@@ -1,6 +1,9 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { getAuthUser, isAdminFromMetadata, isClerkConfigured } from "../server/auth";
+import { getDatabaseUrlStatus } from "../server/db";
+import { getDefaultSummonTemplates, listSummonTemplates } from "../server/summon-templates";
+import { SummonTemplatesClient } from "./summon-templates-client";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +48,17 @@ export default async function AdminPage() {
     );
   }
 
+  const databaseReady = getDatabaseUrlStatus().configured;
+  let templates = getDefaultSummonTemplates();
+
+  if (databaseReady) {
+    try {
+      templates = await listSummonTemplates({ admin: true });
+    } catch {
+      templates = getDefaultSummonTemplates();
+    }
+  }
+
   return (
     <main className="admin-page">
       <section className="admin-panel admin-hero">
@@ -54,8 +68,8 @@ export default async function AdminPage() {
         <p className="admin-kicker">Администратор</p>
         <h1>Админка mc-commands</h1>
         <p>
-          Базовая панель для служебных проверок. Кнопка на сайте видна только
-          пользователям с ролью <code>admin</code>.
+          Панель для служебных проверок и редактирования общих шаблонов мобов.
+          Кнопка на сайте видна только пользователям с ролью <code>admin</code>.
         </p>
       </section>
 
@@ -96,6 +110,8 @@ export default async function AdminPage() {
           </div>
         </article>
       </section>
+
+      <SummonTemplatesClient initialTemplates={templates} databaseReady={databaseReady} />
     </main>
   );
 }

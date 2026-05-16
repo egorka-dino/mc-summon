@@ -4,14 +4,16 @@
   ## Текущий стек
   - Сайт деплоится на Vercel как Next.js-приложение.
   - Используется Next.js App Router, TypeScript, React и route handlers.
-  - Пользовательские генераторы пока остаются legacy HTML/CSS/JS без переписывания в React.
+  - `/summon` уже мигрирован на общий React-редактор, который используется и на публичной странице, и в админке шаблонов.
+  - Остальные пользовательские генераторы пока остаются legacy HTML/CSS/JS без переписывания в React.
   - Авторизация подключена через Clerk (`@clerk/nextjs`).
   - База данных подключается через Neon serverless (`@neondatabase/serverless`).
   - Внешние зависимости уже есть; новые добавлять только при явной пользе и без утяжеления простых генераторов.
 
   ## Структура файлов
   - `app/route.ts` — главная `/`, отдает legacy `index.html` через Next.js.
-  - `app/summon/route.ts` — `/summon`, отдает legacy `summon.html`.
+  - `app/summon/page.tsx` — React-страница `/summon`, использует общий редактор мобов.
+  - `app/components/summon/` — общий React-редактор `/summon`, данные мобов/предметов и генерация команды.
   - `app/give/route.ts` — `/give`, отдает legacy `give.html`.
   - `app/style.css/route.ts` — `/style.css`, отдает корневой `style.css`.
   - `app/lib/legacy-page.ts` — чтение legacy HTML, нормализация ссылок и вставка auth-блока Clerk.
@@ -24,7 +26,6 @@
   - `app/server/db.ts` — Neon client и проверка подключения.
   - `proxy.ts` — Clerk middleware; пропускает запросы, если ключи Clerk не настроены.
   - `index.html` — legacy лендинг mc-commands.
-  - `summon.html` — legacy генератор `/summon`.
   - `give.html` — legacy генератор `/give`.
   - `style.css` — общий CSS для legacy страниц.
   - `next.config.ts`, `tsconfig.json`, `package.json`, `vercel.json` — конфигурация Next.js, TypeScript, npm и Vercel.
@@ -36,6 +37,7 @@
   - Production start после build: `npm run start`.
   - Для auth/db использовать `.env.local`; пример переменных хранится в `.env.example`.
   - Локальные переменные из Vercel можно подтянуть командой `npx vercel@latest env pull .env.local`.
+  - Если проверка функциональности зависит от Clerk/Neon или локально auth/db мешают нормальной валидации, сразу делать Vercel preview deployment (`npx vercel deploy --yes`) и проверять preview URL.
 
   ## Ключевые факты
   - Формат предметов: components:{enchantments:{id:lvl}} (без levels, было в 1.20.5)

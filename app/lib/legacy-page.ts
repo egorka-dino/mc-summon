@@ -1,11 +1,10 @@
 import { readFile } from "node:fs/promises";
 import { getAuthUser, isClerkConfigured, type AuthUser } from "../server/auth";
 
-type LegacyPage = "home" | "summon" | "give";
+type LegacyPage = "home" | "give";
 
 const LEGACY_FILES: Record<LegacyPage, URL> = {
   home: new URL("../../index.html", import.meta.url),
-  summon: new URL("../../summon.html", import.meta.url),
   give: new URL("../../give.html", import.meta.url),
 };
 
