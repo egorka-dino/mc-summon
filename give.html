@@ -91,6 +91,11 @@
     <div id="favorites-list"></div>
   </div>
 
+  <div class="panel random-panel">
+    <button class="random" onclick="randomizeGive()">🎲 Случайно</button>
+    <span class="hint">Собрать случайный предмет с подходящим количеством, именем, лором, чарами и особыми компонентами.</span>
+  </div>
+
   <div class="panel">
     <h2>Параметры предмета</h2>
 
@@ -1053,6 +1058,188 @@ function resetAll() {
   document.querySelector('input[name="potion-type"][value="potion"]').checked = true;
   document.querySelector('input[name="potion-modifier"][value="normal"]').checked = true;
   onItemChange();
+}
+
+// ==================== СЛУЧАЙНЫЙ ПРЕДМЕТ ====================
+
+const RANDOM_NAMES = [
+  'Сокровище шахтёра', 'Подарок дракона', 'Набор героя', 'Талисман удачи',
+  'Звёздная находка', 'Запас путешественника', 'Реликвия крепости', 'Лут из данжа',
+];
+const RANDOM_LORE = [
+  'Сгенерировано mc-commands', 'Для приключений и выживания', 'Редкая добыча',
+  'Проверено крипером', 'Версия 1.21.5+', 'Почти легендарно', 'Лучше не терять',
+];
+const RANDOM_COLORS = ['#6ab04c', '#ffb347', '#8ab4f8', '#e55a5a', '#9b59b6', '#f1c40f', '#00d4aa'];
+const RANDOM_FIREWORK_SHAPES = ['small_ball', 'large_ball', 'star', 'creeper', 'burst'];
+const RANDOM_FOOD_EFFECTS = ['speed', 'regeneration', 'strength', 'resistance', 'fire_resistance', 'night_vision', 'jump_boost'];
+const RANDOM_TOTEM_EFFECTS = ['regeneration', 'absorption', 'fire_resistance', 'resistance', 'speed'];
+
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function chance(p) {
+  return Math.random() < p;
+}
+
+function pick(list) {
+  return list[randInt(0, list.length - 1)];
+}
+
+function setRandomField(field, value) {
+  const el = document.querySelector(`[data-field="${field}"]`);
+  if (!el) return;
+  if (el.type === 'checkbox') el.checked = Boolean(value);
+  else el.value = value;
+}
+
+function clearGiveOptionsForRandom() {
+  document.getElementById('item-search').value = '';
+  filterItemSelect('');
+  explosions = [];
+  renderExplosions();
+  document.querySelectorAll('[data-field]').forEach(el => {
+    if (el.type === 'checkbox') el.checked = false;
+    else if (el.tagName === 'SELECT') el.selectedIndex = 0;
+    else el.value = el.defaultValue || '';
+  });
+  initTotemEffectsRows();
+  document.querySelector('input[name="potion-type"][value="potion"]').checked = true;
+  document.querySelector('input[name="potion-modifier"][value="normal"]').checked = true;
+  document.getElementById('totem-effects-block').style.display = 'none';
+}
+
+function getRandomItemId() {
+  const flat = ITEM_GROUPS.flatMap(group => group.items.map(([id]) => id));
+  return pick(flat);
+}
+
+function randomCountForItem(itemId) {
+  if (isPotion(itemId) || itemId === 'firework_rocket' || FOOD_ITEMS.has(itemId)) return randInt(1, 16);
+  if (enchantsForItem(itemId).length || canHaveTrim(itemId) || itemId === 'totem_of_undying') return randInt(1, 3);
+  return randInt(1, 64);
+}
+
+function randomizeTextFields() {
+  if (chance(0.58)) {
+    setRandomField('name', pick(RANDOM_NAMES));
+    setRandomField('name-color', chance(0.75) ? pick(NAME_COLORS.slice(1))[0] : '');
+    setRandomField('name-bold', chance(0.28));
+    setRandomField('name-italic', chance(0.16));
+  }
+  const loreCount = chance(0.5) ? randInt(1, 3) : 0;
+  const used = new Set();
+  for (let i = 0; i < loreCount; i++) {
+    let line = pick(RANDOM_LORE);
+    while (used.has(line)) line = pick(RANDOM_LORE);
+    used.add(line);
+    setRandomField(`lore-${i}`, line);
+    setRandomField(`lore-color-${i}`, chance(0.65) ? pick(NAME_COLORS.slice(1))[0] : '');
+  }
+}
+
+function randomizeEnchantments(itemId) {
+  const possible = enchantsForItem(itemId);
+  if (!possible.length || !chance(0.68)) return;
+  const pool = [...possible].sort(() => Math.random() - 0.5);
+  const count = Math.min(randInt(1, 4), pool.length);
+  pool.slice(0, count).forEach(ench => {
+    setRandomField(`ench-${ench.id}`, true);
+    setRandomField(`enchlvl-${ench.id}`, randInt(1, ench.max));
+  });
+}
+
+function randomizeArmorDetails(itemId) {
+  if ((itemId || '').startsWith('leather_') && chance(0.85)) {
+    setRandomField('dye-on', true);
+    setRandomField('dye-color', pick(RANDOM_COLORS));
+  }
+  if (canHaveTrim(itemId) && chance(0.55)) {
+    setRandomField('trim-on', true);
+    setRandomField('trim-mat', pick(TRIM_MATERIALS)[0]);
+    setRandomField('trim-pat', pick(TRIM_PATTERNS)[0]);
+  }
+}
+
+function randomizeFoodDetails(itemId) {
+  if (!FOOD_ITEMS.has(itemId)) return;
+  setRandomField('food-nutrition', randInt(1, 12));
+  setRandomField('food-saturation', (randInt(1, 80) / 10).toFixed(1));
+  setRandomField('food-always-eat', chance(0.35));
+  const effectCount = chance(0.48) ? randInt(1, 3) : 0;
+  const used = new Set();
+  for (let i = 0; i < effectCount; i++) {
+    let effect = pick(RANDOM_FOOD_EFFECTS);
+    while (used.has(effect)) effect = pick(RANDOM_FOOD_EFFECTS);
+    used.add(effect);
+    setRandomField(`food-eff-on-${i}`, true);
+    setRandomField(`food-eff-${i}`, effect);
+    setRandomField(`food-eff-amp-${i}`, randInt(0, 2));
+    setRandomField(`food-eff-dur-${i}`, pick([200, 600, 1200, 3600]));
+    setRandomField(`food-eff-prob-${i}`, chance(0.75) ? '1.0' : (randInt(25, 85) / 100).toFixed(2));
+  }
+}
+
+function randomizePotionDetails(itemId) {
+  if (!isPotion(itemId)) return;
+  document.querySelector(`input[name="potion-type"][value="${pick(['potion', 'splash_potion', 'lingering_potion', 'tipped_arrow'])}"]`).checked = true;
+  updatePotionModifiers(itemId);
+  const availableMods = ['normal'];
+  if (document.getElementById('potion-mod-long').style.display !== 'none') availableMods.push('long');
+  if (document.getElementById('potion-mod-strong').style.display !== 'none') availableMods.push('strong');
+  document.querySelector(`input[name="potion-modifier"][value="${pick(availableMods)}"]`).checked = true;
+}
+
+function randomizeFireworkDetails(itemId) {
+  if (itemId !== 'firework_rocket') return;
+  setRandomField('fw-duration', randInt(1, 3));
+  explosions = Array.from({ length: randInt(1, 4) }, () => ({
+    id: nextExplosionId++,
+    shape: pick(RANDOM_FIREWORK_SHAPES),
+    colors: Array.from({ length: randInt(1, 3) }, () => pick(RANDOM_COLORS)),
+    fadeColors: chance(0.55) ? Array.from({ length: randInt(1, 2) }, () => pick(RANDOM_COLORS)) : [],
+    trail: chance(0.45),
+    twinkle: chance(0.45),
+  }));
+  renderExplosions();
+}
+
+function randomizeTotemDetails(itemId) {
+  if (itemId !== 'totem_of_undying' && !chance(0.16)) return;
+  setRandomField('totem-on', true);
+  document.getElementById('totem-effects-block').style.display = '';
+  for (let i = 0; i < 3; i++) setRandomField(`totem-eff-on-${i}`, false);
+  const effectCount = randInt(1, 3);
+  const used = new Set();
+  for (let i = 0; i < effectCount; i++) {
+    let effect = pick(RANDOM_TOTEM_EFFECTS);
+    while (used.has(effect)) effect = pick(RANDOM_TOTEM_EFFECTS);
+    used.add(effect);
+    setRandomField(`totem-eff-on-${i}`, true);
+    setRandomField(`totem-eff-${i}`, effect);
+    setRandomField(`totem-eff-amp-${i}`, randInt(0, 2));
+    setRandomField(`totem-eff-dur-${i}`, pick([200, 600, 900, 1200]));
+  }
+}
+
+function randomizeGive() {
+  clearGiveOptionsForRandom();
+  const itemId = getRandomItemId();
+  document.getElementById('item-select').value = itemId;
+  document.getElementById('item-count').value = randomCountForItem(itemId);
+  onItemChange();
+
+  randomizeTextFields();
+  randomizeEnchantments(itemId);
+  randomizeArmorDetails(itemId);
+  randomizeFoodDetails(itemId);
+  randomizePotionDetails(itemId);
+  randomizeFireworkDetails(itemId);
+  randomizeTotemDetails(itemId);
+
+  generate();
+  showToast('🎲 Случайный предмет готов');
 }
 
 // ==================== ЛЮБИМЧИКИ ====================
