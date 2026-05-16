@@ -28,7 +28,7 @@
 9. В DNS домена направить `mc-commands.egorka.fun` на Vercel по подсказке в интерфейсе Vercel
 10. После этого каждый `git push` в `main` будет автоматически обновлять сайт на Vercel
 
-Текущий production URL: [https://mc-summon.vercel.app](https://mc-summon.vercel.app)
+Текущий production URL: [https://mc-commands.vercel.app](https://mc-commands.vercel.app)
 
 Для кастомного домена `mc-commands.egorka.fun` Vercel ожидает DNS-запись:
 

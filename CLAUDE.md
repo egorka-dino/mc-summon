@@ -11,7 +11,7 @@
   - Формат предметов: components:{enchantments:{id:lvl}} (без levels, было в 1.20.5)
   - Снаряжение мобов: единый блок equipment:{head, chest, legs, feet, mainhand, offhand}
   - /give: компоненты в квадратных скобках [comp=val,...], формат 1.21.5
-  - Деплой: Vercel, production URL `https://mc-summon.vercel.app`; кастомный домен `mc-commands.egorka.fun`
+  - Деплой: Vercel, production URL `https://mc-commands.vercel.app`; кастомный домен `mc-commands.egorka.fun`
 
   ## Стиль
   - Интерфейс на русском
