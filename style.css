@@ -413,9 +413,43 @@
   optgroup { font-style: normal; font-weight: 700; color: var(--accent-2); background: var(--panel); }
   option { color: var(--text); background: var(--panel-2); font-weight: normal; }
 
+  .preset-picker {
+    display: grid;
+    grid-template-columns: minmax(260px, 360px) 1fr;
+    gap: 12px;
+    align-items: end;
+  }
+  .preset-description {
+    min-height: 58px;
+    padding: 10px 12px;
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    background: var(--panel-2);
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--muted);
+  }
+  .preset-description strong,
+  .preset-description span,
+  .preset-description code {
+    display: block;
+  }
+  .preset-description strong {
+    color: var(--text);
+    font-size: 14px;
+    margin-bottom: 3px;
+  }
+  .preset-description code {
+    margin-top: 6px;
+    color: var(--code-text);
+    white-space: normal;
+    word-break: break-word;
+  }
+
   @media (max-width: 600px) {
     h1 { font-size: 13px; }
     .panel, .mob-body { padding: 12px; }
+    .preset-picker { grid-template-columns: 1fr; }
     .preview-top { align-items: flex-start; flex-direction: column; gap: 4px; }
     .preview-relation { text-align: left; }
     .preview-gear li { grid-template-columns: 1fr; }

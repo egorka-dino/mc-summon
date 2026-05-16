@@ -25,6 +25,16 @@
   </div>
 
   <div class="panel">
+    <h2>Шаблоны мобов <span class="sub">общие для всех</span></h2>
+    <div class="preset-picker">
+      <label><span class="lab">Выбери шаблон</span>
+        <select id="preset-select"></select>
+      </label>
+      <div id="preset-description" class="preset-description"></div>
+    </div>
+  </div>
+
+  <div class="panel">
     <div class="fav-header">
       <h2>⭐ Коллекция любимчиков</h2>
       <button class="small sec" onclick="addFavorite()">⭐ Сохранить текущего</button>
@@ -123,6 +133,157 @@ const MOB_GROUPS = [
 
 const ALL_MOBS = {};
 MOB_GROUPS.forEach(g => g.mobs.forEach(m => ALL_MOBS[m[0]] = m[1]));
+
+function createPreset(id, category, name, description, mobTypes, fields = {}) {
+  const presetFields = {};
+  mobTypes.forEach((mobType, idx) => {
+    presetFields[`${idx}-mob`] = mobType;
+    presetFields[`${idx}-persist`] = true;
+    presetFields[`${idx}-name-visible`] = true;
+  });
+  return {
+    id,
+    category,
+    name,
+    description,
+    version: 1,
+    mobOrder: mobTypes.map(mobType => ({ mobType })),
+    fields: { ...presetFields, ...fields },
+  };
+}
+
+const SUMMON_PRESETS = [
+  createPreset('skeleton-rider-spider', 'С пассажирами', 'Скелет-наездник', 'Классика: скелет сидит на пауке.', ['spider', 'skeleton'], {
+    '1-slot-mainhand': 'bow',
+    '1-ench-mainhand-power': true,
+    '1-enchlvl-mainhand-power': 2,
+  }),
+  createPreset('baby-zombie-chicken', 'С пассажирами', 'Зомби-наездник', 'Маленький зомби верхом на курице.', ['chicken', 'zombie'], {
+    '1-baby': true,
+    '1-slot-head': 'iron_helmet',
+    '1-slot-mainhand': 'iron_sword',
+  }),
+  createPreset('villager-on-pig', 'С пассажирами', 'Всадник на свинье', 'Житель верхом на свинье для шуток и карт.', ['pig', 'villager'], {
+    '1-name': 'Пассажир',
+    '1-noai': true,
+  }),
+  createPreset('pillager-ravager', 'С пассажирами', 'Разбойник на звере', 'Разбойник на разорителе для арены или рейда.', ['ravager', 'pillager'], {
+    '0-health': '80',
+    '1-slot-mainhand': 'crossbow',
+    '1-ench-mainhand-quick_charge': true,
+    '1-enchlvl-mainhand-quick_charge': 2,
+  }),
+  createPreset('witch-on-spider', 'С пассажирами', 'Ведьма на пауке', 'Быстрый и неприятный противник: ведьма сидит на пауке.', ['spider', 'witch'], {
+    '0-speed': '0.35',
+    '1-health': '40',
+  }),
+  createPreset('creeper-delivery', 'С пассажирами', 'Крипер-доставка', 'Крипер в вагонетке для ловушек и карт.', ['minecart', 'creeper'], {
+    '1-name': 'Доставка',
+    '1-name-color': 'green',
+  }),
+  createPreset('slime-tower', 'С пассажирами', 'Башня из слизней', 'Три слизня друг на друге.', ['slime', 'slime', 'slime'], {
+    '0-scale': '2',
+    '1-scale': '1.5',
+    '2-scale': '1',
+  }),
+  createPreset('mob-tower', 'С пассажирами', 'Башня из мобов', 'Зомби, скелет и крипер в одной высокой стопке.', ['zombie', 'skeleton', 'creeper'], {
+    '1-slot-mainhand': 'bow',
+    '2-name': 'Верхушка',
+    '2-name-color': 'green',
+  }),
+  createPreset('armored-zombie', 'Боевые', 'Бронированный зомби', 'Зомби с железной бронёй и мечом.', ['zombie'], {
+    '0-name': 'Страж',
+    '0-name-color': 'dark_green',
+    '0-health': '40',
+    '0-armor': '10',
+    '0-slot-head': 'iron_helmet',
+    '0-slot-chest': 'iron_chestplate',
+    '0-slot-legs': 'iron_leggings',
+    '0-slot-feet': 'iron_boots',
+    '0-slot-mainhand': 'iron_sword',
+  }),
+  createPreset('skeleton-sniper', 'Боевые', 'Скелет-снайпер', 'Скелет с сильным зачарованным луком.', ['skeleton'], {
+    '0-name': 'Снайпер',
+    '0-name-color': 'gray',
+    '0-slot-mainhand': 'bow',
+    '0-ench-mainhand-power': true,
+    '0-enchlvl-mainhand-power': 5,
+    '0-ench-mainhand-punch': true,
+    '0-enchlvl-mainhand-punch': 2,
+    '0-eff-glowing': true,
+  }),
+  createPreset('pillager-miniboss', 'Боевые', 'Мини-босс разбойников', 'Капитан с арбалетом, здоровьем и тегом boss.', ['pillager'], {
+    '0-name': 'Капитан рейда',
+    '0-name-color': 'gold',
+    '0-name-bold': true,
+    '0-health': '80',
+    '0-armor': '8',
+    '0-boss': true,
+    '0-slot-mainhand': 'crossbow',
+    '0-ench-mainhand-quick_charge': true,
+    '0-enchlvl-mainhand-quick_charge': 3,
+    '0-ench-mainhand-piercing': true,
+    '0-enchlvl-mainhand-piercing': 4,
+  }),
+  createPreset('tank-zombie', 'Боевые', 'Танк', 'Медленный, очень живучий зомби в незеритовой броне.', ['zombie'], {
+    '0-name': 'Танк',
+    '0-name-color': 'dark_red',
+    '0-name-bold': true,
+    '0-health': '160',
+    '0-speed': '0.12',
+    '0-armor': '24',
+    '0-attack': '16',
+    '0-kb': '0.8',
+    '0-slot-head': 'netherite_helmet',
+    '0-slot-chest': 'netherite_chestplate',
+    '0-slot-legs': 'netherite_leggings',
+    '0-slot-feet': 'netherite_boots',
+    '0-slot-mainhand': 'netherite_axe',
+  }),
+  createPreset('cat-on-chicken', 'Смешные', 'Кот на курице', 'Кот едет на курице.', ['chicken', 'cat']),
+  createPreset('villager-on-llama', 'Смешные', 'Житель на ламе', 'Житель верхом на ламе.', ['llama', 'villager'], {
+    '1-noai': true,
+  }),
+  createPreset('bee-courier', 'Смешные', 'Пчелиный курьер', 'Пчела несёт маленькую невидимую стойку с именем.', ['bee', 'armor_stand'], {
+    '1-name': 'Посылка',
+    '1-name-color': 'yellow',
+    '1-invisible': true,
+    '1-nogravity': true,
+    '1-noai': true,
+  }),
+  createPreset('dinnerbone-zombie', 'Смешные', 'Перевёрнутый моб', 'Зомби с именем Dinnerbone.', ['zombie'], {
+    '0-name': 'Dinnerbone',
+    '0-name-color': 'white',
+  }),
+  createPreset('invisible-name-stand', 'Для карт', 'Невидимая стойка с именем', 'Стойка без гравитации с видимым названием.', ['armor_stand'], {
+    '0-name': 'Точка',
+    '0-name-color': 'aqua',
+    '0-invisible': true,
+    '0-nogravity': true,
+    '0-noai': true,
+  }),
+  createPreset('map-poi', 'Для карт', 'Точка интереса', 'Светящаяся невидимая стойка для отметок на карте.', ['armor_stand'], {
+    '0-name': 'Место',
+    '0-name-color': 'gold',
+    '0-name-bold': true,
+    '0-invisible': true,
+    '0-nogravity': true,
+    '0-glow': true,
+    '0-noai': true,
+  }),
+  createPreset('decorative-npc', 'Для карт', 'Декоративный NPC', 'Житель с именем, который стоит на месте.', ['villager'], {
+    '0-name': 'NPC',
+    '0-name-color': 'yellow',
+    '0-noai': true,
+    '0-silent': true,
+  }),
+  createPreset('guard-golem', 'Для карт', 'Охранник', 'Железный голем с именем для входа или базы.', ['iron_golem'], {
+    '0-name': 'Охранник',
+    '0-name-color': 'gray',
+    '0-health': '120',
+    '0-attack': '18',
+  }),
+];
 
 const RANDOM_MOBS = [
   'zombie', 'husk', 'drowned', 'skeleton', 'stray', 'wither_skeleton', 'bogged',
@@ -447,6 +608,7 @@ function buildMobCard(mob, index) {
         <div class="grid-3">
           <label class="check-row"><input type="checkbox" data-field="${prefix}-baby"> Ребёнок</label>
           <label class="check-row"><input type="checkbox" data-field="${prefix}-invul"> Неуязвимый</label>
+          <label class="check-row"><input type="checkbox" data-field="${prefix}-invisible"> Невидимый</label>
           <label class="check-row"><input type="checkbox" data-field="${prefix}-silent"> Бесшумный</label>
           <label class="check-row"><input type="checkbox" data-field="${prefix}-noai"> Без ИИ</label>
           <label class="check-row"><input type="checkbox" data-field="${prefix}-noburn"> Не горит на солнце</label>
@@ -719,6 +881,7 @@ function buildNBTPartsFor(prefix) {
 
   if (val(prefix, 'baby')) parts.push('IsBaby:1b');
   if (val(prefix, 'invul')) parts.push('Invulnerable:1b');
+  if (val(prefix, 'invisible')) parts.push('Invisible:1b');
   if (val(prefix, 'silent')) parts.push('Silent:1b');
   if (val(prefix, 'noai')) parts.push('NoAI:1b');
   if (val(prefix, 'noburn')) parts.push('Fire:-1s');
@@ -848,6 +1011,7 @@ function previewFlags(prefix) {
   if (val(prefix, 'baby')) flags.push('ребёнок');
   if (val(prefix, 'boss')) flags.push('босс');
   if (val(prefix, 'invul')) flags.push('неуязвимый');
+  if (val(prefix, 'invisible')) flags.push('невидимый');
   if (val(prefix, 'noai')) flags.push('без ИИ');
   if (val(prefix, 'glow')) flags.push('светится');
   if (val(prefix, 'nogravity')) flags.push('без гравитации');
@@ -967,6 +1131,11 @@ function resetAll() {
   if (!confirm('Сбросить все настройки и пассажиров?')) return;
   mobs = [createMobState()];
   document.getElementById('coords').value = '~ ~ ~';
+  const presetSelect = document.getElementById('preset-select');
+  if (presetSelect) {
+    presetSelect.value = '';
+    updatePresetDescription('');
+  }
   renderAll();
   generate();
 }
@@ -1088,6 +1257,11 @@ function randomizeSummon() {
   const passengerCount = chance(0.55) ? randInt(1, chance(0.25) ? 3 : 2) : 0;
   mobs = Array.from({ length: passengerCount + 1 }, () => createMobState());
   document.getElementById('coords').value = '~ ~ ~';
+  const presetSelect = document.getElementById('preset-select');
+  if (presetSelect) {
+    presetSelect.value = '';
+    updatePresetDescription('');
+  }
   renderAll();
   mobs.forEach((mob, index) => randomizeMob(`m${mob.id}`, mob, index));
   updateMobLabels();
@@ -1223,6 +1397,48 @@ function restoreSnapshot(item) {
   generate();
 }
 
+function renderPresets() {
+  const select = document.getElementById('preset-select');
+  if (!select) return;
+  const categories = [...new Set(SUMMON_PRESETS.map(p => p.category))];
+  select.innerHTML = '<option value="">— выбери готового моба —</option>' + categories.map(category => {
+    const options = SUMMON_PRESETS
+      .filter(preset => preset.category === category)
+      .map(preset => `<option value="${preset.id}">${escapeHtml(preset.name)}</option>`)
+      .join('');
+    return `<optgroup label="${escapeHtml(category)}">${options}</optgroup>`;
+  }).join('');
+  updatePresetDescription('');
+}
+
+function updatePresetDescription(id) {
+  const box = document.getElementById('preset-description');
+  if (!box) return;
+  const preset = SUMMON_PRESETS.find(p => p.id === id);
+  if (!preset) {
+    box.innerHTML = '<span>Шаблон сразу заменит текущего моба и пассажиров. Любимчики останутся сохранёнными.</span>';
+    return;
+  }
+  const mobNames = preset.mobOrder.map(m => ALL_MOBS[m.mobType] || m.mobType).join(' → ');
+  box.innerHTML = `
+    <strong>${escapeHtml(preset.name)}</strong>
+    <span>${escapeHtml(preset.description)}</span>
+    <code>${escapeHtml(mobNames)}</code>
+  `;
+}
+
+function setupPresetPicker() {
+  const select = document.getElementById('preset-select');
+  if (!select) return;
+  select.addEventListener('change', () => {
+    updatePresetDescription(select.value);
+    const preset = SUMMON_PRESETS.find(p => p.id === select.value);
+    if (!preset) return;
+    restoreSnapshot(preset);
+    showToast('✓ Шаблон загружен');
+  });
+}
+
 function escapeHtml(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
@@ -1285,6 +1501,11 @@ function loadFavorite(id) {
     return;
   }
   if (!confirm(`Заменить текущую настройку на «${item.name}»?`)) return;
+  const presetSelect = document.getElementById('preset-select');
+  if (presetSelect) {
+    presetSelect.value = '';
+    updatePresetDescription('');
+  }
   restoreSnapshot(item);
 }
 
@@ -1320,6 +1541,8 @@ function removeFavorite(id) {
 mobs.push(createMobState());
 renderAll();
 setupEventDelegation();
+renderPresets();
+setupPresetPicker();
 document.getElementById('coords').addEventListener('input', generate);
 favorites = loadFavorites();
 renderFavorites();
