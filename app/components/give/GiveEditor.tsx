@@ -60,6 +60,14 @@ const fireworkShapes = [
   ["burst", "Вспышка"],
 ] as const;
 
+function clampNumberInput(value: string, min: number, max: number, options: { integer?: boolean } = {}) {
+  const normalized = value.trim().replace(",", ".");
+  const parsed = Number(normalized);
+  if (!Number.isFinite(parsed)) return String(min);
+  const clamped = Math.min(max, Math.max(min, options.integer ? Math.trunc(parsed) : parsed));
+  return String(clamped);
+}
+
 function randInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -332,7 +340,7 @@ export function GiveEditor() {
               <input type="text" value={snapshot.targetCustom} onChange={(event) => patch({ targetCustom: event.target.value })} placeholder="или свой селектор: @a[team=red]" />
             </div>
           </label>
-          <label><span className="lab">Количество (1-64)</span><input type="number" min="1" max="64" value={snapshot.count} onChange={(event) => patch({ count: event.target.value })} /></label>
+          <label><span className="lab">Количество (1-64)</span><input type="number" min="1" max="64" value={snapshot.count} onChange={(event) => patch({ count: clampNumberInput(event.target.value, 1, 64, { integer: true }) })} /></label>
         </div>
         <label>
           <span className="lab">Предмет</span>
@@ -405,7 +413,7 @@ export function GiveEditor() {
         {enchants.length ? <div className="section"><div className="section-title">2. Зачарования</div><div className="enchant-list">
           {enchants.map((ench: { id: string; name: string; max: number }) => <div className="enchant-row" key={ench.id}>
             <CheckField label={`${ench.name} (${ench.max})`} checked={checked(`ench-${ench.id}`)} onChange={(value) => setField(`ench-${ench.id}`, value)} />
-            <input type="number" min="1" max="255" value={field(`enchlvl-${ench.id}`, String(ench.max))} onChange={(event) => setField(`enchlvl-${ench.id}`, event.target.value)} />
+            <input type="number" min="1" max={ench.max} value={field(`enchlvl-${ench.id}`, String(ench.max))} onChange={(event) => setField(`enchlvl-${ench.id}`, clampNumberInput(event.target.value, 1, ench.max, { integer: true }))} />
           </div>)}
         </div></div> : null}
 
@@ -493,17 +501,17 @@ function ColorSwatches({ value, onChange }: { value: string; onChange: (value: s
 function FoodSection({ field, checked, setField }: { field: (name: string, fallback?: string) => string; checked: (name: string) => boolean; setField: (name: string, value: GiveFieldValue) => void }) {
   return <div className="section"><div className="section-title">5. Параметры еды</div>
     <div className="grid-3" style={{ marginBottom: 10 }}>
-      <label><span className="lab">Питательность (0-20)</span><input type="number" min="0" max="20" value={field("food-nutrition", "4")} onChange={(event) => setField("food-nutrition", event.target.value)} /></label>
-      <label><span className="lab">Насыщение (0.0-20.0)</span><input type="number" min="0" max="20" step="0.1" value={field("food-saturation", "0.6")} onChange={(event) => setField("food-saturation", event.target.value)} /></label>
+      <label><span className="lab">Питательность (0-20)</span><input type="number" min="0" max="20" value={field("food-nutrition", "4")} onChange={(event) => setField("food-nutrition", clampNumberInput(event.target.value, 0, 20, { integer: true }))} /></label>
+      <label><span className="lab">Насыщение (0.0-20.0)</span><input type="number" min="0" max="20" step="0.1" value={field("food-saturation", "0.6")} onChange={(event) => setField("food-saturation", clampNumberInput(event.target.value, 0, 20))} /></label>
       <CheckField label="Есть с полным голодом" checked={checked("food-always-eat")} onChange={(value) => setField("food-always-eat", value)} />
     </div>
     <div className="section-title">Эффекты при поедании (до 5)</div>
     {foodRows.map((i) => <div className="enchant-row give-effect-row" key={i}>
       <input type="checkbox" checked={checked(`food-eff-on-${i}`)} onChange={(event) => setField(`food-eff-on-${i}`, event.target.checked)} />
       <select value={field(`food-eff-${i}`, effects[0][0])} onChange={(event) => setField(`food-eff-${i}`, event.target.value)}>{effects.map(([id, name]) => <option key={id} value={id}>{name}</option>)}</select>
-      <input type="number" min="0" max="255" value={field(`food-eff-amp-${i}`, "0")} onChange={(event) => setField(`food-eff-amp-${i}`, event.target.value)} title="Сила (0=I)" />
-      <input type="number" min="1" max="1000000" value={field(`food-eff-dur-${i}`, "200")} onChange={(event) => setField(`food-eff-dur-${i}`, event.target.value)} title="Длительность (тики)" />
-      <input type="number" min="0" max="1" step="0.05" value={field(`food-eff-prob-${i}`, "1.0")} onChange={(event) => setField(`food-eff-prob-${i}`, event.target.value)} title="Шанс (0-1)" />
+      <input type="number" min="0" max="255" value={field(`food-eff-amp-${i}`, "0")} onChange={(event) => setField(`food-eff-amp-${i}`, clampNumberInput(event.target.value, 0, 255, { integer: true }))} title="Сила (0=I)" />
+      <input type="number" min="1" max="1000000" value={field(`food-eff-dur-${i}`, "200")} onChange={(event) => setField(`food-eff-dur-${i}`, clampNumberInput(event.target.value, 1, 1000000, { integer: true }))} title="Длительность (тики)" />
+      <input type="number" min="0" max="1" step="0.05" value={field(`food-eff-prob-${i}`, "1.0")} onChange={(event) => setField(`food-eff-prob-${i}`, clampNumberInput(event.target.value, 0, 1))} title="Шанс (0-1)" />
     </div>)}
     <p className="hint">Сила 0=I, длительность в тиках, шанс 0-1</p>
   </div>;
@@ -517,8 +525,8 @@ function TotemSection({ field, checked, setField }: { field: (name: string, fall
       {totemRows.map((i) => <div className="enchant-row give-totem-row" key={i}>
         <input type="checkbox" checked={checked(`totem-eff-on-${i}`)} onChange={(event) => setField(`totem-eff-on-${i}`, event.target.checked)} />
         <select value={field(`totem-eff-${i}`, "regeneration")} onChange={(event) => setField(`totem-eff-${i}`, event.target.value)}>{effects.map(([id, name]) => <option key={id} value={id}>{name}</option>)}</select>
-        <input type="number" min="0" max="255" value={field(`totem-eff-amp-${i}`, "0")} onChange={(event) => setField(`totem-eff-amp-${i}`, event.target.value)} title="Сила (0=I)" />
-        <input type="number" min="1" max="1000000" value={field(`totem-eff-dur-${i}`, "200")} onChange={(event) => setField(`totem-eff-dur-${i}`, event.target.value)} title="Длительность (тики)" />
+        <input type="number" min="0" max="255" value={field(`totem-eff-amp-${i}`, "0")} onChange={(event) => setField(`totem-eff-amp-${i}`, clampNumberInput(event.target.value, 0, 255, { integer: true }))} title="Сила (0=I)" />
+        <input type="number" min="1" max="1000000" value={field(`totem-eff-dur-${i}`, "200")} onChange={(event) => setField(`totem-eff-dur-${i}`, clampNumberInput(event.target.value, 1, 1000000, { integer: true }))} title="Длительность (тики)" />
       </div>)}
     </div> : null}
   </div>;
