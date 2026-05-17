@@ -2,6 +2,7 @@ export {
   ALL_ITEMS,
   BANNER_PATTERNS,
   canHaveTrim,
+  COMMAND_LEVEL_MAX,
   DYE_COLORS,
   EFFECTS,
   ENCHANTS,

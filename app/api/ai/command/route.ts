@@ -2,6 +2,7 @@ import {
   ALL_ITEMS,
   ALL_MOBS,
   BANNER_PATTERNS,
+  COMMAND_LEVEL_MAX,
   DYE_COLORS,
   EFFECTS,
   enchantsForItem,
@@ -190,6 +191,7 @@ function buildSystemPrompt(mode: Mode) {
     "Верни только JSON по схеме. Не генерируй готовую команду.",
     "Используй только перечисленные ID. Если пользователь просит невозможное или неясное, выбери ближайший допустимый вариант и добавь короткую заметку.",
     "Каждую явно названную настройку нужно отразить отдельной operation. Если пользователь просит два зачарования, верни две операции зачарования.",
+    `Уровни зачарований можно указывать от 1 до ${COMMAND_LEVEL_MAX}; максимум в списке чар — обычный ванильный уровень, а не жёсткий предел команды.`,
     "Уровни эффектов в UI: I = amplifier 0, V = amplifier 4. В операции set_effect указывай level как человеческий уровень, сервер сам переведёт.",
     "Синонимы: незерит/незеритка/незеритовка/назаритка = netherite; усталость/усталость копания = mining_fatigue; сила = strength; скорость = speed.",
     "Синонимы чар: острота = sharpness; добыча на мече = looting; удача на инструментах = fortune; неразрушимость = unbreaking; починка = mending. В фактах этого сайта Добыча/looting на мечах допустима, обязательно добавляй её отдельной operation, если пользователь просит. Фраза 'с названием/имени' означает set_text field=name.",
@@ -233,7 +235,7 @@ function formatEnchantFacts(itemIds: string[]) {
   return itemIds
     .map((itemId) => {
       const enchants = enchantsForItem(itemId);
-      return enchants.length ? `${itemId}:[${enchants.map((enchant) => `${enchant.id}:${enchant.max}`).join(",")}]` : "";
+      return enchants.length ? `${itemId}:[${enchants.map((enchant) => `${enchant.id}:обычно${enchant.max}`).join(",")}]` : "";
     })
     .filter(Boolean)
     .join("; ");
@@ -295,7 +297,7 @@ function applySummonPlan(plan: AiPlan): { snapshot: SummonSnapshot } {
       const enchantId = normalizeEnchantId(itemId, op.enchantId);
       if (!enchantId) continue;
       snapshot = setSummonField(snapshot, index, `ench-${op.slot}-${enchantId}`, true);
-      snapshot = setSummonField(snapshot, index, `enchlvl-${op.slot}-${enchantId}`, String(clampInt(op.level ?? 1, 1, 255)));
+      snapshot = setSummonField(snapshot, index, `enchlvl-${op.slot}-${enchantId}`, String(clampInt(op.level ?? 1, 1, COMMAND_LEVEL_MAX)));
     } else if (op.action === "set_equipment_trim" && op.slot && validSlots.has(op.slot) && validTrimMaterials.has(op.material || "") && validTrimPatterns.has(op.pattern || "")) {
       snapshot = setSummonField(snapshot, index, `trimon-${op.slot}`, true);
       snapshot = setSummonField(snapshot, index, `trimmat-${op.slot}`, op.material || "iron");
@@ -337,7 +339,7 @@ function applyGivePlan(plan: AiPlan, prompt: string): { snapshot: GiveSnapshot }
       const enchantId = normalizeEnchantId(snapshot.itemId, op.enchantId);
       if (!enchantId) continue;
       snapshot.fields[`ench-${enchantId}`] = true;
-      snapshot.fields[`enchlvl-${enchantId}`] = String(clampInt(op.level ?? 1, 1, 255));
+      snapshot.fields[`enchlvl-${enchantId}`] = String(clampInt(op.level ?? 1, 1, COMMAND_LEVEL_MAX));
     } else if (op.action === "set_trim" && validTrimMaterials.has(op.material || "") && validTrimPatterns.has(op.pattern || "")) {
       snapshot.fields["trim-on"] = true;
       snapshot.fields["trim-mat"] = op.material || "iron";
@@ -477,5 +479,5 @@ function extractLevelAfter(text: string, marker: RegExp) {
   const tail = text.slice(match.index, match.index + 32);
   const roman = tail.match(/\b(i|ii|iii|iv|v)\b/i)?.[1]?.toUpperCase();
   if (roman) return { I: 1, II: 2, III: 3, IV: 4, V: 5 }[roman as "I" | "II" | "III" | "IV" | "V"];
-  return clampInt(Number.parseInt(tail.match(/\d+/)?.[0] || "0", 10), 0, 255);
+  return clampInt(Number.parseInt(tail.match(/\d+/)?.[0] || "0", 10), 0, COMMAND_LEVEL_MAX);
 }
