@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { SummonEditor } from "../components/summon/SummonEditor";
 import type { SummonSnapshot } from "../components/summon/data";
 import type { SummonTemplate } from "../server/summon-templates";
@@ -50,20 +50,65 @@ function newDraft(): Draft {
   };
 }
 
+function sortForCompare(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(sortForCompare);
+  }
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value)
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([key, entry]) => [key, sortForCompare(entry)]),
+    );
+  }
+  return value;
+}
+
+function serializeDraft(draft: Draft) {
+  return JSON.stringify(sortForCompare(draft));
+}
+
 export function SummonTemplatesClient({ initialTemplates, databaseReady }: Props) {
+  const initialDraft = useMemo(
+    () => initialTemplates[0] ? toDraft(initialTemplates[0]) : newDraft(),
+    [initialTemplates],
+  );
   const [templates, setTemplates] = useState(initialTemplates);
   const [selectedId, setSelectedId] = useState(initialTemplates[0]?.id || "");
-  const [draft, setDraft] = useState<Draft>(() =>
-    initialTemplates[0] ? toDraft(initialTemplates[0]) : newDraft(),
-  );
+  const [draft, setDraft] = useState<Draft>(initialDraft);
+  const [cleanDraft, setCleanDraft] = useState<Draft>(initialDraft);
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
+  const hasUnsavedChanges = useMemo(
+    () => serializeDraft(draft) !== serializeDraft(cleanDraft),
+    [draft, cleanDraft],
+  );
+
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+    function handleBeforeUnload(event: BeforeUnloadEvent) {
+      event.preventDefault();
+      event.returnValue = "";
+    }
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
+  function confirmDiscardUnsavedChanges(action: string) {
+    if (!hasUnsavedChanges) return true;
+    return window.confirm(
+      `Есть несохранённые правки шаблона «${draft.name}». ${action}?`,
+    );
+  }
 
   function selectTemplate(id: string) {
     const template = templates.find((item) => item.id === id);
     if (!template) return;
+    if (!confirmDiscardUnsavedChanges("Загрузить другой шаблон и потерять эти правки")) return;
+    const nextDraft = toDraft(template);
     setSelectedId(id);
-    setDraft(toDraft(template));
+    setDraft(nextDraft);
+    setCleanDraft(nextDraft);
     setStatus("");
   }
 
@@ -87,11 +132,15 @@ export function SummonTemplatesClient({ initialTemplates, databaseReady }: Props
       data.templates.find((template: SummonTemplate) => template.id === nextSelectedId) ||
       data.templates[0];
     if (nextTemplate) {
+      const nextDraft = toDraft(nextTemplate);
       setSelectedId(nextTemplate.id);
-      setDraft(toDraft(nextTemplate));
+      setDraft(nextDraft);
+      setCleanDraft(nextDraft);
     } else {
+      const emptyDraft = newDraft();
       setSelectedId("");
-      setDraft(newDraft());
+      setDraft(emptyDraft);
+      setCleanDraft(emptyDraft);
     }
   }
 
@@ -151,6 +200,7 @@ export function SummonTemplatesClient({ initialTemplates, databaseReady }: Props
   }
 
   function duplicateTemplate() {
+    if (!confirmDiscardUnsavedChanges("Создать копию и потерять эти правки")) return;
     const copy = {
       ...draft,
       id: `${draft.id}-copy`,
@@ -162,6 +212,15 @@ export function SummonTemplatesClient({ initialTemplates, databaseReady }: Props
     setStatus("Сохраните копию, чтобы добавить её в общий список.");
   }
 
+  function createTemplate() {
+    if (!confirmDiscardUnsavedChanges("Создать новый шаблон и потерять эти правки")) return;
+    const emptyDraft = newDraft();
+    setSelectedId("");
+    setDraft(emptyDraft);
+    setCleanDraft(emptyDraft);
+    setStatus("");
+  }
+
   return (
     <section className="admin-editor">
       <div className="admin-template-list">
@@ -169,11 +228,7 @@ export function SummonTemplatesClient({ initialTemplates, databaseReady }: Props
           <h2>Шаблоны мобов</h2>
           <button
             type="button"
-            onClick={() => {
-              setSelectedId("");
-              setDraft(newDraft());
-              setStatus("");
-            }}
+            onClick={createTemplate}
           >
             Новый
           </button>
