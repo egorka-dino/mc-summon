@@ -5,6 +5,7 @@ import {
   ALL_ITEMS,
   BANNER_PATTERNS,
   canHaveTrim,
+  COMMAND_LEVEL_MAX,
   DYE_COLORS,
   EFFECTS,
   enchantsForItem,
@@ -412,8 +413,8 @@ export function GiveEditor() {
 
         {enchants.length ? <div className="section"><div className="section-title">2. Зачарования</div><div className="enchant-list">
           {enchants.map((ench: { id: string; name: string; max: number }) => <div className="enchant-row" key={ench.id}>
-            <CheckField label={`${ench.name} (${ench.max})`} checked={checked(`ench-${ench.id}`)} onChange={(value) => setField(`ench-${ench.id}`, value)} />
-            <input type="number" min="1" max={ench.max} value={field(`enchlvl-${ench.id}`, String(ench.max))} onChange={(event) => setField(`enchlvl-${ench.id}`, clampNumberInput(event.target.value, 1, ench.max, { integer: true }))} />
+            <CheckField label={`${ench.name} (обычно ${ench.max})`} checked={checked(`ench-${ench.id}`)} onChange={(value) => setField(`ench-${ench.id}`, value)} />
+            <input type="number" min="1" max={COMMAND_LEVEL_MAX} value={field(`enchlvl-${ench.id}`, String(ench.max))} onChange={(event) => setField(`enchlvl-${ench.id}`, clampNumberInput(event.target.value, 1, COMMAND_LEVEL_MAX, { integer: true }))} />
           </div>)}
         </div></div> : null}
 

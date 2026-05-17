@@ -6,6 +6,8 @@ export type EnchantInfo = {
   max: number;
 };
 
+export const COMMAND_LEVEL_MAX = 255;
+
 export const POTIONS = [
   ["swiftness", "Зелье скорости", true, true],
   ["slowness", "Зелье замедления", true, true],
