@@ -29,7 +29,7 @@
     top: 0;
     z-index: 50;
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: minmax(180px, 1fr) auto minmax(180px, 1fr);
     gap: 16px;
     align-items: center;
     padding: 10px 18px;
@@ -38,6 +38,7 @@
     backdrop-filter: blur(8px);
   }
   .site-brand {
+    justify-self: start;
     color: var(--accent);
     font-family: 'Press Start 2P', monospace;
     font-size: 11px;
@@ -47,6 +48,7 @@
   }
   .site-brand:hover { color: var(--accent-2); }
   .site-nav-links {
+    justify-self: center;
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
@@ -75,7 +77,9 @@
   }
   .site-topbar .auth-corner {
     position: static;
-    max-width: min(360px, 32vw);
+    justify-self: end;
+    width: min(360px, 32vw);
+    max-width: none;
   }
   header {
     position: relative;
@@ -861,6 +865,8 @@
     .site-topbar .auth-corner {
       position: static;
       justify-content: center;
+      justify-self: center;
+      width: auto;
       max-width: none;
       margin-top: 0;
     }
