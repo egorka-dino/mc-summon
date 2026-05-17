@@ -2,6 +2,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { getAuthUser, isAdminFromMetadata, isClerkConfigured } from "../../server/auth";
 import { listExarotonServers } from "../../server/exaroton";
+import { listExarotonServerPublications } from "../../server/exaroton-publications";
 import { AdminNav } from "../admin-nav";
 import { ExarotonServersPanel } from "../exaroton-servers-panel";
 
@@ -42,12 +43,15 @@ export default async function AdminServersPage() {
     );
   }
 
-  const exaroton = await listExarotonServers();
+  const [exaroton, publicationSettings] = await Promise.all([
+    listExarotonServers(),
+    listExarotonServerPublications(),
+  ]);
 
   return (
     <main className="admin-page">
       <AdminNav active="servers" />
-      <ExarotonServersPanel exaroton={exaroton} />
+      <ExarotonServersPanel exaroton={exaroton} publicationSettings={publicationSettings} />
     </main>
   );
 }

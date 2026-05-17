@@ -7,6 +7,7 @@ const links = [
   { href: "/", label: "Командный хаб", exact: true },
   { href: "/summon", label: "/summon" },
   { href: "/give", label: "/give" },
+  { href: "/servers", label: "Серверы" },
 ];
 
 function isActive(pathname: string, href: string, exact?: boolean) {

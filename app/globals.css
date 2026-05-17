@@ -424,6 +424,19 @@ body {
   background: rgba(14, 16, 19, 0.36);
 }
 
+.admin-server-publish {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px dashed var(--auth-border);
+  border-radius: 3px;
+  background: rgba(138, 180, 248, 0.06);
+}
+
+.admin-server-publish span {
+  color: var(--auth-text);
+  font-weight: 700;
+}
+
 .admin-server-head {
   display: flex;
   gap: 12px;

@@ -2,6 +2,7 @@ const releases = [
   {
     date: "17 мая 2026",
     items: [
+      <>Появилась страница <strong>«Серверы»</strong> со списком Minecraft-серверов, которые администратор отметил как опубликованные.</>,
       <>Навигация переехала в <strong>верхнюю панель</strong>: с любой страницы можно быстро открыть <strong>Командный хаб</strong>, <strong style={{ color: "var(--accent)" }}>/summon</strong> и <strong style={{ color: "var(--accent-2)" }}>/give</strong>.</>,
       <>В <strong style={{ color: "var(--accent)" }}>/summon</strong> и <strong style={{ color: "var(--accent-2)" }}>/give</strong> для флагов добавлены те же <strong>узоры и слои</strong>, что и для щитов: базовый цвет, до 16 слоёв и все vanilla-узоры.</>,
       <>AI-помощник <strong>«Собрать словами»</strong> теперь возвращает компактный план без лишних пустых полей, поэтому описания мобов и предметов должны применяться быстрее.</>,
@@ -60,6 +61,11 @@ export default function HomePage() {
             <a href="/give" className="cmd-card give">
               <div className="cmd-title">/GIVE</div>
               <div className="cmd-desc">Выдать предмет игроку: зачарования, еда с эффектами, фейерверки, тотем-поведение для любого предмета</div>
+              <span className="cmd-arrow">▶</span>
+            </a>
+            <a href="/servers" className="cmd-card servers">
+              <div className="cmd-title">СЕРВЕРЫ</div>
+              <div className="cmd-desc">Открыть опубликованные Minecraft-серверы сообщества: адрес, статус, онлайн и версию</div>
               <span className="cmd-arrow">▶</span>
             </a>
           </div>
