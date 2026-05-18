@@ -11,6 +11,7 @@
 - Админский дашборд Exaroton читает серверы через публичный Exaroton API по `EXAROTON_API_KEY`.
 - Общие стили публичных страниц и редакторов лежат в `style.css`.
 - Данные и генерация команд разнесены по компонентам в `app/components/summon/` и `app/components/give/`.
+- Favicon подключается через специальный файл App Router `app/icon.svg`.
 - Production URL: `https://mc-commands.vercel.app`.
 - Кастомный домен: `https://mc-commands.egorka.fun`.
 
