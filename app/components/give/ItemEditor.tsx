@@ -95,7 +95,7 @@ function freshExplosion(): Explosion {
   return { id: Date.now() + Math.random(), shape: "small_ball", colors: ["#ff0000"], fadeColors: [], trail: false, twinkle: false };
 }
 
-export function GiveEditor() {
+export function ItemEditor() {
   const [snapshot, setSnapshot] = useState<GiveSnapshot>(() => defaultGiveSnapshot());
   const [query, setQuery] = useState("");
   const [aiPrompt, setAiPrompt] = useState("");

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { SummonEditor } from "../components/summon/SummonEditor";
+import { MobEditor } from "../components/summon/MobEditor";
 import type { SummonSnapshot } from "../components/summon/data";
 import type { SummonTemplate } from "../server/summon-templates";
 
@@ -331,7 +331,7 @@ export function SummonTemplatesClient({ initialTemplates, databaseReady }: Props
         </label>
 
         <div className="admin-summon-editor">
-          <SummonEditor
+          <MobEditor
             adminMode
             showAiAssistant
             initialSnapshot={draft.snapshot}

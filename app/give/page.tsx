@@ -1,4 +1,4 @@
-import { GiveEditor } from "../components/give/GiveEditor";
+import { ItemEditor } from "../components/give/ItemEditor";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +11,7 @@ export default function GivePage() {
       </header>
 
       <main className="container">
-        <GiveEditor />
+        <ItemEditor />
       </main>
 
       <footer>v1.0 · /give generator · Minecraft 1.21.5+</footer>

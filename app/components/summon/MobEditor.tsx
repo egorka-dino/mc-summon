@@ -191,7 +191,7 @@ function makeRandomSnapshot() {
   return snapshot;
 }
 
-export function SummonEditor({ adminMode = false, showAiAssistant = false, initialSnapshot, templates, onSnapshotChange }: Props) {
+export function MobEditor({ adminMode = false, showAiAssistant = false, initialSnapshot, templates, onSnapshotChange }: Props) {
   const [snapshot, setSnapshot] = useState(() => normalizeSnapshot(initialSnapshot || toSnapshot(["zombie"])));
   const [coords, setCoords] = useState("~ ~ ~");
   const [presetId, setPresetId] = useState("");

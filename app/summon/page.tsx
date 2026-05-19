@@ -1,4 +1,4 @@
-import { SummonEditor } from "../components/summon/SummonEditor";
+import { MobEditor } from "../components/summon/MobEditor";
 import type { SummonTemplateLike } from "../components/summon/data";
 import { getDatabaseUrlStatus } from "../server/db";
 import { listSummonTemplates } from "../server/summon-templates";
@@ -23,7 +23,7 @@ export default async function SummonPage() {
         <p>Minecraft Java Edition 1.21.5 и новее · React</p>
       </header>
       <main className="container">
-        <SummonEditor templates={templates} />
+        <MobEditor templates={templates} />
         <section className="panel">
           <h2>Как пользоваться</h2>
           <p className="summon-help">
