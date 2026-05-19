@@ -1,19 +1,19 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { getAuthUser, isAdminFromMetadata, isClerkConfigured } from "../../server/auth";
-import { getDatabaseUrlStatus } from "../../server/db";
-import { listSummonTemplates, type SummonTemplate } from "../../server/summon-templates";
-import { AdminNav } from "../admin-nav";
-import { SummonTemplatesClient } from "../summon-templates-client";
+import { AdminNav } from "../../admin-nav";
+import { LibraryMobsClient } from "./library-mobs-client";
+import { getAuthUser, isAdminFromMetadata, isClerkConfigured } from "../../../server/auth";
+import { getDatabaseUrlStatus } from "../../../server/db";
+import { listLibraryMobs, type LibraryMob } from "../../../server/library-mobs";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminTemplatesPage() {
+export default async function AdminLibraryMobsPage() {
   if (!isClerkConfigured()) {
     return (
       <main className="admin-page">
         <section className="admin-panel">
-          <h1>Шаблоны мобов</h1>
+          <h1>Библиотека мобов</h1>
           <p>Clerk ещё не настроен: добавь ключи проекта, чтобы включить вход и роли.</p>
         </section>
       </main>
@@ -23,7 +23,7 @@ export default async function AdminTemplatesPage() {
   const user = await currentUser();
 
   if (!user) {
-    redirect("/sign-in?redirect_url=/admin/templates");
+    redirect("/sign-in?redirect_url=/admin/library/mobs");
   }
 
   const authUser = await getAuthUser();
@@ -34,7 +34,7 @@ export default async function AdminTemplatesPage() {
       <main className="admin-page">
         <section className="admin-panel">
           <p className="admin-kicker">Доступ закрыт</p>
-          <h1>Шаблоны мобов</h1>
+          <h1>Библиотека мобов</h1>
           <p>
             Эта страница доступна только пользователям с ролью <code>admin</code> в Clerk.
           </p>
@@ -44,20 +44,20 @@ export default async function AdminTemplatesPage() {
   }
 
   const databaseReady = getDatabaseUrlStatus().configured;
-  let templates: SummonTemplate[] = [];
+  let mobs: LibraryMob[] = [];
 
   if (databaseReady) {
     try {
-      templates = await listSummonTemplates({ admin: true });
+      mobs = await listLibraryMobs({ admin: true });
     } catch {
-      templates = [];
+      mobs = [];
     }
   }
 
   return (
     <main className="admin-page">
-      <AdminNav active="templates" />
-      <SummonTemplatesClient initialTemplates={templates} databaseReady={databaseReady} />
+      <AdminNav active="library-mobs" />
+      <LibraryMobsClient initialMobs={mobs} databaseReady={databaseReady} />
     </main>
   );
 }

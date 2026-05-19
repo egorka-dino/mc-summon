@@ -291,7 +291,7 @@ export function MobEditor({ adminMode = false, showAiAssistant = false, initialS
     const preset = presets.find((item) => item.id === id);
     if (!preset) return;
     updateSnapshot({ mobOrder: preset.mobOrder, fields: preset.fields });
-    showToast("Шаблон загружен");
+    showToast("Моб загружен");
   }
 
   const selectedPreset = presets.find((item) => item.id === presetId);
@@ -308,9 +308,9 @@ export function MobEditor({ adminMode = false, showAiAssistant = false, initialS
 
       {!adminMode ? (
         <section className="panel">
-          <h2>Шаблоны мобов <span className="sub">общие для всех</span></h2>
+          <h2>Библиотека мобов <span className="sub">общая для всех</span></h2>
           <div className="preset-picker">
-            <label><span className="lab">Выбери шаблон</span>
+            <label><span className="lab">Выбери готового моба</span>
               <select disabled={!presets.length} value={presetId} onChange={(event) => applyPreset(event.target.value)}>
                 <option value="">— выбери готового моба —</option>
                 {[...new Set(presets.map((preset) => preset.category))].map((category) => (
@@ -321,7 +321,7 @@ export function MobEditor({ adminMode = false, showAiAssistant = false, initialS
               </select>
             </label>
             <div className="preset-description">
-              {selectedPreset ? <><strong>{selectedPreset.name}</strong><span>{selectedPreset.description}</span><code>{selectedPreset.mobOrder.map((mob) => ALL_MOBS[mob.mobType] || mob.mobType).join(" -> ")}</code></> : presets.length ? <span>Шаблон сразу заменит текущего моба и пассажиров.</span> : <span>Пока нет общих шаблонов.</span>}
+              {selectedPreset ? <><strong>{selectedPreset.name}</strong><span>{selectedPreset.description}</span><code>{selectedPreset.mobOrder.map((mob) => ALL_MOBS[mob.mobType] || mob.mobType).join(" -> ")}</code></> : presets.length ? <span>Готовый моб сразу заменит текущего моба и пассажиров.</span> : <span>Пока нет готовых мобов.</span>}
             </div>
           </div>
         </section>
@@ -329,7 +329,7 @@ export function MobEditor({ adminMode = false, showAiAssistant = false, initialS
 
       {shouldShowAiAssistant ? (
         <section className="panel ai-panel">
-          <h2>{adminMode ? "Собрать шаблон словами" : "Собрать словами"} <span className="sub">AI-помощник</span></h2>
+          <h2>{adminMode ? "Собрать моба словами" : "Собрать словами"} <span className="sub">AI-помощник</span></h2>
           <textarea value={aiPrompt} onChange={(event) => setAiPrompt(event.target.value)} placeholder={adminMode ? "Например: скелет-наездник на пауке, оба светятся, скелет с луком на силу V и шлемом из золота" : "Например: зомби в незеритке с усталостью копания пятого уровня, мечом на остроту V и курицей-пассажиром"} rows={3} />
           <div className="btn-row ai-actions">
             <button type="button" onClick={generateFromDescription} disabled={aiBusy}>{aiBusy ? "Думаю..." : "Понять описание"}</button>

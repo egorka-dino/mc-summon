@@ -1,44 +1,41 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { MobEditor } from "../components/summon/MobEditor";
-import type { SummonSnapshot } from "../components/summon/data";
-import type { SummonTemplate } from "../server/summon-templates";
+import { MobEditor } from "../../../components/summon/MobEditor";
+import type { SummonSnapshot } from "../../../components/summon/data";
+import type { LibraryMob } from "../../../server/library-mobs";
 
 type Props = {
-  initialTemplates: SummonTemplate[];
+  initialMobs: LibraryMob[];
   databaseReady: boolean;
 };
 
 type Draft = {
-  id: string;
+  id?: string;
   category: string;
   name: string;
   description: string;
   version: number;
   enabled: boolean;
   snapshot: SummonSnapshot;
-  hasDatabaseRecord: boolean;
 };
 
-function toDraft(template: SummonTemplate): Draft {
+function toDraft(mob: LibraryMob): Draft {
   return {
-    id: template.id,
-    category: template.category,
-    name: template.name,
-    description: template.description,
-    version: template.version,
-    enabled: template.enabled,
-    snapshot: { mobOrder: template.mobOrder, fields: template.fields },
-    hasDatabaseRecord: template.hasDatabaseRecord,
+    id: mob.id,
+    category: mob.category,
+    name: mob.name,
+    description: mob.description,
+    version: mob.version,
+    enabled: mob.enabled,
+    snapshot: { mobOrder: mob.mobOrder, fields: mob.fields },
   };
 }
 
 function newDraft(): Draft {
   return {
-    id: `custom-${Date.now()}`,
-    category: "Пользовательские",
-    name: "Новый шаблон",
+    category: "Мобы",
+    name: "Новый моб",
     description: "",
     version: 1,
     enabled: true,
@@ -46,7 +43,6 @@ function newDraft(): Draft {
       mobOrder: [{ mobType: "zombie" }],
       fields: { "0-mob": "zombie", "0-persist": true, "0-name-visible": true },
     },
-    hasDatabaseRecord: false,
   };
 }
 
@@ -68,13 +64,20 @@ function serializeDraft(draft: Draft) {
   return JSON.stringify(sortForCompare(draft));
 }
 
-export function SummonTemplatesClient({ initialTemplates, databaseReady }: Props) {
+function cloneSnapshot(snapshot: SummonSnapshot): SummonSnapshot {
+  return {
+    mobOrder: snapshot.mobOrder.map((mob) => ({ ...mob })),
+    fields: { ...snapshot.fields },
+  };
+}
+
+export function LibraryMobsClient({ initialMobs, databaseReady }: Props) {
   const initialDraft = useMemo(
-    () => initialTemplates[0] ? toDraft(initialTemplates[0]) : newDraft(),
-    [initialTemplates],
+    () => initialMobs[0] ? toDraft(initialMobs[0]) : newDraft(),
+    [initialMobs],
   );
-  const [templates, setTemplates] = useState(initialTemplates);
-  const [selectedId, setSelectedId] = useState(initialTemplates[0]?.id || "");
+  const [mobs, setMobs] = useState(initialMobs);
+  const [selectedId, setSelectedId] = useState(initialMobs[0]?.id || "");
   const [draft, setDraft] = useState<Draft>(initialDraft);
   const [cleanDraft, setCleanDraft] = useState<Draft>(initialDraft);
   const [status, setStatus] = useState("");
@@ -97,15 +100,15 @@ export function SummonTemplatesClient({ initialTemplates, databaseReady }: Props
   function confirmDiscardUnsavedChanges(action: string) {
     if (!hasUnsavedChanges) return true;
     return window.confirm(
-      `Есть несохранённые правки шаблона «${draft.name}». ${action}?`,
+      `Есть несохранённые правки моба «${draft.name}». ${action}?`,
     );
   }
 
-  function selectTemplate(id: string) {
-    const template = templates.find((item) => item.id === id);
-    if (!template) return;
-    if (!confirmDiscardUnsavedChanges("Загрузить другой шаблон и потерять эти правки")) return;
-    const nextDraft = toDraft(template);
+  function selectMob(id: string) {
+    const mob = mobs.find((entry) => entry.id === id);
+    if (!mob) return;
+    if (!confirmDiscardUnsavedChanges("Загрузить другого моба и потерять эти правки")) return;
+    const nextDraft = toDraft(mob);
     setSelectedId(id);
     setDraft(nextDraft);
     setCleanDraft(nextDraft);
@@ -120,20 +123,20 @@ export function SummonTemplatesClient({ initialTemplates, databaseReady }: Props
     setDraft((current) => ({ ...current, snapshot }));
   }, []);
 
-  async function refreshTemplates(nextSelectedId = draft.id) {
-    const response = await fetch("/api/admin/summon/templates", { cache: "no-store" });
+  async function refreshMobs(nextSelectedId?: string) {
+    const response = await fetch("/api/admin/library/mobs", { cache: "no-store" });
     const data = await response.json();
     if (!response.ok || !data.ok) {
-      throw new Error(data.error || "Не удалось обновить список шаблонов");
+      throw new Error(data.error || "Не удалось обновить библиотеку мобов");
     }
 
-    setTemplates(data.templates);
-    const nextTemplate =
-      data.templates.find((template: SummonTemplate) => template.id === nextSelectedId) ||
-      data.templates[0];
-    if (nextTemplate) {
-      const nextDraft = toDraft(nextTemplate);
-      setSelectedId(nextTemplate.id);
+    setMobs(data.mobs);
+    const nextMob =
+      data.mobs.find((mob: LibraryMob) => mob.id === nextSelectedId) ||
+      data.mobs[0];
+    if (nextMob) {
+      const nextDraft = toDraft(nextMob);
+      setSelectedId(nextMob.id);
       setDraft(nextDraft);
       setCleanDraft(nextDraft);
     } else {
@@ -144,12 +147,12 @@ export function SummonTemplatesClient({ initialTemplates, databaseReady }: Props
     }
   }
 
-  async function saveTemplate() {
+  async function saveMob() {
     setBusy(true);
     setStatus("");
     try {
       const payload = {
-        id: draft.id,
+        ...(draft.id ? { id: draft.id } : {}),
         category: draft.category,
         name: draft.name,
         description: draft.description,
@@ -158,62 +161,77 @@ export function SummonTemplatesClient({ initialTemplates, databaseReady }: Props
         mobOrder: draft.snapshot.mobOrder,
         fields: draft.snapshot.fields,
       };
-      const response = await fetch("/api/admin/summon/templates", {
+      const response = await fetch("/api/admin/library/mobs", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(payload),
       });
       const data = await response.json();
       if (!response.ok || !data.ok) {
-        throw new Error(data.error || "Не удалось сохранить шаблон");
+        throw new Error(data.error || "Не удалось сохранить моба");
       }
-      await refreshTemplates(data.template.id);
-      setStatus("Шаблон сохранён. /summon увидит изменение после обновления страницы.");
-    } catch (e) {
-      setStatus(e instanceof Error ? e.message : "Не удалось сохранить шаблон");
+      await refreshMobs(data.mob.id);
+      setStatus("Моб сохранён в библиотеке. /summon увидит изменение после обновления страницы.");
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Не удалось сохранить моба");
     } finally {
       setBusy(false);
     }
   }
 
-  async function deleteOverride() {
-    if (!draft.id || !confirm(`Удалить шаблон «${draft.name}»?`)) return;
+  async function deleteMob() {
+    if (!draft.id || !confirm(`Удалить моба «${draft.name}»?`)) return;
 
     setBusy(true);
     setStatus("");
     try {
       const response = await fetch(
-        `/api/admin/summon/templates?id=${encodeURIComponent(draft.id)}`,
+        `/api/admin/library/mobs?id=${encodeURIComponent(draft.id)}`,
         { method: "DELETE" },
       );
       const data = await response.json();
       if (!response.ok || !data.ok) {
-        throw new Error(data.error || "Не удалось удалить шаблон");
+        throw new Error(data.error || "Не удалось удалить моба");
       }
-      await refreshTemplates();
-      setStatus("Шаблон удалён.");
-    } catch (e) {
-      setStatus(e instanceof Error ? e.message : "Не удалось удалить шаблон");
+      await refreshMobs();
+      setStatus("Моб удалён.");
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Не удалось удалить моба");
     } finally {
       setBusy(false);
     }
   }
 
-  function duplicateTemplate() {
-    if (!confirmDiscardUnsavedChanges("Создать копию и потерять эти правки")) return;
-    const copy = {
-      ...draft,
-      id: `${draft.id}-copy`,
-      name: `${draft.name} копия`,
-      hasDatabaseRecord: false,
-    };
-    setSelectedId("");
-    setDraft(copy);
-    setStatus("Сохраните копию, чтобы добавить её в общий список.");
+  async function refreshMobList() {
+    if (!databaseReady) return;
+    if (!confirmDiscardUnsavedChanges("Обновить список и потерять эти правки")) return;
+
+    setBusy(true);
+    setStatus("");
+    try {
+      await refreshMobs(selectedId || undefined);
+      setStatus("Список мобов обновлён.");
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Не удалось обновить библиотеку мобов");
+    } finally {
+      setBusy(false);
+    }
   }
 
-  function createTemplate() {
-    if (!confirmDiscardUnsavedChanges("Создать новый шаблон и потерять эти правки")) return;
+  function duplicateMob() {
+    if (!confirmDiscardUnsavedChanges("Создать копию и потерять эти правки")) return;
+    setSelectedId("");
+    setDraft({
+      ...draft,
+      id: undefined,
+      name: `${draft.name} копия`,
+      snapshot: cloneSnapshot(draft.snapshot),
+    });
+    setStatus("Сохраните копию, чтобы добавить её в библиотеку.");
+  }
+
+  function createMob() {
+    if (!confirmDiscardUnsavedChanges("Создать нового моба и потерять эти правки")) return;
     const emptyDraft = newDraft();
     setSelectedId("");
     setDraft(emptyDraft);
@@ -225,34 +243,36 @@ export function SummonTemplatesClient({ initialTemplates, databaseReady }: Props
     <section className="admin-editor">
       <div className="admin-template-list">
         <div className="admin-toolbar">
-          <h2>Шаблоны мобов</h2>
-          <button
-            type="button"
-            onClick={createTemplate}
-          >
-            Новый
-          </button>
+          <h2>Библиотека мобов</h2>
+          <div className="admin-inline-actions">
+            <button type="button" disabled={busy || !databaseReady} onClick={refreshMobList}>
+              Обновить
+            </button>
+            <button type="button" onClick={createMob}>
+              Создать моба
+            </button>
+          </div>
         </div>
         {!databaseReady ? (
           <p className="admin-warning">
-            Хранилище шаблонов не настроено, сохранять правки нельзя.
+            Хранилище библиотеки не настроено, сохранять правки нельзя.
           </p>
         ) : null}
         <div className="admin-template-buttons">
-          {templates.length ? templates.map((template) => (
+          {mobs.length ? mobs.map((mob) => (
             <button
-              className={template.id === selectedId ? "active" : ""}
-              key={template.id}
+              className={mob.id === selectedId ? "active" : ""}
+              key={mob.id}
               type="button"
-              onClick={() => selectTemplate(template.id)}
+              onClick={() => selectMob(mob.id)}
             >
-              <span>{template.name}</span>
+              <span>{mob.name}</span>
               <small>
-                {template.category}
-                {!template.enabled ? " · выключен" : ""}
+                {mob.category}
+                {!mob.enabled ? " · скрыт" : ""}
               </small>
             </button>
-          )) : <p className="admin-warning">Пока нет шаблонов.</p>}
+          )) : <p className="admin-warning">Пока нет мобов.</p>}
         </div>
       </div>
 
@@ -260,31 +280,23 @@ export function SummonTemplatesClient({ initialTemplates, databaseReady }: Props
         <div className="admin-toolbar">
           <h2>Редактор</h2>
           <div className="admin-inline-actions">
-            <button type="button" onClick={duplicateTemplate}>
-              Копировать
+            <button type="button" onClick={duplicateMob}>
+              Дублировать
             </button>
             <button
               type="button"
-              disabled={busy || !draft.hasDatabaseRecord}
-              onClick={deleteOverride}
+              disabled={busy || !databaseReady || !draft.id}
+              onClick={deleteMob}
             >
               Удалить
             </button>
-            <button type="button" disabled={busy || !databaseReady} onClick={saveTemplate}>
+            <button type="button" disabled={busy || !databaseReady} onClick={saveMob}>
               Сохранить
             </button>
           </div>
         </div>
 
         <div className="admin-form-grid">
-          <label>
-            <span>ID</span>
-            <input
-              type="text"
-              value={draft.id}
-              onChange={(event) => updateDraft("id", event.target.value)}
-            />
-          </label>
           <label>
             <span>Категория</span>
             <input
@@ -335,9 +347,9 @@ export function SummonTemplatesClient({ initialTemplates, databaseReady }: Props
             adminMode
             showAiAssistant
             initialSnapshot={draft.snapshot}
-            key={draft.id}
+            key={draft.id || "new-mob"}
             onSnapshotChange={updateSnapshot}
-            templates={templates}
+            templates={mobs}
           />
         </div>
 
