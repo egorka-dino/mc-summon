@@ -37,6 +37,13 @@ type Favorite = GiveSnapshot & {
   _lastCmd?: string;
 };
 
+type Props = {
+  adminMode?: boolean;
+  showAiAssistant?: boolean;
+  initialSnapshot?: GiveSnapshot;
+  onSnapshotChange?: (snapshot: GiveSnapshot) => void;
+};
+
 type ItemGroup = { name: string; items: [string, string][] };
 type OptionPair = readonly [string, string, string?];
 
@@ -95,8 +102,8 @@ function freshExplosion(): Explosion {
   return { id: Date.now() + Math.random(), shape: "small_ball", colors: ["#ff0000"], fadeColors: [], trail: false, twinkle: false };
 }
 
-export function ItemEditor() {
-  const [snapshot, setSnapshot] = useState<GiveSnapshot>(() => defaultGiveSnapshot());
+export function ItemEditor({ adminMode = false, showAiAssistant = false, initialSnapshot, onSnapshotChange }: Props) {
+  const [snapshot, setSnapshot] = useState<GiveSnapshot>(() => initialSnapshot || defaultGiveSnapshot());
   const [query, setQuery] = useState("");
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
@@ -105,6 +112,7 @@ export function ItemEditor() {
   const [toast, setToast] = useState("");
   const command = useMemo(() => buildGiveCommand(snapshot), [snapshot]);
   const selectedItem = snapshot.itemId;
+  const shouldShowAiAssistant = !adminMode || showAiAssistant;
   const enchants = useMemo(() => enchantsForItem(selectedItem), [selectedItem]);
   const filteredGroups = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -118,19 +126,28 @@ export function ItemEditor() {
   const potionMods = isPotion(selectedItem) ? potionOptions(selectedItem) : { hasLong: false, hasStrong: false };
 
   useEffect(() => {
+    if (initialSnapshot) setSnapshot(initialSnapshot);
+  }, [initialSnapshot]);
+
+  useEffect(() => {
+    onSnapshotChange?.(snapshot);
+  }, [snapshot, onSnapshotChange]);
+
+  useEffect(() => {
     if (!filteredGroups.length) return;
     const visible = filteredGroups.some((group) => group.items.some(([id]) => id === selectedItem));
     if (!visible) onItemChange(filteredGroups[0].items[0][0]);
   }, [filteredGroups, selectedItem]);
 
   useEffect(() => {
+    if (adminMode) return;
     try {
       const data = JSON.parse(localStorage.getItem(favoriteStorageKey) || "{\"items\":[]}");
       setFavorites(Array.isArray(data.items) ? data.items : []);
     } catch {
       setFavorites([]);
     }
-  }, []);
+  }, [adminMode]);
 
   function showToast(text: string) {
     setToast(text);
@@ -138,6 +155,7 @@ export function ItemEditor() {
   }
 
   function saveFavorites(items: Favorite[]) {
+    if (adminMode) return;
     setFavorites(items);
     localStorage.setItem(favoriteStorageKey, JSON.stringify({ version: 1, items }));
   }
@@ -364,7 +382,7 @@ export function ItemEditor() {
         </label>
       </section>
 
-      <section className="panel ai-panel">
+      {shouldShowAiAssistant ? <section className="panel ai-panel">
         <h2>Собрать словами <span className="sub">AI-помощник</span></h2>
         <textarea value={aiPrompt} onChange={(event) => setAiPrompt(event.target.value)} placeholder="Например: незеритовый меч на остроту V и добычу III с именем Дедов аргумент, или бросаемое зелье силы II" rows={3} />
         <div className="btn-row ai-actions">
@@ -373,9 +391,9 @@ export function ItemEditor() {
         </div>
         <p className="hint">Модель получает допустимые предметы, чары, зелья, эффекты, цвета, отделки и компоненты Minecraft 1.21.5. Сервер применяет только валидные поля.</p>
         {aiNotes.length ? <ul className="ai-notes">{aiNotes.map((note, index) => <li key={`${note}-${index}`}>{note}</li>)}</ul> : null}
-      </section>
+      </section> : null}
 
-      <section className="panel">
+      {!adminMode ? <section className="panel">
         <div className="fav-header"><h2>Коллекция</h2><button className="small sec" type="button" onClick={addFavorite}>Сохранить</button></div>
         {favorites.length ? (
           <div className="favorites-grid">
@@ -391,7 +409,7 @@ export function ItemEditor() {
             </div>)}
           </div>
         ) : <p className="empty-favs">Пока пусто. Выбери предмет и нажми Сохранить</p>}
-      </section>
+      </section> : null}
 
       <section className="panel random-panel">
         <button className="random" type="button" onClick={randomizeGive}>Случайно</button>
@@ -480,7 +498,7 @@ export function ItemEditor() {
         </div>
         {longCommand ? <div className="warn">Команда длиннее 256 символов - используй командный блок: <code>/give @s command_block</code>{autoTarget ? ". Цель в команде автоматически заменена с @s на @p, чтобы командный блок выдал предмет ближайшему игроку." : ""}</div> : null}
       </section>
-      <ServerCommandExecutor mode="give" snapshot={snapshot} />
+      {!adminMode ? <ServerCommandExecutor mode="give" snapshot={snapshot} /> : null}
       <div id="toast" style={{ opacity: toast ? 1 : 0 }}>{toast}</div>
     </>
   );

@@ -1,10 +1,11 @@
 type Props = {
-  active?: "servers" | "templates";
+  active?: "servers" | "templates" | "library-items";
 };
 
 const adminLinks = [
   { href: "/admin/servers", key: "servers", label: "Серверы Exaroton" },
   { href: "/admin/templates", key: "templates", label: "Шаблоны мобов" },
+  { href: "/admin/library/items", key: "library-items", label: "Библиотека предметов" },
 ] as const;
 
 export function AdminNav({ active }: Props) {
