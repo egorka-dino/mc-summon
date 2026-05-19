@@ -104,13 +104,11 @@ function normalizeShieldLayers(input: unknown, fallback: GiveSnapshot["shieldLay
     return fallback;
   }
 
-  const layers = input.filter(isRecord).map((layer, index) => ({
+  return input.filter(isRecord).map((layer, index) => ({
     id: Number.isFinite(Number(layer.id)) ? Number(layer.id) : index,
     pattern: stringValue(layer.pattern, "stripe_center"),
     color: stringValue(layer.color, "black"),
   }));
-
-  return layers.length ? layers : fallback;
 }
 
 function normalizeSnapshot(input: unknown): GiveSnapshot {
