@@ -191,6 +191,22 @@ export function LibraryItemsClient({ initialItems, databaseReady }: Props) {
     }
   }
 
+  async function refreshItemList() {
+    if (!databaseReady) return;
+    if (!confirmDiscardUnsavedChanges("Обновить список и потерять эти правки")) return;
+
+    setBusy(true);
+    setStatus("");
+    try {
+      await refreshItems(selectedId || undefined);
+      setStatus("Список предметов обновлён.");
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Не удалось обновить библиотеку предметов");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   function duplicateItem() {
     if (!confirmDiscardUnsavedChanges("Создать копию и потерять эти правки")) return;
     setSelectedId("");
@@ -222,9 +238,14 @@ export function LibraryItemsClient({ initialItems, databaseReady }: Props) {
       <div className="admin-template-list">
         <div className="admin-toolbar">
           <h2>Библиотека предметов</h2>
-          <button type="button" onClick={createItem}>
-            Создать предмет
-          </button>
+          <div className="admin-inline-actions">
+            <button type="button" disabled={busy || !databaseReady} onClick={refreshItemList}>
+              Обновить
+            </button>
+            <button type="button" onClick={createItem}>
+              Создать предмет
+            </button>
+          </div>
         </div>
         {!databaseReady ? (
           <p className="admin-warning">
