@@ -1,5 +1,5 @@
 import { getDatabaseUrlStatus } from "../../../server/db";
-import { listSummonTemplates } from "../../../server/summon-templates";
+import { listLibraryMobs } from "../../../server/library-mobs";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -8,7 +8,7 @@ export async function GET() {
   if (!getDatabaseUrlStatus().configured) {
     return Response.json({
       ok: true,
-      source: "database",
+      source: "library_mobs",
       templates: [],
     });
   }
@@ -16,13 +16,13 @@ export async function GET() {
   try {
     return Response.json({
       ok: true,
-      source: "database",
-      templates: await listSummonTemplates(),
+      source: "library_mobs",
+      templates: await listLibraryMobs(),
     });
   } catch {
     return Response.json({
       ok: true,
-      source: "database",
+      source: "library_mobs",
       templates: [],
     });
   }

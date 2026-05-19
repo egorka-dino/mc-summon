@@ -1,7 +1,7 @@
 import { MobEditor } from "../components/summon/MobEditor";
 import type { SummonTemplateLike } from "../components/summon/data";
 import { getDatabaseUrlStatus } from "../server/db";
-import { listSummonTemplates } from "../server/summon-templates";
+import { listLibraryMobs } from "../server/library-mobs";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +10,7 @@ export default async function SummonPage() {
 
   if (getDatabaseUrlStatus().configured) {
     try {
-      templates = await listSummonTemplates();
+      templates = await listLibraryMobs();
     } catch {
       templates = [];
     }
