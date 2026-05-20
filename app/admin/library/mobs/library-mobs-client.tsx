@@ -242,9 +242,9 @@ export function LibraryMobsClient({ initialMobs, databaseReady }: Props) {
   return (
     <section className="admin-editor">
       <div className="admin-template-list">
-        <div className="admin-toolbar">
+        <div className="admin-toolbar admin-library-toolbar">
           <h2>Библиотека мобов</h2>
-          <div className="admin-inline-actions">
+          <div className="admin-inline-actions admin-library-actions">
             <button type="button" disabled={busy || !databaseReady} onClick={refreshMobList}>
               Обновить
             </button>
@@ -272,7 +272,12 @@ export function LibraryMobsClient({ initialMobs, databaseReady }: Props) {
                 {!mob.enabled ? " · скрыт" : ""}
               </small>
             </button>
-          )) : <p className="admin-warning">Пока нет мобов.</p>}
+          )) : (
+            <div className="admin-library-empty">
+              <strong>Пока нет мобов</strong>
+              <span>Создай первого моба, чтобы показывать его в библиотеке `/summon`.</span>
+            </div>
+          )}
         </div>
       </div>
 

@@ -259,6 +259,14 @@ body {
   border-bottom: 0;
 }
 
+.admin-library-toolbar {
+  align-items: flex-start;
+}
+
+.admin-library-toolbar h2 {
+  max-width: 170px;
+}
+
 .admin-toolbar button,
 .admin-inline-actions button {
   cursor: pointer;
@@ -322,6 +330,46 @@ body {
   flex-wrap: wrap;
   gap: 8px;
   justify-content: flex-end;
+}
+
+.admin-library-actions {
+  flex-wrap: nowrap;
+}
+
+.admin-library-actions button {
+  min-height: 34px;
+  padding: 6px 9px;
+  font-family: "Jost", sans-serif;
+  font-size: 13px;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-shadow: none;
+  white-space: nowrap;
+}
+
+.admin-library-actions button:last-child {
+  border-color: var(--auth-accent);
+  color: var(--auth-accent);
+}
+
+.admin-library-empty {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border: 1px dashed var(--auth-border);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.admin-library-empty strong {
+  color: var(--auth-text);
+  font-size: 14px;
+}
+
+.admin-library-empty span {
+  color: var(--auth-muted);
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .admin-form-grid,

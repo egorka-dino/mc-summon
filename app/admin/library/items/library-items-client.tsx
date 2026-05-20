@@ -236,9 +236,9 @@ export function LibraryItemsClient({ initialItems, databaseReady }: Props) {
   return (
     <section className="admin-editor">
       <div className="admin-template-list">
-        <div className="admin-toolbar">
+        <div className="admin-toolbar admin-library-toolbar">
           <h2>Библиотека предметов</h2>
-          <div className="admin-inline-actions">
+          <div className="admin-inline-actions admin-library-actions">
             <button type="button" disabled={busy || !databaseReady} onClick={refreshItemList}>
               Обновить
             </button>
@@ -266,7 +266,12 @@ export function LibraryItemsClient({ initialItems, databaseReady }: Props) {
                 {!item.enabled ? " · скрыт" : ""}
               </small>
             </button>
-          )) : <p className="admin-warning">Пока нет предметов.</p>}
+          )) : (
+            <div className="admin-library-empty">
+              <strong>Пока нет предметов</strong>
+              <span>Создай первый предмет, чтобы позже использовать его в сценариях.</span>
+            </div>
+          )}
         </div>
       </div>
 
