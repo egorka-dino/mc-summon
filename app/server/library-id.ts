@@ -48,7 +48,7 @@ export function slugifyLibraryName(name: string) {
   return slug || "draft";
 }
 
-export function createLibraryId(prefix: "item" | "mob", name: string) {
+export function createLibraryId(prefix: "item" | "mob" | "scenario", name: string) {
   const slug = slugifyLibraryName(name);
   const time = Date.now().toString(36);
   const random = Math.random().toString(36).slice(2, 8);

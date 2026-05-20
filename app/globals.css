@@ -385,6 +385,57 @@ body {
   gap: 12px;
 }
 
+.admin-scenario-actions {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.scenario-action-list {
+  display: grid;
+  gap: 10px;
+}
+
+.scenario-action-card {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border: 2px solid var(--auth-border);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.scenario-action-head {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.scenario-action-head strong,
+.scenario-action-head small {
+  display: block;
+}
+
+.scenario-action-head small {
+  margin-top: 3px;
+  color: var(--auth-muted);
+}
+
+.scenario-action-fields {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.admin-scenario-execute {
+  margin-top: 16px;
+}
+
+.scenario-results {
+  display: grid;
+  gap: 4px;
+  margin-top: 10px;
+}
+
 .admin-form-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
