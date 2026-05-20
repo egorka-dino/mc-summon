@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  executeWithConcurrencyLimit,
   flattenScenarioActions,
   normalizeScenarioActions,
 } from "../.test-build/server/scenario-execution.js";
@@ -60,4 +61,23 @@ test("rejects scenario cycles", () => {
     ]),
     /циклический/,
   );
+});
+
+test("runs repeated summon commands with concurrency limit", async () => {
+  let active = 0;
+  let maxActive = 0;
+  const results = await executeWithConcurrencyLimit(
+    Array.from({ length: 25 }, (_, index) => index),
+    10,
+    async (index) => {
+      active += 1;
+      maxActive = Math.max(maxActive, active);
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      active -= 1;
+      return index;
+    },
+  );
+
+  assert.deepEqual(results, Array.from({ length: 25 }, (_, index) => index));
+  assert.equal(maxActive, 10);
 });

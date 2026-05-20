@@ -19,6 +19,7 @@ export type ScenarioExecutionResult = {
 };
 
 const maxScenarioDepth = 5;
+const summonConcurrencyLimit = 10;
 const playerNamePattern = /^[A-Za-z0-9_]{1,16}$/;
 
 export { normalizeScenarioActions };
@@ -98,6 +99,26 @@ function validatePlayerForCommand(command: { requiresPlayer: boolean }, player: 
   }
 }
 
+export async function executeWithConcurrencyLimit<T, R>(
+  entries: T[],
+  limit: number,
+  worker: (entry: T, index: number) => Promise<R>,
+) {
+  const results: R[] = new Array(entries.length);
+  let nextIndex = 0;
+  const workerCount = Math.min(Math.max(1, limit), entries.length);
+
+  await Promise.all(Array.from({ length: workerCount }, async () => {
+    while (nextIndex < entries.length) {
+      const currentIndex = nextIndex;
+      nextIndex += 1;
+      results[currentIndex] = await worker(entries[currentIndex], currentIndex);
+    }
+  }));
+
+  return results;
+}
+
 export async function executeScenario(params: {
   scenarioId: string;
   scenarios: Scenario[];
@@ -169,21 +190,30 @@ export async function executeScenario(params: {
         results.push({ ok: false, label: mobLabel(mob, action.quantity), error: "Моб не найден в библиотеке" });
         break;
       }
-      for (let index = 0; index < action.quantity; index += 1) {
-        const command = buildMinecraftExecutionCommand({
-          mode: "summon",
-          player,
-          snapshot: { mobOrder: mob.mobOrder, fields: mob.fields },
-          summonSpawn: toExecutionSpawn(action.spawn),
-        });
-        validatePlayerForCommand(command, player, server);
-        const result = await executeExarotonCommand(server.id, command.command);
-        results.push({
-          ok: result.ok,
-          label: `${entry.path}: ${mobLabel(mob, action.quantity)}${action.quantity > 1 ? ` (${index + 1}/${action.quantity})` : ""}`,
-          command: command.command,
-          error: commandError(result),
-        });
+      const command = buildMinecraftExecutionCommand({
+        mode: "summon",
+        player,
+        snapshot: { mobOrder: mob.mobOrder, fields: mob.fields },
+        summonSpawn: toExecutionSpawn(action.spawn),
+      });
+      validatePlayerForCommand(command, player, server);
+
+      const summonResults = await executeWithConcurrencyLimit(
+        Array.from({ length: action.quantity }, (_, index) => index),
+        summonConcurrencyLimit,
+        async (index) => {
+          const result = await executeExarotonCommand(server.id, command.command);
+          return {
+            ok: result.ok,
+            label: `${entry.path}: ${mobLabel(mob, action.quantity)}${action.quantity > 1 ? ` (${index + 1}/${action.quantity})` : ""}`,
+            command: command.command,
+            error: commandError(result),
+          };
+        },
+      );
+
+      for (const result of summonResults) {
+        results.push(result);
         if (!result.ok) return { ok: false, results };
       }
     }
