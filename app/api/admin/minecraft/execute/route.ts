@@ -1,8 +1,6 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { isAdminFromMetadata, isClerkConfigured } from "../../../../server/auth";
-import { buildGiveCommand, defaultGiveSnapshot, type GiveSnapshot } from "../../../../components/give/engine";
-import { buildSummonCommand, normalizeSnapshot, toSnapshot } from "../../../../components/summon/engine";
-import type { SummonSnapshot } from "../../../../components/summon/data";
+import { buildMinecraftExecutionCommand } from "../../../../server/minecraft-command-execution";
 import { executeExarotonCommand, listExarotonServers } from "../../../../server/exaroton";
 
 export const dynamic = "force-dynamic";
@@ -33,39 +31,6 @@ function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
 }
 
-function asGiveSnapshot(value: unknown): GiveSnapshot {
-  const source = asRecord(value);
-  const fallback = defaultGiveSnapshot();
-
-  return {
-    ...fallback,
-    itemId: typeof source.itemId === "string" ? source.itemId : fallback.itemId,
-    target: "@s",
-    targetCustom: "",
-    count: typeof source.count === "string" || typeof source.count === "number" ? String(source.count) : fallback.count,
-    fields: asRecord(source.fields) as GiveSnapshot["fields"],
-    explosions: Array.isArray(source.explosions) ? source.explosions as GiveSnapshot["explosions"] : fallback.explosions,
-    shieldLayers: Array.isArray(source.shieldLayers) ? source.shieldLayers as GiveSnapshot["shieldLayers"] : fallback.shieldLayers,
-    potionType: typeof source.potionType === "string" ? source.potionType : fallback.potionType,
-    potionModifier: typeof source.potionModifier === "string" ? source.potionModifier : fallback.potionModifier,
-  };
-}
-
-function asSummonSnapshot(value: unknown): SummonSnapshot {
-  const source = asRecord(value);
-  const mobOrder = Array.isArray(source.mobOrder) ? source.mobOrder : toSnapshot(["zombie"]).mobOrder;
-  return normalizeSnapshot({
-    mobOrder: mobOrder
-      .map((item) => asRecord(item))
-      .map((item) => ({ mobType: typeof item.mobType === "string" ? item.mobType : "zombie" })),
-    fields: asRecord(source.fields) as SummonSnapshot["fields"],
-  });
-}
-
-function stripSlash(command: string) {
-  return command.replace(/^\//, "");
-}
-
 export async function POST(request: Request) {
   const error = await requireAdmin();
   if (error) return error;
@@ -83,10 +48,6 @@ export async function POST(request: Request) {
     return Response.json({ ok: false, error: "Выберите сервер" }, { status: 400 });
   }
 
-  if (!playerNamePattern.test(player)) {
-    return Response.json({ ok: false, error: "Выберите игрока из списка сервера" }, { status: 400 });
-  }
-
   const serversResult = await listExarotonServers();
   if (!serversResult.configured) {
     return Response.json({ ok: false, error: "EXAROTON_API_KEY не настроен" }, { status: 503 });
@@ -102,24 +63,40 @@ export async function POST(request: Request) {
   if (server.status !== 1) {
     return Response.json({ ok: false, error: `Сервер сейчас не онлайн: ${server.statusLabel}` }, { status: 409 });
   }
-  if (!server.players.listAvailable) {
-    return Response.json({ ok: false, error: "Exaroton не отдал список игроков этого сервера" }, { status: 409 });
-  }
-  if (!server.players.list.includes(player)) {
-    return Response.json({ ok: false, error: "Выбранный игрок сейчас не найден на сервере" }, { status: 409 });
+  let executionCommand;
+  try {
+    executionCommand = buildMinecraftExecutionCommand({
+      mode,
+      player,
+      snapshot: body.snapshot,
+      count: body.count,
+      summonSpawn: body.summonSpawn,
+    });
+  } catch (error) {
+    return Response.json({
+      ok: false,
+      error: error instanceof Error ? error.message : "Команда получилась некорректной",
+    }, { status: 400 });
   }
 
-  const generatedCommand = mode === "give"
-    ? buildGiveCommand({ ...asGiveSnapshot(body.snapshot), target: "@s", targetCustom: player })
-    : `execute at ${player} run ${stripSlash(buildSummonCommand(asSummonSnapshot(body.snapshot), "~ ~ ~"))}`;
+  if (executionCommand.requiresPlayer) {
+    if (!playerNamePattern.test(player)) {
+      return Response.json({ ok: false, error: "Выберите игрока из списка сервера" }, { status: 400 });
+    }
+    if (!server.players.listAvailable) {
+      return Response.json({ ok: false, error: "Exaroton не отдал список игроков этого сервера" }, { status: 409 });
+    }
+    if (!server.players.list.includes(player)) {
+      return Response.json({ ok: false, error: "Выбранный игрок сейчас не найден на сервере" }, { status: 409 });
+    }
+  }
 
-  if (generatedCommand.includes("\n") || generatedCommand.includes("\r")) {
+  if (executionCommand.command.includes("\n") || executionCommand.command.includes("\r")) {
     return Response.json({ ok: false, error: "Команда получилась некорректной" }, { status: 400 });
   }
 
-  const command = stripSlash(generatedCommand);
-  const validPrefix = mode === "give" ? `give ${player} ` : `execute at ${player} run summon `;
-  if (!command.startsWith(validPrefix)) {
+  const command = executionCommand.command;
+  if (!command.startsWith(executionCommand.validPrefix)) {
     return Response.json({ ok: false, error: "Можно выполнять только команды текущего генератора" }, { status: 400 });
   }
 
@@ -135,6 +112,8 @@ export async function POST(request: Request) {
     ok: true,
     message: mode === "give"
       ? `Предмет отправлен игроку ${player} на сервере ${server.name}.`
-      : `Моб создан рядом с игроком ${player} на сервере ${server.name}.`,
+      : executionCommand.requiresPlayer
+        ? `Моб создан для игрока ${player} на сервере ${server.name}.`
+        : `Моб создан на сервере ${server.name}.`,
   });
 }

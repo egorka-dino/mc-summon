@@ -34,15 +34,31 @@ type ServersResponse = {
 type Props = {
   mode: Mode;
   snapshot: unknown;
+  defaultSummonSpawnType?: SummonSpawnType;
+  showCountControl?: boolean;
+  showSummonSpawnControl?: boolean;
+  title?: string;
 };
 
-export function ServerCommandExecutor({ mode, snapshot }: Props) {
+type SummonSpawnType = "coordinates" | "near-player" | "player";
+
+export function ServerCommandExecutor({
+  mode,
+  snapshot,
+  defaultSummonSpawnType = "player",
+  showCountControl = false,
+  showSummonSpawnControl = false,
+  title = "Выполнить на сервере",
+}: Props) {
   const [authorized, setAuthorized] = useState(false);
   const [loadingServers, setLoadingServers] = useState(true);
   const [servers, setServers] = useState<ExarotonServer[]>([]);
   const [serverError, setServerError] = useState("");
   const [serverId, setServerId] = useState("");
   const [player, setPlayer] = useState("");
+  const [count, setCount] = useState("1");
+  const [summonSpawnType, setSummonSpawnType] = useState<SummonSpawnType>(defaultSummonSpawnType);
+  const [coordinates, setCoordinates] = useState({ x: "0", y: "64", z: "0" });
   const [busy, setBusy] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [result, setResult] = useState<{ tone: "success" | "error"; text: string } | null>(null);
@@ -92,7 +108,13 @@ export function ServerCommandExecutor({ mode, snapshot }: Props) {
     [serverId, servers],
   );
   const players = selectedServer?.players.list || [];
-  const canExecute = Boolean(selectedServer && selectedServer.status === 1 && selectedServer.players.listAvailable && player && !busy);
+  const requiresPlayer = mode === "give" || summonSpawnType !== "coordinates";
+  const canExecute = Boolean(
+    selectedServer &&
+    selectedServer.status === 1 &&
+    (!requiresPlayer || (selectedServer.players.listAvailable && player)) &&
+    !busy,
+  );
 
   if (!authorized) {
     return null;
@@ -107,7 +129,17 @@ export function ServerCommandExecutor({ mode, snapshot }: Props) {
       const response = await fetch("/api/admin/minecraft/execute", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode, serverId: selectedServer.id, player, snapshot }),
+        body: JSON.stringify({
+          mode,
+          serverId: selectedServer.id,
+          player,
+          snapshot,
+          count: showCountControl ? count : undefined,
+          summonSpawn: mode === "summon" ? {
+            type: summonSpawnType,
+            coordinates,
+          } : undefined,
+        }),
       });
       const data = await response.json().catch(() => ({})) as { ok?: boolean; error?: string; message?: string };
       if (!response.ok || !data.ok) {
@@ -127,9 +159,15 @@ export function ServerCommandExecutor({ mode, snapshot }: Props) {
     setResult(null);
   }
 
+  function clampCount(value: string) {
+    const parsed = Number(value.trim().replace(",", "."));
+    if (!Number.isFinite(parsed)) return "1";
+    return String(Math.min(64, Math.max(1, Math.trunc(parsed))));
+  }
+
   return (
     <section className="panel server-execute-panel">
-      <h2>Выполнить на сервере <span className="sub">только для админа</span></h2>
+      <h2>{title} <span className="sub">только для админа</span></h2>
 
       {loadingServers ? (
         <p className="server-execute-message">Загружаем серверы Exaroton...</p>
@@ -150,23 +188,78 @@ export function ServerCommandExecutor({ mode, snapshot }: Props) {
               </select>
             </label>
 
-            <label>
-              <span className="lab">Игрок</span>
-              <select
-                value={player}
-                onChange={(event) => {
-                  setPlayer(event.target.value);
-                  setResult(null);
-                }}
-                disabled={!selectedServer || selectedServer.status !== 1 || !selectedServer.players.listAvailable || !players.length}
-              >
-                <option value="">- выбери игрока -</option>
-                {players.map((name) => <option key={name} value={name}>{name}</option>)}
-              </select>
-            </label>
+            {requiresPlayer ? (
+              <label>
+                <span className="lab">Игрок</span>
+                <select
+                  value={player}
+                  onChange={(event) => {
+                    setPlayer(event.target.value);
+                    setResult(null);
+                  }}
+                  disabled={!selectedServer || selectedServer.status !== 1 || !selectedServer.players.listAvailable || !players.length}
+                >
+                  <option value="">- выбери игрока -</option>
+                  {players.map((name) => <option key={name} value={name}>{name}</option>)}
+                </select>
+              </label>
+            ) : null}
+
+            {showCountControl && mode === "give" ? (
+              <label>
+                <span className="lab">Количество</span>
+                <input
+                  min="1"
+                  max="64"
+                  type="number"
+                  value={count}
+                  onBlur={() => setCount((value) => clampCount(value))}
+                  onChange={(event) => {
+                    setCount(event.target.value);
+                    setResult(null);
+                  }}
+                />
+              </label>
+            ) : null}
           </div>
 
-          {selectedServer ? <ServerNotice server={selectedServer} /> : null}
+          {showSummonSpawnControl && mode === "summon" ? (
+            <div className="server-spawn-controls">
+              <label>
+                <span className="lab">Место спавна</span>
+                <select
+                  value={summonSpawnType}
+                  onChange={(event) => {
+                    setSummonSpawnType(event.target.value as SummonSpawnType);
+                    setPlayer("");
+                    setResult(null);
+                  }}
+                >
+                  <option value="near-player">Рядом с игроком</option>
+                  <option value="player">На позиции игрока</option>
+                  <option value="coordinates">Координаты</option>
+                </select>
+              </label>
+              {summonSpawnType === "coordinates" ? (
+                <div className="server-coordinate-grid">
+                  {(["x", "y", "z"] as const).map((axis) => (
+                    <label key={axis}>
+                      <span className="lab">{axis.toUpperCase()}</span>
+                      <input
+                        value={coordinates[axis]}
+                        onChange={(event) => {
+                          setCoordinates((current) => ({ ...current, [axis]: event.target.value }));
+                          setResult(null);
+                        }}
+                      />
+                    </label>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
+          {selectedServer ? <ServerNotice server={selectedServer} needsPlayer={requiresPlayer} /> : null}
 
           <div className="btn-row server-execute-actions">
             <button type="button" onClick={executeCommand} disabled={!canExecute}>
@@ -186,9 +279,13 @@ export function ServerCommandExecutor({ mode, snapshot }: Props) {
   );
 }
 
-function ServerNotice({ server }: { server: ExarotonServer }) {
+function ServerNotice({ server, needsPlayer }: { server: ExarotonServer; needsPlayer: boolean }) {
   if (server.status !== 1) {
     return <p className="server-execute-message error">Сервер сейчас недоступен для выполнения: {server.statusLabel}.</p>;
+  }
+
+  if (!needsPlayer) {
+    return <p className="server-execute-message success">Сервер онлайн, команда будет выполнена по выбранным координатам.</p>;
   }
 
   if (!server.players.listAvailable) {

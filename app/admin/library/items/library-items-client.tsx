@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { ServerCommandExecutor } from "../../../components/ServerCommandExecutor";
 import { ItemEditor } from "../../../components/give/ItemEditor";
 import { defaultGiveSnapshot, type GiveSnapshot } from "../../../components/give/engine";
 import type { LibraryItem } from "../../../server/library-items";
@@ -350,6 +351,13 @@ export function LibraryItemsClient({ initialItems, databaseReady }: Props) {
             onSnapshotChange={updateSnapshot}
           />
         </div>
+
+        <ServerCommandExecutor
+          mode="give"
+          showCountControl
+          snapshot={draft.snapshot}
+          title="Выдать предмет"
+        />
 
         {status ? <p className="admin-status">{status}</p> : null}
       </div>

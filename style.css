@@ -659,6 +659,16 @@
   .server-execute-actions {
     margin-top: 12px;
   }
+  .server-spawn-controls {
+    display: grid;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .server-coordinate-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
   .server-execute-message {
     margin: 10px 0 0;
     padding: 9px 11px;

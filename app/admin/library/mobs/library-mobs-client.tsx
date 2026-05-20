@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { ServerCommandExecutor } from "../../../components/ServerCommandExecutor";
 import { MobEditor } from "../../../components/summon/MobEditor";
 import type { SummonSnapshot } from "../../../components/summon/data";
 import type { LibraryMob } from "../../../server/library-mobs";
@@ -357,6 +358,14 @@ export function LibraryMobsClient({ initialMobs, databaseReady }: Props) {
             templates={mobs}
           />
         </div>
+
+        <ServerCommandExecutor
+          defaultSummonSpawnType="near-player"
+          mode="summon"
+          showSummonSpawnControl
+          snapshot={draft.snapshot}
+          title="Призвать моба"
+        />
 
         {status ? <p className="admin-status">{status}</p> : null}
       </div>
