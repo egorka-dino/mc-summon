@@ -102,6 +102,15 @@ function freshExplosion(): Explosion {
   return { id: Date.now() + Math.random(), shape: "small_ball", colors: ["#ff0000"], fadeColors: [], trail: false, twinkle: false };
 }
 
+function asLibraryItemSnapshot(snapshot: GiveSnapshot): GiveSnapshot {
+  return {
+    ...snapshot,
+    target: "@s",
+    targetCustom: "",
+    count: "1",
+  };
+}
+
 export function ItemEditor({ adminMode = false, showAiAssistant = false, initialSnapshot, onSnapshotChange }: Props) {
   const [snapshot, setSnapshot] = useState<GiveSnapshot>(() => initialSnapshot || defaultGiveSnapshot());
   const [query, setQuery] = useState("");
@@ -110,7 +119,11 @@ export function ItemEditor({ adminMode = false, showAiAssistant = false, initial
   const [aiNotes, setAiNotes] = useState<string[]>([]);
   const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [toast, setToast] = useState("");
-  const command = useMemo(() => buildGiveCommand(snapshot), [snapshot]);
+  const itemSnapshot = useMemo(
+    () => adminMode ? asLibraryItemSnapshot(snapshot) : snapshot,
+    [adminMode, snapshot],
+  );
+  const command = useMemo(() => buildGiveCommand(itemSnapshot), [itemSnapshot]);
   const selectedItem = snapshot.itemId;
   const shouldShowAiAssistant = !adminMode || showAiAssistant;
   const enchants = useMemo(() => enchantsForItem(selectedItem), [selectedItem]);
@@ -122,7 +135,7 @@ export function ItemEditor({ adminMode = false, showAiAssistant = false, initial
     })).filter((group) => group.items.length);
   }, [query]);
   const longCommand = command.length > 256;
-  const autoTarget = snapshot.targetCustom.trim() === "" && snapshot.target === "@s" && longCommand;
+  const autoTarget = itemSnapshot.targetCustom.trim() === "" && itemSnapshot.target === "@s" && longCommand;
   const potionMods = isPotion(selectedItem) ? potionOptions(selectedItem) : { hasLong: false, hasStrong: false };
 
   useEffect(() => {
@@ -130,8 +143,8 @@ export function ItemEditor({ adminMode = false, showAiAssistant = false, initial
   }, [initialSnapshot]);
 
   useEffect(() => {
-    onSnapshotChange?.(snapshot);
-  }, [snapshot, onSnapshotChange]);
+    onSnapshotChange?.(itemSnapshot);
+  }, [itemSnapshot, onSnapshotChange]);
 
   useEffect(() => {
     if (!filteredGroups.length) return;
@@ -351,22 +364,24 @@ export function ItemEditor({ adminMode = false, showAiAssistant = false, initial
   return (
     <>
       <section className="panel">
-        <h2>Цель и предмет</h2>
-        <div className="grid-2" style={{ marginBottom: 12 }}>
-          <label>
-            <span className="lab">Кому выдать</span>
-            <div style={{ display: "grid", gridTemplateColumns: "100px 1fr", gap: 8 }}>
-              <select value={snapshot.target} onChange={(event) => patch({ target: event.target.value })}>
-                <option value="@s">@s (себе)</option>
-                <option value="@p">@p (ближайший)</option>
-                <option value="@a">@a (всем)</option>
-                <option value="@r">@r (случайный)</option>
-              </select>
-              <input type="text" value={snapshot.targetCustom} onChange={(event) => patch({ targetCustom: event.target.value })} placeholder="или свой селектор: @a[team=red]" />
-            </div>
-          </label>
-          <label><span className="lab">Количество (1-64)</span><input type="number" min="1" max="64" value={snapshot.count} onChange={(event) => patch({ count: clampNumberInput(event.target.value, 1, 64, { integer: true }) })} /></label>
-        </div>
+        <h2>{adminMode ? "Предмет" : "Цель и предмет"}</h2>
+        {!adminMode ? (
+          <div className="grid-2" style={{ marginBottom: 12 }}>
+            <label>
+              <span className="lab">Кому выдать</span>
+              <div style={{ display: "grid", gridTemplateColumns: "100px 1fr", gap: 8 }}>
+                <select value={snapshot.target} onChange={(event) => patch({ target: event.target.value })}>
+                  <option value="@s">@s (себе)</option>
+                  <option value="@p">@p (ближайший)</option>
+                  <option value="@a">@a (всем)</option>
+                  <option value="@r">@r (случайный)</option>
+                </select>
+                <input type="text" value={snapshot.targetCustom} onChange={(event) => patch({ targetCustom: event.target.value })} placeholder="или свой селектор: @a[team=red]" />
+              </div>
+            </label>
+            <label><span className="lab">Количество (1-64)</span><input type="number" min="1" max="64" value={snapshot.count} onChange={(event) => patch({ count: clampNumberInput(event.target.value, 1, 64, { integer: true }) })} /></label>
+          </div>
+        ) : null}
         <label>
           <span className="lab">Предмет</span>
           <div className="item-picker">
@@ -484,7 +499,7 @@ export function ItemEditor({ adminMode = false, showAiAssistant = false, initial
 
       <section className="panel preview-panel give-preview-panel">
         <h2>Предпросмотр</h2>
-        <GivePreview snapshot={snapshot} />
+        <GivePreview snapshot={itemSnapshot} />
       </section>
 
       <section className="panel output-panel">
