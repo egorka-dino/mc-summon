@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 
 function requireDatabaseResponse() {
   if (!getDatabaseUrlStatus().configured) {
-    return Response.json({ ok: false, error: "DATABASE_URL не настроен" }, { status: 503 });
+    return Response.json({ ok: false, error: "Хранилище библиотеки не настроено" }, { status: 503 });
   }
 
   return null;

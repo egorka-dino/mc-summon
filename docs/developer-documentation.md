@@ -29,6 +29,14 @@
 
 ## Генерация команд
 
+### Общие редакторы
+
+- `/give` использует клиентский компонент `app/components/give/ItemEditor.tsx`.
+- `/admin/library/items` использует тот же `ItemEditor` в `adminMode`: публичная коллекция из `localStorage` и блок выполнения на сервере скрыты, а preview и готовая команда остаются видимыми.
+- `/summon` использует клиентский компонент `app/components/summon/MobEditor.tsx`.
+- `/admin/library/mobs` использует тот же `MobEditor` в `adminMode`: публичная коллекция любимчиков скрыта, а snapshot моба передаётся в форму библиотеки через `onSnapshotChange`.
+- AI-помощник в публичных редакторах остаётся включённым. В админке библиотек он включается через `showAiAssistant`.
+
 ### `/summon`
 
 - Команда собирается в `app/components/summon/engine.ts`.
@@ -119,6 +127,22 @@
 - Админская страница `/admin/library/mobs` создаёт эту таблицу при первом обращении и сохраняет записи через общий серверный модуль `app/server/library-mobs.ts`.
 - В публичный список попадают только записи с `enabled = true`; админская страница видит и скрытые записи.
 - Публичный маршрут `/api/summon/templates` сохраняется как совместимый endpoint для текущего клиента, но отдаёт данные из библиотеки мобов. При проблемах с БД он возвращает пустой список, чтобы `/summon` не падал для пользователей.
+
+## Библиотека предметов `/admin/library/items`
+
+- Если настроен `DATABASE_URL`, админка хранит готовые предметы в таблице `library_items`.
+- Таблица содержит `id`, `category`, `name`, `description`, `version`, `snapshot`, `enabled`, `created_at` и `updated_at`.
+- `snapshot` хранит полный `GiveSnapshot`, поэтому команда всегда пересобирается через общий `buildGiveCommand`.
+- Админская страница создаёт таблицу при первом обращении и сохраняет записи через `app/server/library-items.ts`.
+- ID не редактируется в интерфейсе. Для новых предметов сервер генерирует ID через `createLibraryId("item", name)`.
+
+## Библиотека мобов `/admin/library/mobs`
+
+- Админка хранит готовых мобов в таблице `library_mobs`.
+- Таблица содержит `id`, `category`, `name`, `description`, `version`, `mob_order`, `fields`, `enabled`, `created_at` и `updated_at`.
+- `mob_order` и `fields` соответствуют `SummonSnapshot`, поэтому команда всегда пересобирается через общий `buildSummonCommand`.
+- ID не редактируется в интерфейсе. Для новых мобов сервер генерирует ID через `createLibraryId("mob", name)`.
+- Старое серверное хранилище `summon_mob_templates` и админский API `/api/admin/summon/templates` удалены. Единственный источник готовых мобов для админки и публичного `/summon` — `library_mobs`.
 
 ## Интеграция Exaroton
 

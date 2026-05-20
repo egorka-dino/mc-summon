@@ -472,7 +472,7 @@ export function ItemEditor({ adminMode = false, showAiAssistant = false, initial
               <div style={{ gridColumn: "2 / -1" }}><ColorSwatches value={layer.color} onChange={(value) => patch({ shieldLayers: snapshot.shieldLayers.map((item) => item.id === layer.id ? { ...item, color: value } : item) })} /></div>
             </div>)}
             {snapshot.shieldLayers.length < 16 ? <button className="small info" type="button" onClick={() => patch({ shieldLayers: [...snapshot.shieldLayers, freshShieldLayer()] })}>+ Добавить слой</button> : null}
-            <p className="hint">Слои идут сверху вниз как в ткацком станке. Доступны vanilla registry ID узоров из Java 1.21.5.</p>
+            <p className="hint">Слои идут сверху вниз как в ткацком станке. Доступны vanilla ID узоров из Java 1.21.5.</p>
           </div> : null}
         </div> : null}
 
