@@ -260,11 +260,14 @@ body {
 }
 
 .admin-library-toolbar {
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  align-items: start;
 }
 
 .admin-library-toolbar h2 {
-  max-width: 170px;
+  max-width: none;
 }
 
 .admin-toolbar button,
@@ -333,10 +336,14 @@ body {
 }
 
 .admin-library-actions {
-  flex-wrap: nowrap;
+  width: 100%;
+  flex-wrap: wrap;
+  justify-content: flex-start;
 }
 
 .admin-library-actions button {
+  flex: 0 1 auto;
+  max-width: 100%;
   min-height: 34px;
   padding: 6px 9px;
   font-family: "Jost", sans-serif;
