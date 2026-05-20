@@ -121,7 +121,7 @@ export function ServerCommandExecutor({
   }
 
   async function executeCommand() {
-    if (!selectedServer || !player) return;
+    if (!selectedServer || (requiresPlayer && !player)) return;
 
     setBusy(true);
     setResult(null);
@@ -159,6 +159,13 @@ export function ServerCommandExecutor({
     setResult(null);
   }
 
+  function refreshServers() {
+    setServerId("");
+    setPlayer("");
+    setResult(null);
+    setReloadKey((key) => key + 1);
+  }
+
   function clampCount(value: string) {
     const parsed = Number(value.trim().replace(",", "."));
     if (!Number.isFinite(parsed)) return "1";
@@ -172,7 +179,14 @@ export function ServerCommandExecutor({
       {loadingServers ? (
         <p className="server-execute-message">Загружаем серверы Exaroton...</p>
       ) : serverError ? (
-        <p className="server-execute-message error">{serverError}</p>
+        <>
+          <p className="server-execute-message error">{serverError}</p>
+          <div className="btn-row server-execute-actions">
+            <button className="sec" type="button" onClick={refreshServers} disabled={busy || loadingServers}>
+              Обновить серверы
+            </button>
+          </div>
+        </>
       ) : servers.length ? (
         <>
           <div className="grid-2">
@@ -265,7 +279,7 @@ export function ServerCommandExecutor({
             <button type="button" onClick={executeCommand} disabled={!canExecute}>
               {busy ? "Выполняем..." : "Выполнить на сервере"}
             </button>
-            <button className="sec" type="button" onClick={() => setReloadKey((key) => key + 1)} disabled={busy}>
+            <button className="sec" type="button" onClick={refreshServers} disabled={busy || loadingServers}>
               Обновить серверы
             </button>
           </div>
@@ -273,7 +287,14 @@ export function ServerCommandExecutor({
           {result ? <p className={`server-execute-message ${result.tone}`}>{result.text}</p> : null}
         </>
       ) : (
-        <p className="server-execute-message">Сейчас нет онлайн-серверов Exaroton для выполнения команды.</p>
+        <>
+          <p className="server-execute-message">Сейчас нет онлайн-серверов Exaroton для выполнения команды.</p>
+          <div className="btn-row server-execute-actions">
+            <button className="sec" type="button" onClick={refreshServers} disabled={busy || loadingServers}>
+              Обновить серверы
+            </button>
+          </div>
+        </>
       )}
     </section>
   );
