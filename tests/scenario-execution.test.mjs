@@ -6,6 +6,9 @@ import {
   flattenScenarioActions,
   normalizeScenarioActions,
 } from "../.test-build/server/scenario-execution.js";
+import scenariosModule from "../.test-build/server/scenarios.js";
+
+const { assertScenarioHasNoCycles, canReferenceScenario } = scenariosModule;
 
 const scenarios = [
   {
@@ -61,6 +64,23 @@ test("rejects scenario cycles", () => {
     ]),
     /циклический/,
   );
+});
+
+test("rejects saving scenario changes that would create a cycle", () => {
+  assert.throws(
+    () => assertScenarioHasNoCycles(
+      { id: "loop-b", name: "B", description: "", enabled: true, actions: [{ id: "b", type: "run_scenario", scenarioId: "loop-a" }] },
+      [
+        { id: "loop-a", name: "A", description: "", enabled: true, actions: [{ id: "a", type: "run_scenario", scenarioId: "loop-b" }] },
+        { id: "loop-b", name: "B", description: "", enabled: true, actions: [] },
+      ],
+    ),
+    /циклический/,
+  );
+});
+
+test("allows unsaved scenarios to reference existing scenarios in the editor", () => {
+  assert.equal(canReferenceScenario("", "scenario-one", scenarios), true);
 });
 
 test("runs repeated summon commands with concurrency limit", async () => {

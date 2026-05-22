@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { LibraryItem } from "../../server/library-items";
 import type { LibraryMob } from "../../server/library-mobs";
 import type { Scenario, ScenarioAction, ScenarioSpawn } from "../../server/scenarios";
+import { canReferenceScenario } from "../../shared/scenario-cycles";
 
 type ExarotonServer = {
   id: string;
@@ -209,12 +210,13 @@ export function ScenariosClient({ databaseReady, initialItems, initialMobs, init
   }
 
   function addAction(type: "give_item" | "summon_mob" | "run_scenario") {
+    const availableScenario = scenarios.find((scenario) => canReferenceScenario(draft.id, scenario.id, scenarios));
     const action =
       type === "give_item"
         ? { id: actionId(), type, itemId: items[0]?.id || "", quantity: 1 }
         : type === "summon_mob"
           ? { id: actionId(), type, mobId: mobs[0]?.id || "", quantity: 1, spawn: defaultSpawn() }
-          : { id: actionId(), type, scenarioId: scenarios.find((scenario) => scenario.id !== draft.id)?.id || "" };
+          : { id: actionId(), type, scenarioId: availableScenario?.id || "" };
     setDraft((current) => ({ ...current, actions: [...current.actions, action as ScenarioAction] }));
   }
 
@@ -498,6 +500,15 @@ function ActionEditor({
   onUpdate: (patch: Partial<ScenarioAction>) => void;
   scenarios: Scenario[];
 }) {
+  const availableScenarios = scenarios.filter((scenario) => canReferenceScenario(currentScenarioId, scenario.id, scenarios));
+  const selectedScenarioIsBlocked =
+    action.type === "run_scenario" &&
+    Boolean(action.scenarioId) &&
+    !availableScenarios.some((scenario) => scenario.id === action.scenarioId);
+  const selectedScenario = action.type === "run_scenario"
+    ? scenarios.find((scenario) => scenario.id === action.scenarioId)
+    : null;
+
   return (
     <div className="scenario-action-card">
       <div className="scenario-action-head">
@@ -552,11 +563,20 @@ function ActionEditor({
             <span>Сценарий</span>
             <select value={action.scenarioId} onChange={(event) => onUpdate({ scenarioId: event.target.value } as Partial<ScenarioAction>)}>
               <option value="">- выбери сценарий -</option>
-              {scenarios.filter((scenario) => scenario.id !== currentScenarioId).map((scenario) => (
+              {selectedScenarioIsBlocked ? (
+                <option value={action.scenarioId}>{selectedScenario?.name || action.scenarioId} - создаёт цикл</option>
+              ) : null}
+              {availableScenarios.map((scenario) => (
                 <option key={scenario.id} value={scenario.id}>{scenario.name}</option>
               ))}
             </select>
           </label>
+          {selectedScenarioIsBlocked ? (
+            <p className="admin-warning">Этот вложенный сценарий создаёт цикл. Выбери другой сценарий перед сохранением.</p>
+          ) : null}
+          {!availableScenarios.length ? (
+            <p className="admin-library-empty">Нет сценариев, которые можно вложить без цикла.</p>
+          ) : null}
         </div>
       ) : null}
     </div>

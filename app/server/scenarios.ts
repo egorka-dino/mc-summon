@@ -1,5 +1,7 @@
 import { getSql } from "./db";
 import { createLibraryId } from "./library-id";
+export { assertScenarioHasNoCycles, canReferenceScenario, getScenarioCyclePath } from "../shared/scenario-cycles";
+import { assertScenarioHasNoCycles } from "../shared/scenario-cycles";
 
 export type ScenarioSpawn =
   | { type: "near-player" }
@@ -218,6 +220,12 @@ export async function upsertScenario(input: ScenarioInput) {
   await ensureScenariosTable();
 
   const sql = getSql();
+  const existingRows = (await sql`
+    select id, name, description, enabled, actions, created_at, updated_at
+    from scenarios
+  `) as DbScenarioRow[];
+  assertScenarioHasNoCycles(scenario, existingRows.map(rowToScenario));
+
   const rows = (await sql`
     insert into scenarios (id, name, description, enabled, actions, updated_at)
     values (
