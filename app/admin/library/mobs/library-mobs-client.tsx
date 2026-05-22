@@ -121,7 +121,11 @@ export function LibraryMobsClient({ initialMobs, databaseReady }: Props) {
   }
 
   const updateSnapshot = useCallback((snapshot: SummonSnapshot) => {
-    setDraft((current) => ({ ...current, snapshot }));
+    setDraft((current) => (
+      JSON.stringify(sortForCompare(current.snapshot)) === JSON.stringify(sortForCompare(snapshot))
+        ? current
+        : { ...current, snapshot }
+    ));
   }, []);
 
   async function refreshMobs(nextSelectedId?: string) {

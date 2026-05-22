@@ -111,7 +111,11 @@ export function LibraryItemsClient({ initialItems, databaseReady }: Props) {
   }
 
   const updateSnapshot = useCallback((snapshot: GiveSnapshot) => {
-    setDraft((current) => ({ ...current, snapshot }));
+    setDraft((current) => (
+      JSON.stringify(sortForCompare(current.snapshot)) === JSON.stringify(sortForCompare(snapshot))
+        ? current
+        : { ...current, snapshot }
+    ));
   }, []);
 
   async function refreshItems(nextSelectedId?: string) {
