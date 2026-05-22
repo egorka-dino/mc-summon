@@ -1,5 +1,6 @@
 import { ClerkProvider, SignUp } from "@clerk/nextjs";
 import { clerkLocalization } from "../../components/clerk-localization";
+import { isClerkConfigured } from "../../server/clerk-config";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,14 @@ export default async function SignUpPage({ searchParams }: Props) {
   const params = await searchParams;
   const redirectUrl = getSafeRedirectUrl(params?.redirect_url);
   const completeUrl = `/auth/complete?redirect_url=${encodeURIComponent(redirectUrl)}`;
+
+  if (!isClerkConfigured()) {
+    return (
+      <main className="auth-page">
+        Clerk ещё не настроен. Добавьте ключи Clerk в переменные окружения.
+      </main>
+    );
+  }
 
   return (
     <ClerkProvider localization={clerkLocalization}>

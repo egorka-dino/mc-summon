@@ -1,5 +1,6 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import { clerkLocalization } from "../../components/clerk-localization";
+import { isClerkConfigured } from "../../server/clerk-config";
 import { AuthCompleteClient } from "./AuthCompleteClient";
 
 export const dynamic = "force-dynamic";
@@ -21,6 +22,14 @@ function getSafeRedirectUrl(value: string | string[] | undefined) {
 export default async function AuthCompletePage({ searchParams }: Props) {
   const params = await searchParams;
   const redirectUrl = getSafeRedirectUrl(params?.redirect_url);
+
+  if (!isClerkConfigured()) {
+    return (
+      <main className="auth-page">
+        Clerk ещё не настроен. Добавьте ключи Clerk в переменные окружения.
+      </main>
+    );
+  }
 
   return (
     <ClerkProvider localization={clerkLocalization}>

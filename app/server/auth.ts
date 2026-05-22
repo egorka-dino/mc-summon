@@ -1,4 +1,7 @@
 import { currentUser } from "@clerk/nextjs/server";
+import { isClerkConfigured } from "./clerk-config";
+
+export { isClerkConfigured };
 
 type Metadata = Record<string, unknown>;
 
@@ -9,13 +12,6 @@ export type AuthUser = {
   imageUrl: string | null;
   isAdmin: boolean;
 } | null;
-
-export function isClerkConfigured() {
-  return (
-    Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) &&
-    Boolean(process.env.CLERK_SECRET_KEY)
-  );
-}
 
 function asMetadata(value: unknown): Metadata {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
