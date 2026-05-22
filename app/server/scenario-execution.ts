@@ -69,6 +69,10 @@ function itemLabel(item: LibraryItem | undefined, quantity: number) {
   return item ? `Выдать ${item.name} x${quantity}` : "Выдать предмет";
 }
 
+function equipmentLabel(item: LibraryItem | undefined, slot: string) {
+  return item ? `Экипировать ${item.name} в ${slot}` : "Экипировать предмет";
+}
+
 function mobLabel(mob: LibraryMob | undefined, quantity: number) {
   return mob ? `Призвать ${mob.name} x${quantity}` : "Призвать моба";
 }
@@ -177,6 +181,30 @@ export async function executeScenario(params: {
       results.push({
         ok: result.ok,
         label: `${entry.path}: ${itemLabel(item, action.quantity)}`,
+        command: command.command,
+        error: commandError(result),
+      });
+      if (!result.ok) break;
+    }
+
+    if (entry.action.type === "equip_player") {
+      const action = entry.action;
+      const item = params.items.find((libraryItem) => libraryItem.id === action.itemId);
+      if (!item) {
+        results.push({ ok: false, label: equipmentLabel(item, action.slot), error: "Предмет не найден в библиотеке" });
+        break;
+      }
+      const command = buildMinecraftExecutionCommand({
+        mode: "equip",
+        player,
+        equipmentSlot: action.slot,
+        snapshot: item.snapshot,
+      });
+      validatePlayerForCommand(command, player, server);
+      const result = await executeExarotonCommand(server.id, command.command);
+      results.push({
+        ok: result.ok,
+        label: `${entry.path}: ${equipmentLabel(item, action.slot)}`,
         command: command.command,
         error: commandError(result),
       });

@@ -23,6 +23,16 @@ type Props = {
 
 type Draft = Scenario;
 type ExecuteResult = { ok: boolean; label: string; command?: string; error?: string };
+type ScenarioActionType = "give_item" | "equip_player" | "summon_mob" | "run_scenario";
+
+const equipmentSlots = [
+  { value: "armor.head", label: "Шлем" },
+  { value: "armor.chest", label: "Нагрудник" },
+  { value: "armor.legs", label: "Поножи" },
+  { value: "armor.feet", label: "Ботинки" },
+  { value: "weapon.mainhand", label: "Основная рука" },
+  { value: "weapon.offhand", label: "Левая рука" },
+] as const;
 
 function actionId() {
   return `action-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -76,6 +86,11 @@ function describeAction(action: ScenarioAction, items: LibraryItem[], mobs: Libr
   if (action.type === "give_item") {
     const item = items.find((entry) => entry.id === action.itemId);
     return item ? `Выдать ${item.name} x${action.quantity}` : "Выдать предмет";
+  }
+  if (action.type === "equip_player") {
+    const item = items.find((entry) => entry.id === action.itemId);
+    const slot = equipmentSlots.find((entry) => entry.value === action.slot);
+    return item ? `${slot?.label || action.slot}: ${item.name}` : "Экипировать предмет";
   }
   if (action.type === "summon_mob") {
     const mob = mobs.find((entry) => entry.id === action.mobId);
@@ -209,11 +224,46 @@ export function ScenariosClient({ databaseReady, initialItems, initialMobs, init
     }));
   }
 
-  function addAction(type: "give_item" | "summon_mob" | "run_scenario") {
+  function createPreset(type: "items" | "mobs" | "kit") {
+    if (!confirmDiscardUnsavedChanges("Создать сценарий по заготовке и потерять эти правки")) return;
+    const itemId = items[0]?.id || "";
+    const mobId = mobs[0]?.id || "";
+    const actions: ScenarioAction[] =
+      type === "items"
+        ? [
+          { id: actionId(), type: "give_item", itemId, quantity: 1 },
+          { id: actionId(), type: "give_item", itemId, quantity: 1 },
+        ]
+        : type === "mobs"
+          ? [
+            { id: actionId(), type: "summon_mob", mobId, quantity: 1, spawn: defaultSpawn() },
+            { id: actionId(), type: "summon_mob", mobId, quantity: 1, spawn: defaultSpawn() },
+          ]
+          : [
+            ...equipmentSlots.map((slot) => ({ id: actionId(), type: "equip_player" as const, itemId, slot: slot.value })),
+            { id: actionId(), type: "give_item", itemId, quantity: 1 },
+          ];
+    const nextDraft: Draft = {
+      id: "",
+      name: type === "items" ? "Набор предметов" : type === "mobs" ? "Отряд мобов" : "Комплект игрока",
+      description: "",
+      enabled: true,
+      actions,
+    };
+    setSelectedId("");
+    setDraft(nextDraft);
+    setCleanDraft(newDraft());
+    setExecuteResults([]);
+    setStatus("Заготовка создана. Замени элементы библиотеки и сохрани сценарий.");
+  }
+
+  function addAction(type: ScenarioActionType) {
     const availableScenario = scenarios.find((scenario) => canReferenceScenario(draft.id, scenario.id, scenarios));
     const action =
       type === "give_item"
         ? { id: actionId(), type, itemId: items[0]?.id || "", quantity: 1 }
+        : type === "equip_player"
+          ? { id: actionId(), type, itemId: items[0]?.id || "", slot: "weapon.mainhand" }
         : type === "summon_mob"
           ? { id: actionId(), type, mobId: mobs[0]?.id || "", quantity: 1, spawn: defaultSpawn() }
           : { id: actionId(), type, scenarioId: availableScenario?.id || "" };
@@ -407,9 +457,15 @@ export function ScenariosClient({ databaseReady, initialItems, initialMobs, init
             <h2>Действия</h2>
             <div className="admin-inline-actions">
               <button type="button" onClick={() => addAction("give_item")}>Выдать предмет</button>
+              <button type="button" onClick={() => addAction("equip_player")}>Экипировать игрока</button>
               <button type="button" onClick={() => addAction("summon_mob")}>Призвать моба</button>
               <button type="button" onClick={() => addAction("run_scenario")}>Выполнить сценарий</button>
             </div>
+          </div>
+          <div className="scenario-presets">
+            <button type="button" onClick={() => createPreset("items")}>Набор предметов</button>
+            <button type="button" onClick={() => createPreset("mobs")}>Отряд мобов</button>
+            <button type="button" onClick={() => createPreset("kit")}>Комплект игрока</button>
           </div>
 
           <div className="scenario-action-list">
@@ -514,7 +570,7 @@ function ActionEditor({
       <div className="scenario-action-head">
         <div>
           <strong>{index + 1}. {describeAction(action, items, mobs, scenarios)}</strong>
-          <small>{action.type === "give_item" ? "Выдача предмета" : action.type === "summon_mob" ? "Призыв моба" : action.type === "run_scenario" ? "Вложенный сценарий" : "Будущий тип"}</small>
+          <small>{action.type === "give_item" ? "Выдача предмета" : action.type === "equip_player" ? "Слот игрока" : action.type === "summon_mob" ? "Призыв моба" : action.type === "run_scenario" ? "Вложенный сценарий" : "Будущий тип"}</small>
         </div>
         <div className="admin-inline-actions">
           <button className="small" type="button" onClick={onMoveUp}>↑</button>
@@ -536,6 +592,24 @@ function ActionEditor({
           <label>
             <span>Количество</span>
             <input min={1} max={64} type="number" value={action.quantity} onChange={(event) => onUpdate({ quantity: quantity(event.target.value) } as Partial<ScenarioAction>)} />
+          </label>
+        </div>
+      ) : null}
+
+      {action.type === "equip_player" ? (
+        <div className="admin-form-grid scenario-action-fields">
+          <label>
+            <span>Слот</span>
+            <select value={action.slot} onChange={(event) => onUpdate({ slot: event.target.value } as Partial<ScenarioAction>)}>
+              {equipmentSlots.map((slot) => <option key={slot.value} value={slot.value}>{slot.label}</option>)}
+            </select>
+          </label>
+          <label>
+            <span>Предмет</span>
+            <select value={action.itemId} onChange={(event) => onUpdate({ itemId: event.target.value } as Partial<ScenarioAction>)}>
+              <option value="">- выбери предмет -</option>
+              {items.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+            </select>
           </label>
         </div>
       ) : null}

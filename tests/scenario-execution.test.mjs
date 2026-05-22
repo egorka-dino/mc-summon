@@ -36,17 +36,19 @@ const scenarios = [
 test("normalizes scenario actions for supported action types", () => {
   const actions = normalizeScenarioActions([
     { type: "give_item", itemId: "apple", quantity: 70 },
+    { type: "equip_player", itemId: "helmet", slot: "armor.head" },
     { type: "summon_mob", mobId: "zombie", quantity: 0, spawn: { type: "coordinates", coordinates: { x: "1", y: "64", z: "-2" } } },
     { type: "run_scenario", scenarioId: "other" },
     { type: "future", kind: "delay", payload: { ticks: 20 } },
   ]);
 
-  assert.equal(actions.length, 4);
+  assert.equal(actions.length, 5);
   assert.equal(actions[0].quantity, 64);
-  assert.equal(actions[1].quantity, 1);
-  assert.deepEqual(actions[1].spawn, { type: "coordinates", coordinates: { x: "1", y: "64", z: "-2" } });
-  assert.equal(actions[2].scenarioId, "other");
-  assert.equal(actions[3].kind, "delay");
+  assert.equal(actions[1].slot, "armor.head");
+  assert.equal(actions[2].quantity, 1);
+  assert.deepEqual(actions[2].spawn, { type: "coordinates", coordinates: { x: "1", y: "64", z: "-2" } });
+  assert.equal(actions[3].scenarioId, "other");
+  assert.equal(actions[4].kind, "delay");
 });
 
 test("flattens nested run_scenario actions preserving order", () => {

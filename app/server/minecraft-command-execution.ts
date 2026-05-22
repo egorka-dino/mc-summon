@@ -2,7 +2,15 @@ import { buildGiveCommand, defaultGiveSnapshot, type GiveSnapshot } from "../com
 import { buildSummonCommand, normalizeSnapshot, toSnapshot } from "../components/summon/engine";
 import type { SummonSnapshot } from "../components/summon/data";
 
-export type ExecutionMode = "give" | "summon";
+export type EquipmentSlot =
+  | "armor.head"
+  | "armor.chest"
+  | "armor.legs"
+  | "armor.feet"
+  | "weapon.mainhand"
+  | "weapon.offhand";
+
+export type ExecutionMode = "give" | "summon" | "equip";
 export type SummonSpawn =
   | { type: "coordinates"; coordinates?: { x?: unknown; y?: unknown; z?: unknown } }
   | { type: "near-player" }
@@ -14,6 +22,7 @@ type ExecutionInput = {
   player?: string;
   count?: unknown;
   summonSpawn?: unknown;
+  equipmentSlot?: unknown;
 };
 
 type ExecutionCommand = {
@@ -23,6 +32,14 @@ type ExecutionCommand = {
 };
 
 const coordinatePattern = /^-?\d+(?:\.\d+)?$/;
+const equipmentSlots = new Set<EquipmentSlot>([
+  "armor.head",
+  "armor.chest",
+  "armor.legs",
+  "armor.feet",
+  "weapon.mainhand",
+  "weapon.offhand",
+]);
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
@@ -80,6 +97,27 @@ function stripSlash(command: string) {
   return command.replace(/^\//, "");
 }
 
+function normalizeEquipmentSlot(value: unknown): EquipmentSlot {
+  if (typeof value === "string" && equipmentSlots.has(value as EquipmentSlot)) {
+    return value as EquipmentSlot;
+  }
+  return "weapon.mainhand";
+}
+
+function buildItemStack(snapshot: unknown, count: unknown) {
+  const target = "__mc_commands_target__";
+  const command = buildGiveCommand({
+    ...asGiveSnapshot(snapshot, count),
+    target: "@s",
+    targetCustom: target,
+  });
+  const prefix = `/give ${target} `;
+  if (!command.startsWith(prefix)) {
+    throw new Error("Не удалось собрать предмет для экипировки");
+  }
+  return command.slice(prefix.length).replace(/ \d+$/, "");
+}
+
 export function buildMinecraftExecutionCommand(input: ExecutionInput): ExecutionCommand {
   const player = String(input.player || "").trim();
 
@@ -93,6 +131,16 @@ export function buildMinecraftExecutionCommand(input: ExecutionInput): Execution
       command,
       requiresPlayer: true,
       validPrefix: `give ${player} `,
+    };
+  }
+
+  if (input.mode === "equip") {
+    const slot = normalizeEquipmentSlot(input.equipmentSlot);
+    const itemStack = buildItemStack(input.snapshot, 1);
+    return {
+      command: `item replace entity ${player} ${slot} with ${itemStack} 1`,
+      requiresPlayer: true,
+      validPrefix: `item replace entity ${player} ${slot} with `,
     };
   }
 

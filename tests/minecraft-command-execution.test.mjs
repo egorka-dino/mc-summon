@@ -64,6 +64,29 @@ test("builds summon command near selected player", () => {
   assert.equal(result.validPrefix, "execute at Egorka run summon ");
 });
 
+test("builds equipment command for selected player from library item", () => {
+  const result = buildMinecraftExecutionCommand({
+    mode: "equip",
+    player: "Egorka",
+    equipmentSlot: "armor.head",
+    snapshot: {
+      itemId: "diamond_helmet",
+      target: "@s",
+      targetCustom: "",
+      count: "1",
+      fields: { "name": "Шлем рыцаря" },
+      explosions: [],
+      shieldLayers: [],
+      potionType: "",
+      potionModifier: "normal",
+    },
+  });
+
+  assert.equal(result.command, "item replace entity Egorka armor.head with minecraft:diamond_helmet[custom_name='Шлем рыцаря'] 1");
+  assert.equal(result.requiresPlayer, true);
+  assert.equal(result.validPrefix, "item replace entity Egorka armor.head with ");
+});
+
 test("normalizes execution count into Minecraft stack bounds", () => {
   assert.equal(normalizeExecutionCount("0"), "1");
   assert.equal(normalizeExecutionCount("65"), "64");

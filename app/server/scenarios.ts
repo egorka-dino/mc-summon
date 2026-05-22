@@ -2,6 +2,7 @@ import { getSql } from "./db";
 import { createLibraryId } from "./library-id";
 export { assertScenarioHasNoCycles, canReferenceScenario, getScenarioCyclePath } from "../shared/scenario-cycles";
 import { assertScenarioHasNoCycles } from "../shared/scenario-cycles";
+import type { EquipmentSlot } from "./minecraft-command-execution";
 
 export type ScenarioSpawn =
   | { type: "near-player" }
@@ -13,6 +14,13 @@ export type GiveItemScenarioAction = {
   type: "give_item";
   itemId: string;
   quantity: number;
+};
+
+export type EquipPlayerScenarioAction = {
+  id: string;
+  type: "equip_player";
+  itemId: string;
+  slot: EquipmentSlot;
 };
 
 export type SummonMobScenarioAction = {
@@ -38,6 +46,7 @@ export type FutureScenarioAction = {
 
 export type ScenarioAction =
   | GiveItemScenarioAction
+  | EquipPlayerScenarioAction
   | SummonMobScenarioAction
   | RunScenarioAction
   | FutureScenarioAction;
@@ -116,6 +125,21 @@ function normalizeQuantity(value: unknown) {
   return Math.min(64, Math.max(1, Math.trunc(parsed)));
 }
 
+function normalizeEquipmentSlot(value: unknown): EquipmentSlot {
+  const slot = stringValue(value);
+  if (
+    slot === "armor.head" ||
+    slot === "armor.chest" ||
+    slot === "armor.legs" ||
+    slot === "armor.feet" ||
+    slot === "weapon.mainhand" ||
+    slot === "weapon.offhand"
+  ) {
+    return slot;
+  }
+  return "weapon.mainhand";
+}
+
 function createActionId(index: number) {
   return `action-${Date.now().toString(36)}-${index}-${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -150,6 +174,14 @@ export function normalizeScenarioActions(input: unknown): ScenarioAction[] {
           type: "give_item",
           itemId: stringValue(action.itemId),
           quantity: normalizeQuantity(action.quantity),
+        };
+      }
+      if (action.type === "equip_player") {
+        return {
+          id,
+          type: "equip_player",
+          itemId: stringValue(action.itemId),
+          slot: normalizeEquipmentSlot(action.slot),
         };
       }
       if (action.type === "summon_mob") {

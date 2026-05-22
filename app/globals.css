@@ -396,6 +396,17 @@ body {
   gap: 10px;
 }
 
+.scenario-presets {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+}
+
+.scenario-presets button {
+  min-height: 42px;
+  border-style: dashed;
+}
+
 .scenario-action-card {
   display: grid;
   gap: 12px;
