@@ -128,6 +128,9 @@ export function ScenariosClient({ databaseReady, initialItems, initialMobs, init
   const [serverError, setServerError] = useState("");
   const [loadingServers, setLoadingServers] = useState(false);
   const [executeResults, setExecuteResults] = useState<ExecuteResult[]>([]);
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiNotes, setAiNotes] = useState<string[]>([]);
   const hasUnsavedChanges = useMemo(
     () => serializeDraft(draft) !== serializeDraft(cleanDraft),
     [draft, cleanDraft],
@@ -392,6 +395,37 @@ export function ScenariosClient({ databaseReady, initialItems, initialMobs, init
     }
   }
 
+  async function fillScenarioWithAi() {
+    const prompt = aiPrompt.trim();
+    if (!prompt || aiBusy) return;
+    if (!confirmDiscardUnsavedChanges("Заменить текущий черновик результатом AI")) return;
+    setAiBusy(true);
+    setAiNotes([]);
+    setStatus("");
+    try {
+      const response = await fetch("/api/admin/scenarios/ai", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ prompt }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error || "AI не смог заполнить сценарий");
+      }
+      const nextDraft = data.draft as Draft;
+      setSelectedId("");
+      setDraft(nextDraft);
+      setCleanDraft(newDraft());
+      setExecuteResults([]);
+      setAiNotes(Array.isArray(data.notes) ? data.notes : []);
+      setStatus("AI заполнил черновик. Проверь действия, выбери сервер и сохрани сценарий вручную.");
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "AI не смог заполнить сценарий");
+    } finally {
+      setAiBusy(false);
+    }
+  }
+
   return (
     <section className="admin-editor">
       <div className="admin-template-list">
@@ -451,6 +485,24 @@ export function ScenariosClient({ databaseReady, initialItems, initialMobs, init
           <span>Описание</span>
           <textarea rows={3} value={draft.description} onChange={(event) => updateDraft("description", event.target.value)} />
         </label>
+
+        <section className="panel ai-panel admin-scenario-ai">
+          <h2>Заполнить сценарий словами <span className="sub">AI-помощник</span></h2>
+          <textarea
+            rows={3}
+            value={aiPrompt}
+            onChange={(event) => setAiPrompt(event.target.value)}
+            placeholder="Например: стартовый набор: железный меч, железная кирка, 16 яблок и 5 факелов"
+          />
+          <div className="btn-row ai-actions">
+            <button type="button" onClick={fillScenarioWithAi} disabled={aiBusy || !aiPrompt.trim()}>
+              {aiBusy ? "Думаю..." : "Заполнить черновик"}
+            </button>
+            <button className="sec" type="button" onClick={() => { setAiPrompt(""); setAiNotes([]); }} disabled={aiBusy || (!aiPrompt && !aiNotes.length)}>Очистить</button>
+          </div>
+          <p className="hint">AI только заполняет форму из элементов библиотеки. Сценарий нужно проверить, сохранить и выполнить вручную.</p>
+          {aiNotes.length ? <ul className="ai-notes">{aiNotes.map((note, index) => <li key={`${note}-${index}`}>{note}</li>)}</ul> : null}
+        </section>
 
         <section className="admin-scenario-actions">
           <div className="admin-toolbar">
