@@ -1,5 +1,11 @@
 const releases = [
   {
+    date: "1 июня 2026",
+    items: [
+      <>Появился раздел <strong>«Места»</strong>: можно сохранять личные координаты Minecraft, фильтровать их, копировать X Y Z и переносить локальные точки в аккаунт после входа.</>,
+    ],
+  },
+  {
     date: "17 мая 2026",
     items: [
       <>Появилась страница <strong>«Серверная»</strong>: там можно посмотреть адреса серверов сообщества, онлайн игроков, версии и выбрать, куда зайти поиграть.</>,
@@ -61,6 +67,11 @@ export default function HomePage() {
             <a href="/give" className="cmd-card give">
               <div className="cmd-title">/GIVE</div>
               <div className="cmd-desc">Выдать предмет игроку: зачарования, еда с эффектами, фейерверки, тотем-поведение для любого предмета</div>
+              <span className="cmd-arrow">▶</span>
+            </a>
+            <a href="/locations" className="cmd-card locations">
+              <div className="cmd-title">МЕСТА</div>
+              <div className="cmd-desc">Сохранить личные координаты: базы, порталы, сундуки, фермы, структуры и опасные точки</div>
               <span className="cmd-arrow">▶</span>
             </a>
             <a href="/servers" className="cmd-card servers">

@@ -1042,3 +1042,105 @@
   .fav-actions { display: flex; flex-direction: row; gap: 6px; margin-top: 8px; }
   .empty-favs { font-size: 13px; color: var(--muted); font-style: italic; }
   #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--panel-3); border-radius: 4px; padding: 8px 14px; font-size: 13px; color: var(--text); opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 9999; }
+
+  .cmd-card.locations .cmd-title,
+  .cmd-card.locations .cmd-arrow {
+    color: var(--accent-3);
+  }
+
+  .cmd-card.locations:hover {
+    border-color: var(--accent-3);
+  }
+
+  .locations-panel {
+    display: grid;
+    gap: 14px;
+  }
+
+  .locations-toolbar,
+  .locations-card-head,
+  .locations-import-actions,
+  .locations-card-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .locations-toolbar h2 {
+    margin: 0;
+  }
+
+  .locations-notice,
+  .locations-error,
+  .locations-empty {
+    border: 2px solid var(--border);
+    background: var(--panel-2);
+    border-radius: 4px;
+    padding: 10px;
+    color: var(--text);
+  }
+
+  .locations-error {
+    border-color: #ff6b6b;
+    color: #ffb4b4;
+  }
+
+  .locations-filters,
+  .locations-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+  }
+
+  .locations-form {
+    border: 2px solid var(--border);
+    background: var(--panel-2);
+    border-radius: 4px;
+    padding: 12px;
+  }
+
+  .locations-form textarea {
+    min-height: 84px;
+  }
+
+  .locations-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+  }
+
+  .locations-card {
+    border: 2px solid var(--border);
+    background: var(--panel-2);
+    border-radius: 4px;
+    padding: 12px;
+  }
+
+  .locations-card h3 {
+    margin: 0;
+    color: var(--accent);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .locations-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 8px 0;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .locations-coordinates {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent-2);
+  }
+
+  .locations-description {
+    margin: 8px 0 0;
+    white-space: pre-wrap;
+  }

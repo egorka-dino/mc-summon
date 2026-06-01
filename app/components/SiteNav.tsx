@@ -7,6 +7,7 @@ const links = [
   { href: "/", label: "Командный хаб", exact: true },
   { href: "/summon", label: "/summon" },
   { href: "/give", label: "/give" },
+  { href: "/locations", label: "Места" },
   { href: "/servers", label: "Серверная" },
 ];
 
