@@ -325,7 +325,7 @@ export function LocationsEditor() {
 
       <div className="locations-filters">
         <label className="locations-search-field">
-          <span className="lab">Поиск по названию и описанию</span>
+          <span className="lab">Поиск</span>
           <input type="search" value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} />
         </label>
         <label>

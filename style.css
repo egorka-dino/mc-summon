@@ -1087,7 +1087,17 @@
     color: #ffb4b4;
   }
 
-  .locations-filters,
+  .locations-filters {
+    display: grid;
+    grid-template-columns: minmax(260px, 1.5fr) repeat(3, minmax(150px, 1fr));
+    gap: 10px;
+    align-items: end;
+    padding: 10px;
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.12);
+  }
+
   .locations-form-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -1095,11 +1105,7 @@
   }
 
   .locations-search-field {
-    grid-column: 1 / -1;
-    border: 2px dashed var(--border);
-    background: rgba(0, 0, 0, 0.12);
-    border-radius: 4px;
-    padding: 8px;
+    min-width: 0;
   }
 
   .locations-form {
@@ -1199,6 +1205,10 @@
   }
 
   @media (max-width: 520px) {
+    .locations-filters {
+      grid-template-columns: 1fr;
+    }
+
     .locations-coordinate-fields {
       grid-template-columns: 1fr;
     }
