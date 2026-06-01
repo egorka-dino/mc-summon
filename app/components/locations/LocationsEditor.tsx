@@ -324,8 +324,8 @@ export function LocationsEditor() {
       ) : null}
 
       <div className="locations-filters">
-        <label>
-          <span className="lab">Поиск</span>
+        <label className="locations-search-field">
+          <span className="lab">Поиск по названию и описанию</span>
           <input value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} />
         </label>
         <label>
@@ -428,7 +428,11 @@ export function LocationsEditor() {
               <div className="locations-meta">
                 <span>{location.server}</span>
                 <span>{LOCATION_WORLD_LABELS[location.world]}</span>
-                <span className="locations-coordinates">{formatLocationCoordinates(location)}</span>
+              </div>
+              <div className="locations-coordinates" aria-label={`Координаты ${formatLocationCoordinates(location)}`}>
+                <span><strong>X</strong>{location.x}</span>
+                <span><strong>Y</strong>{location.y}</span>
+                <span><strong>Z</strong>{location.z}</span>
               </div>
               {location.description ? <p className="locations-description">{location.description}</p> : null}
               <div className="locations-card-actions">

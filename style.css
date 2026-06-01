@@ -1094,6 +1094,14 @@
     gap: 10px;
   }
 
+  .locations-search-field {
+    grid-column: 1 / -1;
+    border: 2px dashed var(--border);
+    background: rgba(0, 0, 0, 0.12);
+    border-radius: 4px;
+    padding: 8px;
+  }
+
   .locations-form {
     border: 2px solid var(--border);
     background: var(--panel-2);
@@ -1136,8 +1144,31 @@
   }
 
   .locations-coordinates {
-    font-family: 'JetBrains Mono', monospace;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    width: fit-content;
+    max-width: 100%;
+    margin-top: 8px;
+    padding: 7px 9px;
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    background: var(--code-bg);
     color: var(--accent-2);
+    font-family: 'JetBrains Mono', monospace;
+    white-space: nowrap;
+    overflow-x: auto;
+  }
+
+  .locations-coordinates span {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+  }
+
+  .locations-coordinates strong {
+    color: var(--muted);
+    font-family: 'Jost', sans-serif;
   }
 
   .locations-description {
