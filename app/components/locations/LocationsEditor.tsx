@@ -326,7 +326,7 @@ export function LocationsEditor() {
       <div className="locations-filters">
         <label className="locations-search-field">
           <span className="lab">Поиск по названию и описанию</span>
-          <input value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} />
+          <input type="search" value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} />
         </label>
         <label>
           <span className="lab">Сервер</span>
@@ -356,7 +356,7 @@ export function LocationsEditor() {
           <div className="locations-form-grid">
             <label>
               <span className="lab">Название</span>
-              <input value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} />
+              <input type="text" value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} />
             </label>
             {servers.length ? (
               <label>
@@ -378,7 +378,7 @@ export function LocationsEditor() {
             {form.serverMode === "custom" || !servers.length ? (
               <label>
                 <span className="lab">Сервер</span>
-                <input value={form.customServer} onChange={(event) => setForm({ ...form, customServer: event.target.value })} />
+                <input type="text" value={form.customServer} onChange={(event) => setForm({ ...form, customServer: event.target.value })} />
               </label>
             ) : null}
             <label>
@@ -391,15 +391,15 @@ export function LocationsEditor() {
               <legend>Координаты</legend>
               <label>
                 <span className="lab">X</span>
-                <input value={form.x} onChange={(event) => setForm({ ...form, x: event.target.value })} />
+                <input type="number" value={form.x} onChange={(event) => setForm({ ...form, x: event.target.value })} />
               </label>
               <label>
                 <span className="lab">Y</span>
-                <input value={form.y} onChange={(event) => setForm({ ...form, y: event.target.value })} />
+                <input type="number" value={form.y} onChange={(event) => setForm({ ...form, y: event.target.value })} />
               </label>
               <label>
                 <span className="lab">Z</span>
-                <input value={form.z} onChange={(event) => setForm({ ...form, z: event.target.value })} />
+                <input type="number" value={form.z} onChange={(event) => setForm({ ...form, z: event.target.value })} />
               </label>
             </fieldset>
             <label>

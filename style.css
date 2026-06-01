@@ -426,7 +426,7 @@
     gap: 4px;
   }
   label span.lab { font-weight: 600; color: var(--text); letter-spacing: 0.3px; font-size: 13px; }
-  input[type="text"], input[type="number"], textarea, select {
+  input[type="text"], input[type="search"], input[type="number"], input:not([type]), textarea, select {
     background: var(--bg);
     border: 2px solid var(--border);
     color: var(--text);
