@@ -1113,6 +1113,28 @@
     min-height: 84px;
   }
 
+  .locations-coordinate-fields {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(82px, 1fr));
+    gap: 8px;
+    grid-column: 1 / -1;
+    margin: 0;
+    padding: 9px;
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.12);
+  }
+
+  .locations-coordinate-fields legend {
+    padding: 0 6px;
+    color: var(--muted);
+    font-weight: 700;
+  }
+
+  .locations-coordinate-fields label {
+    min-width: 0;
+  }
+
   .locations-list {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -1174,4 +1196,10 @@
   .locations-description {
     margin: 8px 0 0;
     white-space: pre-wrap;
+  }
+
+  @media (max-width: 520px) {
+    .locations-coordinate-fields {
+      grid-template-columns: 1fr;
+    }
   }

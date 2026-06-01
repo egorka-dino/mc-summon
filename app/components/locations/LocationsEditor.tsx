@@ -387,18 +387,21 @@ export function LocationsEditor() {
                 {LOCATION_WORLDS.map((world) => <option key={world} value={world}>{LOCATION_WORLD_LABELS[world]}</option>)}
               </select>
             </label>
-            <label>
-              <span className="lab">X</span>
-              <input value={form.x} onChange={(event) => setForm({ ...form, x: event.target.value })} />
-            </label>
-            <label>
-              <span className="lab">Y</span>
-              <input value={form.y} onChange={(event) => setForm({ ...form, y: event.target.value })} />
-            </label>
-            <label>
-              <span className="lab">Z</span>
-              <input value={form.z} onChange={(event) => setForm({ ...form, z: event.target.value })} />
-            </label>
+            <fieldset className="locations-coordinate-fields">
+              <legend>Координаты</legend>
+              <label>
+                <span className="lab">X</span>
+                <input value={form.x} onChange={(event) => setForm({ ...form, x: event.target.value })} />
+              </label>
+              <label>
+                <span className="lab">Y</span>
+                <input value={form.y} onChange={(event) => setForm({ ...form, y: event.target.value })} />
+              </label>
+              <label>
+                <span className="lab">Z</span>
+                <input value={form.z} onChange={(event) => setForm({ ...form, z: event.target.value })} />
+              </label>
+            </fieldset>
             <label>
               <span className="lab">Тип</span>
               <select value={form.type} onChange={(event) => setForm({ ...form, type: event.target.value as LocationType })}>
